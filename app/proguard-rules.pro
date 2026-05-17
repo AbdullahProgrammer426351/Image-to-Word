@@ -1,21 +1,37 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Ads
+-keep class com.google.android.gms.ads.** { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Billing
+-keep class com.android.billingclient.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# UMP
+-keep class com.google.android.ump.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# PDFBox
+-keep class org.apache.pdfbox.** { *; }
+-keep class org.apache.fontbox.** { *; }
+
+# Optional safety
+-keep class com.airbnb.lottie.** { *; }
+
+# WorkManager
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keep class androidx.work.impl.background.systemjob.SystemJobService { *; }
+-keep class androidx.work.impl.background.systemalarm.SystemAlarmService { *; }
+-keep class androidx.work.impl.background.systemalarm.ConstraintProxy { *; }
+-keep class androidx.work.impl.background.systemalarm.ConstraintProxy$* { *; }
+#-keep class androidx.work.impl.workers.DiagnosticsReceiver { *; }
+-dontwarn androidx.work.impl.**
+
+# Room
+#-keep class * extends androidx.room.RoomDatabase
+#-keep class * extends androidx.room.Entity
+#-keep class * extends androidx.room.Dao
+#-dontwarn androidx.room.**
+
+# App Startup
+-keep class androidx.startup.** { *; }
+
+# Gemalto (PDFBox dependencies)
+-dontwarn com.gemalto.jp2.JP2Decoder
+-dontwarn com.gemalto.jp2.JP2Encoder

@@ -9,7 +9,7 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.image.word.converter.convert.docx" />
-                  <option name="mobileSdkAppId" value="1:1080587695450:android:3dbc635eb260638e852f63" />
+                  <option name="mobileSdkAppId" value="1:1080587695450:android:fca0fff3adf65587852f63" />
                   <option name="projectId" value="converter-api-project" />
                   <option name="projectNumber" value="1080587695450" />
                 </ConnectionSetting>

@@ -9,25 +9,6 @@
       "client_info": {
         "mobilesdk_app_id": "1:1080587695450:android:fca0fff3adf65587852f63",
         "android_client_info": {
-          "package_name": "com.image.excel.converter.spreadsheet.xlsx.convert"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCbuHqBGnQ9letYdTAfhpi3zCzSlLA5Dz0"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1080587695450:android:3dbc635eb260638e852f63",
-        "android_client_info": {
           "package_name": "com.image.word.converter.convert.docx"
         }
       },

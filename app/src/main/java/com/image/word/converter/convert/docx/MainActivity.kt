@@ -9,14 +9,19 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.view.WindowCompat
+import com.google.firebase.auth.FirebaseAuth
 import com.image.word.converter.convert.docx.ads.AdsGate
+import com.image.word.converter.convert.docx.ads.AdsInitializer
 import com.image.word.converter.convert.docx.ads.AdsRemoteConfig
 import com.image.word.converter.convert.docx.ads.AppOpenAdManager
 import com.image.word.converter.convert.docx.ads.ConsentManager
 import com.image.word.converter.convert.docx.ads.FrequencyAppOpenAdManager
 import com.image.word.converter.convert.docx.ads.InterstitialAdManager
 import com.image.word.converter.convert.docx.subscriptions.SubscriptionViewModel
-import com.image.word.converter.convert.docx.ui.navigation.AppNavGraph
+import com.image.word.converter.convert.docx.ui.AppRoot
+import com.image.word.converter.convert.docx.ui.state.ThemeMode
+import com.image.word.converter.convert.docx.ui.state.ThemeViewModel
 import com.image.word.converter.convert.docx.ui.theme.ImageToWordTheme
 
 class MainActivity : ComponentActivity() {
@@ -28,30 +33,37 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val subscriptionViewModel: SubscriptionViewModel = viewModel()
-            val subscriptionState by subscriptionViewModel.uiState.collectAsState()
+            val themeViewModel: ThemeViewModel = viewModel()
+            val uiState by subscriptionViewModel.uiState.collectAsState()
+            val themeMode by themeViewModel.themeMode.collectAsState()
 
             SideEffect {
-                AdsGate.isSubscribedProvider = { subscriptionState.isSubscribed }
+                AdsGate.isSubscribedProvider = { uiState.isSubscribed }
             }
 
             LaunchedEffect(Unit) {
                 AdsRemoteConfig.initialize(this@MainActivity) {
                     ConsentManager.shared.requestConsent(this@MainActivity) {
+                        AdsInitializer.initialize(this@MainActivity)
                         InterstitialAdManager.shared.load(this@MainActivity)
                         InterstitialAdManager.frequencyShared.load(this@MainActivity)
                         AppOpenAdManager.shared.loadIfNeeded(this@MainActivity)
-                        FrequencyAppOpenAdManager.shared.load(this@MainActivity)
                         AdsGate.canShowResumeAppOpen = true
                     }
                 }
             }
 
-            ImageToWordTheme {
-                AppNavGraph(
-                    subscriptionState = subscriptionState,
-                    subscriptionViewModel = subscriptionViewModel,
-                    activity = this@MainActivity
-                )
+            val darkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+
+            ImageToWordTheme(darkTheme = darkTheme) {
+                SideEffect {
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = !darkTheme
+                }
+                AppRoot(activity = this)
             }
         }
     }

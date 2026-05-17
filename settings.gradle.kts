@@ -19,8 +19,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
-rootProject.name = "Image to Word"
+rootProject.name = "Image_to_Word"
 include(":app")
+ 
