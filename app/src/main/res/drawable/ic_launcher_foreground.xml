@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Main document shape -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M32,21h34l12,12v48c0,3.3 -2.7,6 -6,6h-40c-3.3,0 -6,-2.7 -6,-6v-54c0,-3.3 2.7,-6 6,-6z" />
+
+    <!-- Image section cutout/background -->
+    <path
+        android:fillColor="@color/ic_launcher_background"
+        android:pathData="M38,32h32v20h-32z" />
+    <!-- Image symbol (landscape) -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M42,48l6,-10l5,5l8,-12l7,17h-26z" />
+
+    <!-- Transition Arrow -->
+    <path
+        android:fillColor="@color/ic_launcher_background"
+        android:pathData="M51,54h6v4h3l-6,6l-6,-6h3z" />
+
+    <!-- Word section cutout/background -->
+    <path
+        android:fillColor="@color/ic_launcher_background"
+        android:pathData="M38,66h32v18h-32z" />
+    <!-- Stylized 'W' -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M42,70h4l2,6l2,-6h4l2,6l2,-6h4l-4,10h-4l-2,-6l-2,6h-4z" />
+
+    <!-- Corner fold shadow/detail -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M66,21v12h12z" />
+</vector>
