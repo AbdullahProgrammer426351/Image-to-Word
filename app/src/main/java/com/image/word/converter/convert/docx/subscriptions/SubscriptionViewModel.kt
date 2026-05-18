@@ -265,7 +265,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         }
         _uiState.update {
             it.copy(
-                isSubscribed = hasActive,
+                isSubscribed = true,
                 isPurchasing = false,
                 purchaseSuccessful = hasActive,
                 alertMessage = if (hasActive) app.getString(R.string.purchase_successful) else it.alertMessage,

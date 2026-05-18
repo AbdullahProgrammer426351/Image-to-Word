@@ -16,3 +16,9 @@ fun appBlack(): Color {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     return if (isDark) Color.White else Color.Black
 }
+
+@Composable
+fun wordPlanBorderUnselected(): Color {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    return if (isDark) WordPlanBorderUnselectedDark else WordPlanBorderUnselected
+}

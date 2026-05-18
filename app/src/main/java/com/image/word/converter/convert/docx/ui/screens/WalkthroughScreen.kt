@@ -84,6 +84,7 @@ fun WalkthroughScreen(onDone: () -> Unit) {
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 18.dp),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(page.subtitle),

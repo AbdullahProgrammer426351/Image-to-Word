@@ -112,7 +112,8 @@ fun AdjustScreen(
                     text = (sliderValue * 128).toInt().toString(),
                     modifier = Modifier.padding(start = 10.dp),
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 

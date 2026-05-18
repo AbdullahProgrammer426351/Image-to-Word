@@ -17,6 +17,7 @@ val DarkSurfaceVariant = Color(0xFF1E2630)
 
 val WordGrayTextSub = Color(0xFF8E8E93)
 val WordPlanBorderUnselected = Color(0xFFE9E9E9)
+val WordPlanBorderUnselectedDark = Color(0xFF2C3542)
 
 object WordGradients {
     val walkthroughButton = listOf(Color(0xFF3F00BE), Color(0xFF0158FD))

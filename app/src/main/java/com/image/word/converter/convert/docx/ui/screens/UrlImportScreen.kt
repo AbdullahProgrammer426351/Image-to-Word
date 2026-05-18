@@ -62,6 +62,7 @@ fun UrlImportScreen(
                     Text(
                         text = stringResource(R.string.enter_your_url),
                         style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     OutlinedTextField(
                         value = url,

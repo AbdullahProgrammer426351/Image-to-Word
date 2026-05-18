@@ -62,7 +62,7 @@ import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
 import com.image.word.converter.convert.docx.ui.theme.WordGradients
 import com.image.word.converter.convert.docx.ui.theme.WordGrayTextSub
-import com.image.word.converter.convert.docx.ui.theme.WordPlanBorderUnselected
+import com.image.word.converter.convert.docx.ui.theme.wordPlanBorderUnselected
 
 @Composable
 fun SubscriptionScreen(
@@ -167,6 +167,7 @@ fun SubscriptionScreen(
                     Text(
                         text = stringResource(resId),
                         style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -181,7 +182,8 @@ fun SubscriptionScreen(
                     val borderBrush = if (selected) {
                         Brush.horizontalGradient(WordGradients.subscribeButton)
                     } else {
-                        Brush.horizontalGradient(listOf(WordPlanBorderUnselected, WordPlanBorderUnselected))
+                        val unselectedColor = wordPlanBorderUnselected()
+                        Brush.horizontalGradient(listOf(unselectedColor, unselectedColor))
                     }
                     Box(
                         modifier = Modifier
@@ -189,7 +191,7 @@ fun SubscriptionScreen(
                             .padding(bottom = 5.dp)
                             .border(4.dp, borderBrush, RoundedCornerShape(16.dp))
                             .background(
-                                if (selected) Color.Transparent else LightSurfaceVariant,
+                                if (selected) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant,
                                 RoundedCornerShape(16.dp),
                             )
                             .clickable { viewModel.selectProduct(product.id) }
@@ -201,11 +203,13 @@ fun SubscriptionScreen(
                                     text = product.label,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "${product.priceFormatted} / ${billingUnitLabel(product.billingPeriod)}",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Text(
@@ -338,13 +342,15 @@ private fun SubscriptionHeader() {
             },
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(top = 4.dp),
-            fontWeight = FontWeight.ExtraBold
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = stringResource(R.string.subscription_desc_ios),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp),
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

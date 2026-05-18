@@ -81,7 +81,9 @@ fun ResultScreen(
         HoldOnDialog()
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)) {
         ChildTopBar(
             title = stringResource(R.string.converted_file),
             onBack = onBackHome,
@@ -93,6 +95,7 @@ fun ResultScreen(
                     modifier = Modifier
                         .size(28.dp)
                         .clickable(onClick = onBackHome),
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             },
         )
@@ -125,7 +128,7 @@ fun ResultScreen(
                 } else {
                     AssetImage(name = "ic_word.png", modifier = Modifier.size(120.dp))
                 }
-                Text(item.fileName, fontWeight = FontWeight.Bold)
+                Text(item.fileName, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ResultAction("ic_eye.svg", stringResource(R.string.preview)) { previewItem(item) }
                     ResultAction("ic_share_ex.svg", stringResource(R.string.share)) {
@@ -140,7 +143,9 @@ fun ResultScreen(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.weight(1f).padding(12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -148,7 +153,10 @@ fun ResultScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(12.dp)
+                            )
                             .clickable { previewItem(item) }
                             .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -163,33 +171,41 @@ fun ResultScreen(
                         } else {
                             AssetImage(name = "ic_word.png", modifier = Modifier.size(80.dp))
                         }
-                        Text(item.fileName, maxLines = 1, modifier = Modifier.padding(top = 6.dp))
+                        Text(
+                            item.fileName,
+                            maxLines = 1,
+                            modifier = Modifier.padding(top = 6.dp),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
         }
 
-        GradientButton(
-            text = stringResource(R.string.export),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            icon = "ic_download.svg",
-            enabled = items.isNotEmpty() && !exporting,
-            onClick = {
-                val first = items.firstOrNull() ?: return@GradientButton
-                exporting = true
-                scope.launch {
-                    val ok = WordFileHelper.exportWord(context, first)
-                    exporting = false
-                    if (!ok) {
-                        Toast.makeText(context, R.string.word_export_failed, Toast.LENGTH_SHORT).show()
+        Column(modifier = Modifier.navigationBarsPadding()){
+            GradientButton(
+                text = stringResource(R.string.export),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                icon = "ic_download.svg",
+                enabled = items.isNotEmpty() && !exporting,
+                onClick = {
+                    val first = items.firstOrNull() ?: return@GradientButton
+                    exporting = true
+                    scope.launch {
+                        val ok = WordFileHelper.exportWord(context, first)
+                        exporting = false
+                        if (!ok) {
+                            Toast.makeText(context, R.string.word_export_failed, Toast.LENGTH_SHORT)
+                                .show()
+                        }
                     }
-                }
-            },
-        )
+                },
+            )
 
-        BannerAd(isSubscribed = isSubscribed, modifier = Modifier.navigationBarsPadding())
+            BannerAd(isSubscribed = isSubscribed)
+        }
     }
 }
 
@@ -197,13 +213,16 @@ fun ResultScreen(
 private fun ResultAction(icon: String, label: String, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick).padding(8.dp),
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(8.dp),
     ) {
         AssetImage(name = icon, modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp),
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

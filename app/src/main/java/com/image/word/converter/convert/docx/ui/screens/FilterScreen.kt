@@ -233,7 +233,8 @@ fun FilterScreen(
                             Text(
                                 text = filter.name,
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(top = 4.dp)
+                                modifier = Modifier.padding(top = 4.dp),
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }

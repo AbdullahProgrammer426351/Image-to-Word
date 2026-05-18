@@ -27,6 +27,8 @@ import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.MiniOptionCard
 import com.image.word.converter.convert.docx.ui.components.RemainingAttemptBanner
+import com.image.word.converter.convert.docx.ui.theme.DarkSurfaceVariant
+import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
 
 @Composable
@@ -149,11 +151,12 @@ private fun HomeBigCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp),
+                color = Color.Black
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = DarkSurfaceVariant,
             )
         }
     }
