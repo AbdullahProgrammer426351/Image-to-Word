@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -191,7 +192,7 @@ fun BatchPreviewScreen(
             ) {
 
                 EditActionButton(
-                    icon = "icLeft.svg",
+                    icon = "ic_left.svg",
                     label = stringResource(R.string.left),
                     isSubscribed = isSubscribed,
                     onClick = {
@@ -209,7 +210,7 @@ fun BatchPreviewScreen(
                 )
 
                 EditActionButton(
-                    icon = "icRight.svg",
+                    icon = "ic_right.svg",
                     label = stringResource(R.string.right),
                     isSubscribed = isSubscribed,
                     onClick = {
@@ -226,7 +227,7 @@ fun BatchPreviewScreen(
                 )
 
                 EditActionButton(
-                    icon = "icCrop.svg",
+                    icon = "ic_crop.svg",
                     label = stringResource(R.string.crop),
                     isSubscribed = isSubscribed,
                     onClick = {
@@ -253,21 +254,21 @@ fun BatchPreviewScreen(
                 )
 
                 EditActionButton(
-                    icon = "adjustIconEx.svg",
+                    icon = "adjust_icon_ex.svg",
                     label = stringResource(R.string.adjust),
                     isSubscribed = isSubscribed,
                     onClick = { onAdjust(selectedIndex) }
                 )
 
                 EditActionButton(
-                    icon = "colorIconEx.svg",
+                    icon = "color_icon_ex.svg",
                     label = stringResource(R.string.filter),
                     isSubscribed = isSubscribed,
                     onClick = { onFilter(selectedIndex) }
                 )
 
                 EditActionButton(
-                    icon = "highlighterIconEx.svg",
+                    icon = "highlighter_icon_ex.svg",
                     label = stringResource(R.string.highlighter),
                     isSubscribed = isSubscribed,
                     onClick = {
@@ -287,7 +288,7 @@ fun BatchPreviewScreen(
                 )
 
                 EditActionButton(
-                    icon = "textIconEx.svg",
+                    icon = "text_icon_ex.svg",
                     label = stringResource(R.string.text),
                     isSubscribed = isSubscribed,
                     onClick = {
@@ -345,7 +346,7 @@ private fun EditActionButton(
         }
         if (paid && !isSubscribed) {
             AssetImage(
-                name = "icCrown.svg",
+                name = "crown_icon.svg",
                 modifier = Modifier
                     .padding(8.dp)
                     .size(12.dp)

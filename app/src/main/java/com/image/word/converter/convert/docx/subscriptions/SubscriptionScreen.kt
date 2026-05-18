@@ -338,6 +338,7 @@ private fun SubscriptionHeader() {
             },
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(top = 4.dp),
+            fontWeight = FontWeight.ExtraBold
         )
         Text(
             text = stringResource(R.string.subscription_desc_ios),

@@ -1,7 +1,5 @@
 package com.image.word.converter.convert.docx.ui.screens
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,8 +39,8 @@ fun CapturePreviewScreen(
     val imageUri = session.selectedImageUris.firstOrNull()
     val pendingRetakeUri = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<android.net.Uri?>(null) }
 
-    val retakeLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture(),
+    val retakeLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.TakePicture(),
     ) { success ->
         val uri = pendingRetakeUri.value
         pendingRetakeUri.value = null

@@ -2,6 +2,7 @@ package com.image.word.converter.convert.docx.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -153,25 +155,33 @@ fun RowScope.PrimaryActionCard(
 fun MiniOptionCard(
     icon: String,
     title: String,
+    startColor: Color,
+    endColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column (
         modifier = modifier
-            .clickable(onClick = onClick),
+            .shadow(elevation = 1.dp, shape = RoundedCornerShape(12.dp))
+            .background(Brush.verticalGradient(
+                listOf(startColor, endColor)
+            ), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp)
+            ,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         AssetImage(
             name = icon,
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                .size(50.dp)
-                .padding(12.dp)
+                .fillMaxWidth()
+                .size(24.dp)
+
         )
         Text(
             text = title,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
         )
     }

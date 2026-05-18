@@ -31,7 +31,7 @@ fun RemainingAttemptBanner(
         if (remaining <= 0) {
             append(stringResource(R.string.no_free_uses_left))
             append(" ")
-            withStyle(SpanStyle(color = Color(0xFFF5A11B), fontWeight = FontWeight.Bold)) {
+            withStyle(SpanStyle(color = Color(0xFFFF9D00), fontWeight = FontWeight.Bold)) {
                 append(stringResource(R.string.go_premium))
             }
             append(" ")
@@ -39,7 +39,7 @@ fun RemainingAttemptBanner(
         } else {
             append(stringResource(R.string.free_uses_remaining, remaining))
             append(" ")
-            withStyle(SpanStyle(color = Color(0xFFF5A11B), fontWeight = FontWeight.Bold)) {
+            withStyle(SpanStyle(color = Color(0xFFFF9D00), fontWeight = FontWeight.Bold)) {
                 append(stringResource(R.string.go_premium))
             }
             append(" ")

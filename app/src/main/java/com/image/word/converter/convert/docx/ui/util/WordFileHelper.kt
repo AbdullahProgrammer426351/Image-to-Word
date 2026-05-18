@@ -51,4 +51,17 @@ object WordFileHelper {
             true
         }.getOrDefault(false)
     }
+
+    suspend fun previewWord(context: Context, item: ConvertedItem): Boolean {
+        val file = downloadDocx(context, item) ?: return false
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        return runCatching {
+            context.startActivity(Intent.createChooser(intent, null))
+            true
+        }.getOrDefault(false)
+    }
 }

@@ -110,22 +110,32 @@ fun SavedTabScreen(
 
     if (state.savedItems.isEmpty()) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             AssetImage(name = "ic_empty.svg", modifier = Modifier.size(120.dp))
             Text(
-                text = stringResource(R.string.no_saved_files),
+                text = stringResource(R.string.no_files_yet),
                 modifier = Modifier.padding(top = 12.dp),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = stringResource(R.string.your_converted_files_will_appear_here),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium
             )
         }
         return
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp),
     ) {
@@ -177,7 +187,9 @@ private fun SavedRow(
         } else {
             AssetImage(name = "ic_word.png", modifier = Modifier.size(62.dp))
         }
-        Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+        Column(modifier = Modifier
+            .weight(1f)
+            .padding(start = 10.dp)) {
             Text(
                 text = item.fileName,
                 style = MaterialTheme.typography.titleMedium,

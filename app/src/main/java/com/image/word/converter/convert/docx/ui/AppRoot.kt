@@ -34,7 +34,6 @@ import com.image.word.converter.convert.docx.ui.screens.SplashScreen
 import com.image.word.converter.convert.docx.ui.screens.TextOverlayScreen
 import com.image.word.converter.convert.docx.ui.screens.UrlImportScreen
 import com.image.word.converter.convert.docx.ui.screens.WalkthroughScreen
-import com.image.word.converter.convert.docx.ui.screens.WordPreviewScreen
 import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
@@ -269,19 +268,6 @@ fun AppRoot(activity: Activity) {
                             launchSingleTop = true
                         }
                     },
-                    onPreview = { item -> navController.navigate(Routes.wordPreview(item.id)) },
-                )
-            }
-
-            composable(
-                route = Routes.WordPreview,
-                arguments = listOf(navArgument("id") { type = NavType.StringType }),
-            ) { entry ->
-                val id = entry.arguments?.getString("id").orEmpty()
-                WordPreviewScreen(
-                    itemId = id,
-                    mainViewModel = mainViewModel,
-                    onBack = { navController.popBackStack() },
                 )
             }
 

@@ -35,16 +35,22 @@ import androidx.navigation.NavController
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ads.BannerAd
 import com.image.word.converter.convert.docx.ads.InterstitialAdManager
+import com.image.word.converter.convert.docx.model.ConvertedItem
 import com.image.word.converter.convert.docx.ui.components.AssetImage
+import com.image.word.converter.convert.docx.ui.components.HoldOnDialog
 import com.image.word.converter.convert.docx.ui.components.WordMainTopBar
 import com.image.word.converter.convert.docx.ui.screens.HomeTabScreen
 import com.image.word.converter.convert.docx.ui.screens.SavedTabScreen
 import com.image.word.converter.convert.docx.ui.screens.SettingsTabScreen
 import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
+import com.image.word.converter.convert.docx.ui.util.WordFileHelper
 import com.image.word.converter.convert.docx.ui.util.shareSavedItem
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.createCameraCaptureUri
+import androidx.compose.runtime.LaunchedEffect
+import android.widget.Toast
+import kotlinx.coroutines.launch
 
 private enum class Tab(val titleRes: Int, val icon: String) {
     Home(R.string.tab_home, "home_icon.png"),
@@ -67,6 +73,11 @@ fun MainTabsScreen(
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableStateOf(Tab.Home) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var isPreviewing by remember { mutableStateOf(false) }
+
+    if (isPreviewing) {
+        HoldOnDialog()
+    }
 
     fun submitUris(uris: List<Uri>) {
         if (uris.isNotEmpty()) {
@@ -116,6 +127,7 @@ fun MainTabsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             WordMainTopBar(
                 showPremium = !isSubscribed,
@@ -180,7 +192,16 @@ fun MainTabsScreen(
                 Tab.Saved -> SavedTabScreen(
                     mainViewModel = mainViewModel,
                     scope = scope,
-                    onOpenItem = { navController.navigate(Routes.wordPreview(it.id)) },
+                    onOpenItem = { item ->
+                        scope.launch {
+                            isPreviewing = true
+                            val success = WordFileHelper.previewWord(context, item)
+                            isPreviewing = false
+                            if (!success) {
+                                Toast.makeText(context, R.string.word_open_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
                     onShareItem = { shareSavedItem(context, it, scope) },
                 )
                 Tab.Settings -> SettingsTabScreen(

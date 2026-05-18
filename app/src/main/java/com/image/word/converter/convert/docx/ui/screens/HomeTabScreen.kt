@@ -1,17 +1,22 @@
 package com.image.word.converter.convert.docx.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -34,9 +39,12 @@ fun HomeTabScreen(
     onFiles: () -> Unit,
     onUrl: () -> Unit,
 ) {
+    val isDark = isSystemInDarkTheme()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -64,20 +72,24 @@ fun HomeTabScreen(
                 onClick = onCamera,
             )
 
-            Text(
-                text = stringResource(R.string.more_import_options),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 5.dp),
-            )
-            Text(
-                text = stringResource(R.string.more_import_options_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column {
+                Text(
+                    text = stringResource(R.string.more_import_options),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 5.dp),
+                )
+                Text(
+                    text = stringResource(R.string.more_import_options_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 MiniOptionCard(
@@ -85,18 +97,24 @@ fun HomeTabScreen(
                     title = stringResource(R.string.g_drive),
                     onClick = onFiles,
                     modifier = Modifier.weight(1f),
+                    startColor = Color(if(isDark) 0xFF1E2C44 else 0xFFF3F7FF),
+                    endColor = Color(if(isDark) 0xFF16243A else 0xFFD3E3FF)
                 )
                 MiniOptionCard(
                     icon = "ic_url.svg",
                     title = stringResource(R.string.url_link),
                     onClick = onUrl,
                     modifier = Modifier.weight(1f),
+                    startColor = Color(if(isDark) 0xFF3E3519 else 0xFFFFFDEB),
+                    endColor = Color(if(isDark) 0xFF2E280F else 0xFFFFF9C8)
                 )
                 MiniOptionCard(
                     icon = "ic_file.svg",
                     title = stringResource(R.string.files),
                     onClick = onFiles,
                     modifier = Modifier.weight(1f),
+                    startColor = Color(if(isDark) 0xFF173524 else 0xFFEBFFE4),
+                    endColor = Color(if(isDark) 0xFF10291B else 0xFFD9FFCC)
                 )
             }
         }
@@ -110,29 +128,33 @@ private fun HomeBigCard(
     subtitle: String,
     onClick: () -> Unit,
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.TopCenter
     ) {
         AssetImage(
             name = image,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            contentScale = ContentScale.FillWidth,
+                .fillMaxSize()
+                .height(80.dp),
+            contentScale = ContentScale.FillBounds,
         )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)){
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }

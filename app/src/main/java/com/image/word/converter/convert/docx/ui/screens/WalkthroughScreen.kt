@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -51,7 +52,7 @@ fun WalkthroughScreen(onDone: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         WalkthroughProgressBar(
             total = pages.size,
@@ -80,7 +81,7 @@ fun WalkthroughScreen(onDone: () -> Unit) {
                 Text(
                     text = stringResource(page.title),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 18.dp),
                 )
@@ -109,7 +110,8 @@ fun WalkthroughScreen(onDone: () -> Unit) {
                         scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                     }
                 }
-                .padding(vertical = 16.dp),
+                .padding(vertical = 16.dp)
+                .navigationBarsPadding(),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -131,7 +133,8 @@ private fun WalkthroughProgressBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(

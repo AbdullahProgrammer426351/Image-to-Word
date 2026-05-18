@@ -57,12 +57,12 @@ fun WordMainTopBar(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = stringResource(R.string.welcome_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -71,7 +71,7 @@ fun WordMainTopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(appWhite())
                     .clickable(onClick = onPremiumClick),
                 contentAlignment = Alignment.Center,
             ) {

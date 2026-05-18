@@ -8,10 +8,10 @@ val WordPrimaryLight = Color(0xFF0166FF)
 val WordSecondary = Color(0xFF3F00BE)
 val WordGradientEnd = Color(0xFF4500BC)
 
-val LightBackground = Color(0xFFFFFFFF)
+val LightBackground = Color(0xFFF8FAFF)
 val LightSurface = Color(0xFFFFFFFF)
 val LightSurfaceVariant = Color(0xFFF2F2F2)
-val DarkBackground = Color(0xFF0B0F14)
+val DarkBackground = Color(0xFF0E1624)
 val DarkSurface = Color(0xFF141A22)
 val DarkSurfaceVariant = Color(0xFF1E2630)
 

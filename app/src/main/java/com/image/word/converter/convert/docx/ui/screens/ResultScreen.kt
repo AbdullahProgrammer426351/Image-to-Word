@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -41,6 +43,7 @@ import com.image.word.converter.convert.docx.model.ConvertedItem
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.ChildTopBar
 import com.image.word.converter.convert.docx.ui.components.GradientButton
+import com.image.word.converter.convert.docx.ui.components.HoldOnDialog
 import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
 import com.image.word.converter.convert.docx.ui.util.WordFileHelper
@@ -53,14 +56,30 @@ fun ResultScreen(
     mainViewModel: MainViewModel,
     isSubscribed: Boolean,
     onBackHome: () -> Unit,
-    onPreview: (ConvertedItem) -> Unit,
 ) {
     BackHandler(onBack = onBackHome)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
     val session by sessionState.uiState.collectAsState()
     val items = session.convertedItems
     var exporting by remember { mutableStateOf(false) }
+    var isPreviewing by remember { mutableStateOf(false) }
+
+    fun previewItem(item: ConvertedItem) {
+        scope.launch {
+            isPreviewing = true
+            val success = WordFileHelper.previewWord(context, item)
+            isPreviewing = false
+            if (!success) {
+                Toast.makeText(context, R.string.word_open_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    if (isPreviewing) {
+        HoldOnDialog()
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         ChildTopBar(
@@ -108,7 +127,7 @@ fun ResultScreen(
                 }
                 Text(item.fileName, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    ResultAction("ic_eye.svg", stringResource(R.string.preview)) { onPreview(item) }
+                    ResultAction("ic_eye.svg", stringResource(R.string.preview)) { previewItem(item) }
                     ResultAction("ic_share_ex.svg", stringResource(R.string.share)) {
                         scope.launch {
                             if (!WordFileHelper.shareWord(context, item)) {
@@ -130,7 +149,7 @@ fun ResultScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                            .clickable { onPreview(item) }
+                            .clickable { previewItem(item) }
                             .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
@@ -170,7 +189,7 @@ fun ResultScreen(
             },
         )
 
-        BannerAd(isSubscribed = isSubscribed)
+        BannerAd(isSubscribed = isSubscribed, modifier = Modifier.navigationBarsPadding())
     }
 }
 
@@ -180,7 +199,11 @@ private fun ResultAction(icon: String, label: String, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(onClick = onClick).padding(8.dp),
     ) {
-        AssetImage(name = icon, modifier = Modifier.size(28.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 4.dp))
+        AssetImage(name = icon, modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }

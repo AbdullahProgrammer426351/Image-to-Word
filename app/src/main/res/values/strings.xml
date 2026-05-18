@@ -273,4 +273,7 @@
     <string name="apply_text">Apply Text</string>
     <string name="draw_signature">Draw your signature</string>
     <string name="apply_signature">Apply Signature</string>
+    <string name="no_files_yet">No Files Yet</string>
+    <string name="your_converted_files_will_appear_here">Your converted files will appear here</string>
+    <string name="hold_on">Hold on…</string>
 </resources>
