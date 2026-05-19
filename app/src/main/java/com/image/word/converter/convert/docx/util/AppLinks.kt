@@ -7,16 +7,20 @@ import androidx.core.net.toUri
 
 object AppLinks {
     private const val PLAY_STORE_ID = "com.image.word.converter.convert.docx"
-    private const val PRIVACY_URL = "https://health-fitness-pro.fit/privacy-policy/"
-    private const val TERMS_URL = "https://health-fitness-pro.fit/terms-of-use/"
+    private const val PRIVACY_URL = "https://health-fitness-pro.fit/privacy"
+    private const val TERMS_URL = "https://health-fitness-pro.fit/terms"
     private const val DISCLAIMER_URL = "https://health-fitness-pro.fit/disclaimer/"
-    private const val DEVELOPER_URL = "https://play.google.com/store/apps/developer?id=Health+Fitness+Pro"
-    private const val FEEDBACK_EMAIL = "support@health-fitness-pro.fit"
+    private const val DEVELOPER_URL = "https://play.google.com/store/apps/developer?id=ESPRESSO+TECH+%28SMC-PRIVATE%29+LIMITED"
+    private const val FEEDBACK_EMAIL = "espressotechapp@gmail.com"
 
     fun openPrivacy(context: Context) = openUrl(context, PRIVACY_URL)
     fun openTerms(context: Context) = openUrl(context, TERMS_URL)
     fun openDisclaimer(context: Context) = openUrl(context, DISCLAIMER_URL)
     fun openDeveloperPage(context: Context) = openUrl(context, DEVELOPER_URL)
+
+    fun openUrl(context: Context, url: String) {
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
 
     fun shareApp(context: Context) {
         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -46,9 +50,5 @@ object AppLinks {
         } else {
             openUrl(context, webUri.toString())
         }
-    }
-
-    private fun openUrl(context: Context, url: String) {
-        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 }

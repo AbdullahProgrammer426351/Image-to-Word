@@ -19,9 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
@@ -130,6 +133,8 @@ private fun HomeBigCard(
     subtitle: String,
     onClick: () -> Unit,
 ) {
+    val layoutDirection = LocalLayoutDirection.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -140,7 +145,10 @@ private fun HomeBigCard(
             name = image,
             modifier = Modifier
                 .fillMaxSize()
-                .height(80.dp),
+                .height(80.dp)
+                .graphicsLayer {
+                    scaleX = if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
+                },
             contentScale = ContentScale.FillBounds,
         )
         Column(modifier = Modifier

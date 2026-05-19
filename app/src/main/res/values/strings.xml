@@ -27,10 +27,6 @@
     <string name="take_photo_subtitle">Capture moments with perfect clarity.</string>
     <string name="upload_image">Upload Image</string>
     <string name="upload_image_subtitle">Import photos to create Word files.</string>
-    <string name="home_camera_title">Camera</string>
-    <string name="home_camera_subtitle">Capture moments with perfect clarity.</string>
-    <string name="home_gallery_title">Gallery</string>
-    <string name="home_gallery_subtitle">Import photos to create Word files.</string>
     <string name="url_link">URL Link</string>
     <string name="files">Files</string>
     <string name="more_tools">More Tools</string>
@@ -45,12 +41,7 @@
     <string name="get_started">Get Started</string>
     <string name="loading_data">Loading Data…</string>
 
-    <string name="welcome_subtitle">Welcome to smarter scanning</string>
-    <string name="more_import_options">More Import Options</string>
-    <string name="more_import_options_subtitle">Upload images from Drive, links, or files</string>
-    <string name="g_drive">G-Drive</string>
-    <string name="no_internet_title">No Internet Connection</string>
-    <string name="submit_rating">Submit</string>
+
     <string name="walk_title_1">Image To Word</string>
     <string name="walk_subtitle_1">Turn photos of documents, notes, and pages into editable Word files — automatically.</string>
     <string name="walk_title_2">Smart OCR Conversion</string>
@@ -80,11 +71,7 @@
     <string name="processing">Processing…</string>
     <string name="processing_files">Processing your file(s)…</string>
     <string name="please_wait_extracting">Please wait while we extract data from the image(s).</string>
-    <string name="converting_images">Converting images…</string>
-    <string name="word_processing_message">We’re turning your image(s) into an editable Word file. Please wait.</string>
-    <string name="word_processing_failed_message">Please check your internet connection and try again.</string>
     <string name="no_data_found">No Data Found</string>
-
     <string name="converted_file">Converted File</string>
     <string name="saved">Saved</string>
     <string name="back_home">Back Home</string>
@@ -150,12 +137,7 @@
     <string name="advantages">Advantages</string>
     <string name="subscription">Subscription</string>
     <string name="subscription_desc_full">Unlock advanced tools, unlimited conversions, and full file access.</string>
-    <string name="subscription_desc_ios">Unlock advanced scanning, premium editing tools, and unlimited document scans.</string>
-    <string name="sub_feature_unlimited_scanning">Unlimited Scanning</string>
-    <string name="sub_feature_high_accuracy">High-Accuracy Word Output</string>
-    <string name="sub_feature_fast_smooth">Fast &amp; Smooth</string>
-    <string name="sub_feature_ads_free">Ads-Free</string>
-    <string name="subscription_legal_text_ios">Your subscription will automatically renew unless canceled at least 24 hours before the end of the current period. You can manage or cancel your subscription anytime through your account settings. If you\'ve already purchased a plan, simply tap \"Restore Purchase\" to regain access without being charged again.</string>
+
     <string name="monthly">Monthly</string>
     <string name="weekly">Weekly</string>
     <string name="yearly">Yearly</string>
@@ -206,9 +188,7 @@
     <string name="limit_reached">Daily free limit reached</string>
     <string name="subscribe_to_continue">Subscribe to continue using this feature.</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="word_open_failed">Unable to open Word file.</string>
-    <string name="word_share_failed">Unable to share Word file.</string>
-    <string name="word_export_failed">Unable to export Word file.</string>
+
     <string name="image_to_pdf_hint">Pick one or more images to create a PDF and save it.</string>
     <string name="ocr_hint">Capture or select an image to extract text and save it.</string>
     <string name="qr_hint">Capture or select an image to detect QR code data and save it.</string>
@@ -276,4 +256,26 @@
     <string name="no_files_yet">No Files Yet</string>
     <string name="your_converted_files_will_appear_here">Your converted files will appear here</string>
     <string name="hold_on">Hold on…</string>
+    <string name="welcome_subtitle">Welcome to smarter scanning</string>
+    <string name="more_import_options">More Import Options</string>
+    <string name="more_import_options_subtitle">Upload images from Drive, links, or files</string>
+    <string name="g_drive">G-Drive</string>
+    <string name="no_internet_title">No Internet Connection</string>
+    <string name="submit_rating">Submit</string>
+    <string name="word_open_failed">Unable to open Word file.</string>
+    <string name="word_share_failed">Unable to share Word file.</string>
+    <string name="word_export_failed">Unable to export Word file.</string>
+    <string name="subscription_desc_ios">Unlock advanced scanning, premium editing tools, and unlimited document scans.</string>
+    <string name="sub_feature_unlimited_scanning">Unlimited Scanning</string>
+    <string name="sub_feature_high_accuracy">High-Accuracy Word Output</string>
+    <string name="sub_feature_fast_smooth">Fast &amp; Smooth</string>
+    <string name="sub_feature_ads_free">Ads-Free</string>
+    <string name="subscription_legal_text_ios">Your subscription will automatically renew unless canceled at least 24 hours before the end of the current period. You can manage or cancel your subscription anytime through your account settings. If you\'ve already purchased a plan, simply tap \"Restore Purchase\" to regain access without being charged again.</string>
+    <string name="converting_images">Converting images…</string>
+    <string name="word_processing_message">We’re turning your image(s) into an editable Word file. Please wait.</string>
+    <string name="word_processing_failed_message">Please check your internet connection and try again.</string>
+    <string name="home_camera_title">Camera</string>
+    <string name="home_camera_subtitle">Capture moments with perfect clarity.</string>
+    <string name="home_gallery_title">Gallery</string>
+    <string name="home_gallery_subtitle">Import photos to create Word files.</string>
 </resources>

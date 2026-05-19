@@ -13,6 +13,7 @@
 
 # Optional safety
 -keep class com.airbnb.lottie.** { *; }
+-keep class coil.** { *; }
 
 # WorkManager
 -keep class androidx.work.impl.WorkDatabase_Impl { *; }
@@ -31,6 +32,9 @@
 
 # App Startup
 -keep class androidx.startup.** { *; }
+
+# Prevent resource name obfuscation (important for getIdentifier)
+-keep class **.R$* { *; }
 
 # Gemalto (PDFBox dependencies)
 -dontwarn com.gemalto.jp2.JP2Decoder
