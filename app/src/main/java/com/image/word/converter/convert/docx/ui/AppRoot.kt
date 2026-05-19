@@ -80,7 +80,7 @@ fun AppRoot(activity: Activity) {
                         }
                         val prefs = activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
                         if (prefs.getBoolean("seen_walkthrough", false)) {
-                            AppOpenAdManager.shared.showIfAvailable(activity, proceed)
+                            InterstitialAdManager.shared.show(activity, proceed)
                         } else {
                             proceed()
                         }

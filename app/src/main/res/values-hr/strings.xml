@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">Zabilježite trenutke s savršenom jasnoćom.</string>
     <string name="home_gallery_title">Galerija</string>
     <string name="home_gallery_subtitle">Uvezite fotografije za izradu Word datoteka.</string>
+    <string name="free_limit_reached">Dosegnut je besplatni limit</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nema više besplatnih pokušaja. Nadogradite na Premium za neograničen pristup.</string>
 </resources>

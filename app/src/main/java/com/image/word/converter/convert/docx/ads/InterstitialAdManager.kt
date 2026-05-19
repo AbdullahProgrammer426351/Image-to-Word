@@ -54,7 +54,6 @@ class InterstitialAdManager(private val adType: AdType) {
 
     fun show(
         activity: Activity,
-        onCompleted: (() -> Unit)? = null,
         onClose: (() -> Unit)? = null,
     ) {
         var didClose = false
@@ -77,7 +76,7 @@ class InterstitialAdManager(private val adType: AdType) {
                 Log.d("InterstitialAdManager", "Safety timeout triggered for onClose")
                 closeOnce()
             }
-        }, 1200)
+        }, 10000)
 
         if (AdsGate.isSubscribedProvider()) {
             Log.d("InterstitialAdManager", "User is subscribed, skipping ad")
@@ -114,7 +113,6 @@ class InterstitialAdManager(private val adType: AdType) {
                 isShowingAd = false
                 interstitialAd = null
                 closeOnce()
-                onCompleted?.invoke()
                 load(activity)
             }
 

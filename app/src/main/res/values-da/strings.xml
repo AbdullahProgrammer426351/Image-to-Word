@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">Fang øjeblikke med perfekt klarhed.</string>
     <string name="home_gallery_title">Galleri</string>
     <string name="home_gallery_subtitle">Importer fotos for at oprette Word-filer.</string>
+    <string name="free_limit_reached">Gratisgrænse nået</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Ingen gratis forsøg tilbage. Opgrader til Premium for ubegrænset adgang.</string>
 </resources>

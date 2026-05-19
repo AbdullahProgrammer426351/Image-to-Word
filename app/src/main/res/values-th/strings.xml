@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">บันทึกช่วงเวลาต่างๆ ด้วยความคมชัดสมบูรณ์แบบ</string>
     <string name="home_gallery_title">แกลเลอรี่</string>
     <string name="home_gallery_subtitle">นำเข้าภาพถ่ายเพื่อสร้างไฟล์ Word</string>
+    <string name="free_limit_reached">ถึงขีดจำกัดฟรีแล้ว</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">ไม่มีสิทธิ์ใช้งานฟรีเหลือแล้ว อัปเกรดเป็น Premium เพื่อใช้งานแบบไม่จำกัด</string>
 </resources>

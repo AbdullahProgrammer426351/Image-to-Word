@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">완벽한 선명도로 순간들을 포착하세요.</string>
     <string name="home_gallery_title">갱도</string>
     <string name="home_gallery_subtitle">사진을 불러와서 워드 파일을 만드세요.</string>
+    <string name="free_limit_reached">무료 이용 한도 도달</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">무료 시도 횟수가 모두 소진되었습니다. 무제한 이용을 위해 프리미엄으로 업그레이드하세요.</string>
 </resources>

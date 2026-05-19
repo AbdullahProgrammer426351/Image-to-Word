@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">အခိုက်အတန့်များကို ပြီးပြည့်စုံသော ကြည်လင်ပြတ်သားမှုဖြင့် မှတ်တမ်းတင်လိုက်ပါ။</string>
     <string name="home_gallery_title">ပြခန်း</string>
     <string name="home_gallery_subtitle">Word ဖိုင်များဖန်တီးရန် ဓာတ်ပုံများကို တင်သွင်းပါ။</string>
+    <string name="free_limit_reached">အခမဲ့ကန့်သတ်ချက် ရောက်ရှိပါပြီ</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">အခမဲ့ကြိုးစားခွင့် မကျန်တော့ပါဘူး။ အကန့်အသတ်မရှိ ဝင်ရောက်ခွင့်အတွက် Premium သို့ အဆင့်မြှင့်တင်ပါ။</string>
 </resources>

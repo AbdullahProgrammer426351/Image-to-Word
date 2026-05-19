@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">Zachyťte okamihy s dokonalou jasnosťou.</string>
     <string name="home_gallery_title">Galéria</string>
     <string name="home_gallery_subtitle">Importujte fotografie na vytvorenie súborov programu Word.</string>
+    <string name="free_limit_reached">Dosiahnutý bezplatný limit</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nezostali žiadne bezplatné pokusy. Pre neobmedzený prístup prejdite na Premium.</string>
 </resources>

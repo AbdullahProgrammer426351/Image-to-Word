@@ -1,5 +1,7 @@
 package com.image.word.converter.convert.docx.ui.screens
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -10,18 +12,26 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
@@ -64,16 +74,21 @@ fun HomeTabScreen(
             modifier = Modifier.padding(horizontal = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+
             HomeBigCard(
-                image = "ic_gallery_bg.png",
+                image = R.drawable.add_gallery_icon,
                 title = stringResource(R.string.home_gallery_title),
                 subtitle = stringResource(R.string.home_gallery_subtitle),
+                startColor = Color(0xFFFFFFFF),
+                endColor = Color(0xFFFFEBF7),
                 onClick = onGallery,
             )
             HomeBigCard(
-                image = "ic_camera_bg.png",
+                image = R.drawable.add_camera_icon,
                 title = stringResource(R.string.home_camera_title),
                 subtitle = stringResource(R.string.home_camera_subtitle),
+                startColor = Color(0xFFFFFFFF),
+                endColor = Color(0xFFE3FEFF),
                 onClick = onCamera,
             )
 
@@ -128,31 +143,37 @@ fun HomeTabScreen(
 
 @Composable
 private fun HomeBigCard(
-    image: String,
+    @DrawableRes image: Int,
     title: String,
     subtitle: String,
+    startColor:Color,
+    endColor:Color,
     onClick: () -> Unit,
 ) {
-    val layoutDirection = LocalLayoutDirection.current
 
-    Box(
+    Row(
         modifier = Modifier
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(18.dp),
+                ambientColor = Color.Black.copy(alpha = 0.04f),
+                spotColor = Color.Black.copy(alpha = 0.04f)
+            )
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(startColor, endColor),
+                    start = Offset(19.9231f, 0f),
+                    end = Offset(117.9f, 172.718f)
+                )
+            )
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        contentAlignment = Alignment.TopCenter
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        AssetImage(
-            name = image,
-            modifier = Modifier
-                .fillMaxSize()
-                .height(80.dp)
-                .graphicsLayer {
-                    scaleX = if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
-                },
-            contentScale = ContentScale.FillBounds,
-        )
+
         Column(modifier = Modifier
-            .fillMaxWidth()
+            .weight(1f)
             .padding(8.dp)){
             Text(
                 text = title,
@@ -167,5 +188,11 @@ private fun HomeBigCard(
                 color = DarkSurfaceVariant,
             )
         }
+        Image(
+            painter = painterResource(image),
+            contentDescription = null,
+            modifier = Modifier.size(80.dp)
+                .offset(y = 20.dp),
+        )
     }
 }

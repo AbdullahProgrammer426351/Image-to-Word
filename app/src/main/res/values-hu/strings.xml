@@ -255,4 +255,6 @@
     <string name="home_camera_subtitle">Örökítse meg a pillanatokat tökéletes tisztasággal.</string>
     <string name="home_gallery_title">Galéria</string>
     <string name="home_gallery_subtitle">Fotók importálása Word-fájlok létrehozásához.</string>
+    <string name="free_limit_reached">Elérte az ingyenes limitet</string>
+    <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nincs több ingyenes próbálkozás. Válts Prémiumra a korlátlan hozzáférésért.</string>
 </resources>

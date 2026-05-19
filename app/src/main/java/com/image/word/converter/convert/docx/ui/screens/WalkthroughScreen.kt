@@ -80,7 +80,7 @@ fun WalkthroughScreen(onDone: () -> Unit) {
                 )
                 Text(
                     text = stringResource(page.title),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 18.dp),
