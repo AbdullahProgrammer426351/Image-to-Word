@@ -1,5 +1,6 @@
 package com.image.word.converter.convert.docx.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,6 +61,7 @@ fun SavedTabScreen(
     onOpenItem: (ConvertedItem) -> Unit,
     onShareItem: (ConvertedItem) -> Unit,
 ) {
+    val context = LocalContext.current
     val state by mainViewModel.uiState.collectAsState()
     var renameTarget by remember { mutableStateOf<ConvertedItem?>(null) }
     var renameText by remember { mutableStateOf("") }
@@ -80,7 +83,12 @@ fun SavedTabScreen(
                 TextButton(onClick = {
                     val target = renameTarget
                     if (target != null && renameText.isNotBlank()) {
-                        mainViewModel.rename(target, renameText.trim())
+                        val newName = renameText.trim()
+                        if (newName != target.fileName && mainViewModel.doesNameExist(newName)) {
+                            Toast.makeText(context, R.string.name_already_exists, Toast.LENGTH_SHORT).show()
+                            return@TextButton
+                        }
+                        mainViewModel.rename(target, newName)
                     }
                     renameTarget = null
                 }) { Text(stringResource(R.string.save)) }

@@ -293,12 +293,14 @@ fun SubscriptionScreen(
                     text = stringResource(R.string.processing_purchase),
                     modifier = Modifier.padding(top = 10.dp),
                     fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(R.string.please_wait_purchase),
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 4.dp),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

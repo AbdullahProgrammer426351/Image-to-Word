@@ -257,4 +257,5 @@
     <string name="home_gallery_subtitle">Importējiet fotoattēlus, lai izveidotu Word failus.</string>
     <string name="free_limit_reached">Sasniegts bezmaksas limits</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nav atlicis neviens bezmaksas mēģinājums. Jauniniet uz Premium, lai iegūtu neierobežotu piekļuvi.</string>
+    <string name="name_already_exists">Faila nosaukums jau pastāv.</string>
 </resources>

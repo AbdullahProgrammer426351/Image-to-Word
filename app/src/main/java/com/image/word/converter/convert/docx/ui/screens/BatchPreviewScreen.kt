@@ -287,16 +287,16 @@ fun BatchPreviewScreen(
                     paid = true
                 )
 
-                EditActionButton(
-                    icon = "text_icon_ex.svg",
-                    label = stringResource(R.string.text),
-                    isSubscribed = isSubscribed,
-                    onClick = {
-                        if (!isSubscribed) onOpenSubscription() else onText(selectedIndex)
-                    },
-                    paid = true,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
+//                EditActionButton(
+//                    icon = "text_icon_ex.svg",
+//                    label = stringResource(R.string.text),
+//                    isSubscribed = isSubscribed,
+//                    onClick = {
+//                        if (!isSubscribed) onOpenSubscription() else onText(selectedIndex)
+//                    },
+//                    paid = true,
+//                    modifier = Modifier.padding(end = 8.dp)
+//                )
             }
 
             com.image.word.converter.convert.docx.ads.BannerAd(

@@ -257,4 +257,5 @@
     <string name="home_gallery_subtitle">Importuokite nuotraukas, kad sukurtumėte „Word“ failus.</string>
     <string name="free_limit_reached">Pasiekta nemokama riba</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nemokamų bandymų nebeliko. Įsigykite „Premium“ ir gaukite neribotą prieigą.</string>
+    <string name="name_already_exists">Failo pavadinimas jau yra.</string>
 </resources>

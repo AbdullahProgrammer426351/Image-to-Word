@@ -177,12 +177,12 @@ fun FilterScreen(
 
         Column(modifier = Modifier
             .background(appWhite())
-            .horizontalScroll(rememberScrollState())
             .padding(top = 20.dp, bottom = 20.dp)
             .navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Spacer(modifier = Modifier.width(20.dp))
@@ -222,7 +222,7 @@ fun FilterScreen(
                                     )
                                 }
 
-                                if (filter.isLocked && isSubscribed) {
+                                if (filter.isLocked && !isSubscribed) {
                                     Text(
                                         "🔒",
                                         modifier = Modifier.align(Alignment.TopEnd)

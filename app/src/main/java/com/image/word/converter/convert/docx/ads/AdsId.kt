@@ -9,12 +9,12 @@ object AdsId {
     private const val TEST_FREQUENCY_APP_OPEN_ID = "ca-app-pub-3940256099942544/5575463023"
     private const val TEST_REWARDED_ID = "ca-app-pub-3940256099942544/1712485313"
 
-    private const val PROD_BANNER_ID = "ca-app-pub-8218090797316916/8305310780"
-    private const val PROD_NATIVE_ID = "ca-app-pub-8218090797316916/1815934456"
-    private const val PROD_INTERSTITIAL_ID = "ca-app-pub-8218090797316916/3599274437"
-    private const val PROD_FREQUENCY_INTERSTITIAL_ID = "ca-app-pub-8218090797316916/4912356102"
-    private const val PROD_APP_OPEN_ID = "ca-app-pub-8218090797316916/2349771941"
-    private const val PROD_FREQUENCY_APP_OPEN_ID = "ca-app-pub-8218090797316916/9618392453"
+    private const val PROD_BANNER_ID = "ca-app-pub-8218090797316916/1037750078"
+    private const val PROD_NATIVE_ID = "ca-app-pub-8218090797316916/7268116504"
+    private const val PROD_INTERSTITIAL_ID = "ca-app-pub-8218090797316916/3654654643"
+    private const val PROD_FREQUENCY_INTERSTITIAL_ID = "ca-app-pub-8218090797316916/5354749124"
+    private const val PROD_APP_OPEN_ID = "ca-app-pub-8218090797316916/6667830799"
+    private const val PROD_FREQUENCY_APP_OPEN_ID = "ca-app-pub-8218090797316916/6667830799"
     private const val PROD_REWARDED_ID = "ca-app-pub-8218090797316916/5582348051"
 
     var bannerId: String = TEST_BANNER_ID

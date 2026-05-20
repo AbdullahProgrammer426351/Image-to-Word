@@ -81,9 +81,17 @@ fun ProcessingScreen(
                 async {
                     val fileUrl = api.uploadImage(bitmap)
                     if (fileUrl.isNullOrBlank()) return@async null
+                    
+                    var fileName = "Word_${System.currentTimeMillis()}_$index"
+                    var attempt = 1
+                    while (mainViewModel.doesNameExist(fileName)) {
+                        fileName = "Word_${System.currentTimeMillis()}_${index}_$attempt"
+                        attempt++
+                    }
+
                     mainViewModel.saveConvertedNow(
                         image = bitmap,
-                        fileName = "Word_${System.currentTimeMillis()}_$index",
+                        fileName = fileName,
                         fileUrl = fileUrl,
                     )
                 }

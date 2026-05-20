@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
@@ -74,6 +75,7 @@ fun SplashScreen(onFinished: (showWalkthrough: Boolean) -> Unit) {
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(top = 0.dp),
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.weight(1f))
             LinearProgressIndicator(

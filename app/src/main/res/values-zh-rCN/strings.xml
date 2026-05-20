@@ -257,4 +257,5 @@
     <string name="home_gallery_subtitle">导入照片以创建 Word 文件。</string>
     <string name="free_limit_reached">免费额度已用完</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">免费次数已用完。升级至高级版，即可无限次使用。</string>
+    <string name="name_already_exists">文件名已存在。</string>
 </resources>

@@ -91,7 +91,7 @@ fun AppRoot(activity: Activity) {
             composable(Routes.Walkthrough) {
                 WalkthroughScreen(
                     onDone = {
-                        AppOpenAdManager.shared.showIfAvailable(activity) {
+                        InterstitialAdManager.shared.show(activity) {
                             activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
                                 .edit { putBoolean("seen_walkthrough", true) }
                             navController.navigate(Routes.main()) {

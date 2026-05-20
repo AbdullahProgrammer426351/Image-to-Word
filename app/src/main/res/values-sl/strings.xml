@@ -257,4 +257,5 @@
     <string name="home_gallery_subtitle">Uvozite fotografije za ustvarjanje Wordovih datotek.</string>
     <string name="free_limit_reached">Dosežena je brezplačna omejitev</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Ni več brezplačnih poskusov. Nadgradite na Premium za neomejen dostop.</string>
+    <string name="name_already_exists">Ime datoteke že obstaja.</string>
 </resources>
