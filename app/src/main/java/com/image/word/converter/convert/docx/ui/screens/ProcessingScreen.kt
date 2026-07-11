@@ -103,6 +103,8 @@ fun ProcessingScreen(
             return@LaunchedEffect
         }
 
+        converted.forEach { mainViewModel.downloadAndUpdateItem(it) }
+
         if (!isSubscribed) {
             attemptManager.increase()
         }

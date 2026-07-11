@@ -6,6 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.image.word.converter.convert.docx.data.ConvertedRepository
 import com.image.word.converter.convert.docx.model.ConvertedItem
+import com.image.word.converter.convert.docx.ui.util.WordFileHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,8 +54,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun downloadAndUpdateItem(item: ConvertedItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val localPath = WordFileHelper.downloadToStorage(
+                getApplication(), item
+            )
+            if (localPath != null) {
+                repository.updateLocalFilePath(item.id, localPath)
+                refreshSavedItems()
+            }
+        }
+    }
+
     fun rename(item: ConvertedItem, newName: String) {
-        repository.rename(item.id, newName)
+        repository.rename(item, newName)
         refreshSavedItems()
     }
 

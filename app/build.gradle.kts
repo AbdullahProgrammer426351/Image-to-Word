@@ -17,8 +17,8 @@ android {
         applicationId = "com.image.word.converter.convert.docx"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.02"
+        versionCode = 5
+        versionName = "1.04"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

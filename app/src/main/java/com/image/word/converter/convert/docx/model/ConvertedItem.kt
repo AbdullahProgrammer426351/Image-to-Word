@@ -6,4 +6,5 @@ data class ConvertedItem(
     val fileUrl: String,
     val createdAt: Long,
     val imagePath: String = "",
+    val localFilePath: String? = null,
 )

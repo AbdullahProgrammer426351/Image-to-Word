@@ -12,12 +12,14 @@ import org.json.JSONObject
 class ConvertedRepository(private val context: Context) {
     private val itemsFile = File(context.filesDir, "converted_items.json")
     private val imagesDir = File(context.filesDir, "converted_images").apply { mkdirs() }
+    val convertedDir: File = File(context.filesDir, "converted").also { it.mkdirs() }
 
     fun list(): List<ConvertedItem> {
         val raw = readItemsArray()
         val items = buildList {
             for (i in 0 until raw.length()) {
                 val obj = raw.optJSONObject(i) ?: continue
+                val localPath = obj.optString("localFilePath")
                 add(
                     ConvertedItem(
                         id = obj.optString("id"),
@@ -25,6 +27,7 @@ class ConvertedRepository(private val context: Context) {
                         fileUrl = obj.optString("fileUrl"),
                         createdAt = obj.optLong("createdAt"),
                         imagePath = obj.optString("imagePath"),
+                        localFilePath = localPath.ifBlank { null },
                     ),
                 )
             }
@@ -64,18 +67,41 @@ class ConvertedRepository(private val context: Context) {
                 put("fileUrl", item.fileUrl)
                 put("createdAt", item.createdAt)
                 put("imagePath", item.imagePath)
+                put("localFilePath", "")
             },
         )
         writeItemsArray(arr)
         return item
     }
 
-    fun rename(id: String, name: String) {
+    fun updateLocalFilePath(id: String, path: String) {
         val arr = readItemsArray()
         for (i in 0 until arr.length()) {
             val obj = arr.optJSONObject(i) ?: continue
             if (obj.optString("id") == id) {
+                obj.put("localFilePath", path)
+                break
+            }
+        }
+        writeItemsArray(arr)
+    }
+
+    fun rename(item: ConvertedItem, name: String) {
+        val arr = readItemsArray()
+        for (i in 0 until arr.length()) {
+            val obj = arr.optJSONObject(i) ?: continue
+            if (obj.optString("id") == item.id) {
                 obj.put("fileName", name)
+                val oldLocalPath = obj.optString("localFilePath").ifBlank { null }
+                if (oldLocalPath != null) {
+                    val oldFile = File(oldLocalPath)
+                    if (oldFile.exists()) {
+                        val newFile = File(convertedDir, "$name.docx")
+                        if (oldFile.renameTo(newFile)) {
+                            obj.put("localFilePath", newFile.absolutePath)
+                        }
+                    }
+                }
                 break
             }
         }
@@ -89,6 +115,8 @@ class ConvertedRepository(private val context: Context) {
             val obj = arr.optJSONObject(i) ?: continue
             if (obj.optString("id") == id) {
                 File(obj.optString("imagePath")).delete()
+                val localPath = obj.optString("localFilePath").ifBlank { null }
+                if (localPath != null) File(localPath).delete()
                 continue
             }
             next.put(obj)
