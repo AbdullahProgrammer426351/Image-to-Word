@@ -5,7 +5,7 @@ import android.content.Context
 class DailyAttemptManager(context: Context) {
     private val prefs = context.getSharedPreferences("daily_attempts", Context.MODE_PRIVATE)
     private val countKey = "total_attempt_count"
-    val maxAttempts: Int = 2
+    val maxAttempts: Int = 1
 
     val remainingAttempts: Int
         get() {

@@ -50,6 +50,7 @@ import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.createCameraCaptureUri
 import androidx.compose.runtime.LaunchedEffect
 import android.widget.Toast
+import com.image.word.converter.convert.docx.ui.components.RatingDialogViewModel
 import kotlinx.coroutines.launch
 
 private enum class Tab(val titleRes: Int, val icon: String) {
@@ -62,6 +63,7 @@ private enum class Tab(val titleRes: Int, val icon: String) {
 fun MainTabsScreen(
     navController: NavController,
     mainViewModel: MainViewModel,
+    ratingViewModel: RatingDialogViewModel,
     sessionState: SessionState,
     attemptManager: DailyAttemptManager,
     isSubscribed: Boolean,
@@ -72,6 +74,14 @@ fun MainTabsScreen(
     val activity = context as? Activity
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableStateOf(Tab.Home) }
+    var previousTab by remember { mutableStateOf<Tab?>(null) }
+
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == Tab.Home && previousTab != null && previousTab != Tab.Home) {
+            ratingViewModel.tryShowOnHomeReturn()
+        }
+        previousTab = selectedTab
+    }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
     var isPreviewing by remember { mutableStateOf(false) }
 

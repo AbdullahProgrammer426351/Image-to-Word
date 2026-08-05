@@ -258,4 +258,7 @@
     <string name="free_limit_reached">Ókeypis mörkum náð</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Engar ókeypis tilraunir eftir. Uppfærðu í Premium fyrir ótakmarkaðan aðgang.</string>
     <string name="name_already_exists">Skráarnafnið er þegar til.</string>
+    <string name="love_using_this_app">Elskar þú að nota þetta forrit?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Ábendingar þínar skipta miklu máli og hvetja okkur til að halda áfram að bæta okkur.</string>
+    <string name="feedback">Ábendingar</string>
 </resources>

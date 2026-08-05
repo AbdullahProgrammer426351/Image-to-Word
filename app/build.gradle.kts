@@ -7,18 +7,14 @@ plugins {
 
 android {
     namespace = "com.image.word.converter.convert.docx"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.image.word.converter.convert.docx"
         minSdk = 24
-        targetSdk = 36
-        versionCode = 5
-        versionName = "1.04"
+        targetSdk = 37
+        versionCode = 6
+        versionName = "1.05"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

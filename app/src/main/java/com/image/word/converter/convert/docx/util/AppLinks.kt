@@ -34,11 +34,14 @@ object AppLinks {
     }
 
     fun sendFeedback(context: Context) {
-        val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = "mailto:$FEEDBACK_EMAIL".toUri()
-            putExtra(Intent.EXTRA_SUBJECT, "Image To Word Feedback")
+        val uri = ("mailto:$FEEDBACK_EMAIL?subject=" +
+                Uri.encode("Image To Word Feedback (Android)")).toUri()
+
+        val intent = Intent(Intent.ACTION_SENDTO, uri)
+
+        runCatching {
+            context.startActivity(intent)
         }
-        runCatching { context.startActivity(intent) }
     }
 
     fun rateApp(context: Context) {

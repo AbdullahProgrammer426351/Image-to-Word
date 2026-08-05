@@ -258,4 +258,7 @@
     <string name="free_limit_reached">Gratisgrænse nået</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Ingen gratis forsøg tilbage. Opgrader til Premium for ubegrænset adgang.</string>
     <string name="name_already_exists">Filnavnet findes allerede.</string>
+    <string name="love_using_this_app">Elsker du at bruge denne app?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Din feedback gør en stor forskel og inspirerer os til fortsat at forbedre os.</string>
+    <string name="feedback">Feedback</string>
 </resources>

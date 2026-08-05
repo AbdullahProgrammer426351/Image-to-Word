@@ -47,6 +47,8 @@ import com.image.word.converter.convert.docx.ui.components.HoldOnDialog
 import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
 import com.image.word.converter.convert.docx.ui.util.WordFileHelper
+import com.image.word.converter.convert.docx.ui.components.RatingDialogViewModel
+import androidx.compose.runtime.LaunchedEffect
 import java.io.File
 import kotlinx.coroutines.launch
 
@@ -54,9 +56,13 @@ import kotlinx.coroutines.launch
 fun ResultScreen(
     sessionState: SessionState,
     mainViewModel: MainViewModel,
+    ratingViewModel: RatingDialogViewModel,
     isSubscribed: Boolean,
     onBackHome: () -> Unit,
 ) {
+    LaunchedEffect(Unit) {
+        ratingViewModel.tryShowAfterConversion()
+    }
     BackHandler(onBack = onBackHome)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

@@ -11,11 +11,15 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.acknowledgePurchase
+import com.android.billingclient.api.queryProductDetails
+import com.android.billingclient.api.queryPurchasesAsync
 import com.image.word.converter.convert.docx.R
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -35,7 +39,11 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
 
     private val billingClient: BillingClient = BillingClient.newBuilder(app)
         .setListener(this)
-        .enablePendingPurchases()
+        .enablePendingPurchases(
+            PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build()
+        )
         .build()
 
     private val productDetailsById = mutableMapOf<String, ProductDetails>()
@@ -166,60 +174,62 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             .setProductList(products)
             .build()
 
-        billingClient.queryProductDetailsAsync(params) { result, productDetailsList ->
-            Log.d(
-                logTag,
-                "queryProductDetailsAsync: code=${result.responseCode}, msg=${result.debugMessage}, listSize=${productDetailsList.size}",
-            )
-            if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        alertMessage = app.getString(
-                            R.string.failed_to_load_subscriptions,
-                            result.debugMessage
-                        ),
-                    )
-                }
-                return@queryProductDetailsAsync
-            }
+        val productDetailsResult = billingClient.queryProductDetails(params)
+        val result = productDetailsResult.billingResult
+        val productDetailsList = productDetailsResult.productDetailsList ?: emptyList()
 
-            productDetailsById.clear()
-            productDetailsList.forEach { details ->
-                productDetailsById[details.productId] = details
-                val offerCount = details.subscriptionOfferDetails?.size ?: 0
-                Log.d(
-                    logTag,
-                    "ProductDetails: id=${details.productId}, title=${details.title}, offerCount=$offerCount",
-                )
-            }
-            val mapped = productDetailsList.mapNotNull {
-                val mappedProduct = mapToSubscriptionProduct(it)
-                if (mappedProduct == null) {
-                    Log.d(logTag, "mapToSubscriptionProduct: dropped id=${it.productId}")
-                } else {
-                    Log.d(
-                        logTag,
-                        "mapToSubscriptionProduct: kept id=${mappedProduct.id}, price=${mappedProduct.priceFormatted}, period=${mappedProduct.billingPeriod}",
-                    )
-                }
-                mappedProduct
-            }
-            val productOrder = productIds.withIndex().associate { it.value to it.index }
-            val sorted = mapped.sortedBy { productOrder[it.id] ?: Int.MAX_VALUE }
-            Log.d(logTag, "fetchProducts(): mappedSize=${mapped.size}, sortedSize=${sorted.size}")
-
-            val defaultId = sorted.firstOrNull { it.id == PRODUCT_MONTHLY }?.id
-                ?: sorted.firstOrNull()?.id
-            Log.d(logTag, "fetchProducts(): defaultSelectedId=$defaultId")
-
+        Log.d(
+            logTag,
+            "queryProductDetailsAsync: code=${result.responseCode}, msg=${result.debugMessage}, listSize=${productDetailsList.size}",
+        )
+        if (result.responseCode != BillingClient.BillingResponseCode.OK) {
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    products = sorted,
-                    selectedProductId = it.selectedProductId ?: defaultId,
+                    alertMessage = app.getString(
+                        R.string.failed_to_load_subscriptions,
+                        result.debugMessage
+                    ),
                 )
             }
+            return
+        }
+
+        productDetailsById.clear()
+        productDetailsList.forEach { details ->
+            productDetailsById[details.productId] = details
+            val offerCount = details.subscriptionOfferDetails?.size ?: 0
+            Log.d(
+                logTag,
+                "ProductDetails: id=${details.productId}, title=${details.title}, offerCount=$offerCount",
+            )
+        }
+        val mapped = productDetailsList.mapNotNull {
+            val mappedProduct = mapToSubscriptionProduct(it)
+            if (mappedProduct == null) {
+                Log.d(logTag, "mapToSubscriptionProduct: dropped id=${it.productId}")
+            } else {
+                Log.d(
+                    logTag,
+                    "mapToSubscriptionProduct: kept id=${mappedProduct.id}, price=${mappedProduct.priceFormatted}, period=${mappedProduct.billingPeriod}",
+                )
+            }
+            mappedProduct
+        }
+        val productOrder = productIds.withIndex().associate { it.value to it.index }
+        val sorted = mapped.sortedBy { productOrder[it.id] ?: Int.MAX_VALUE }
+        Log.d(logTag, "fetchProducts(): mappedSize=${mapped.size}, sortedSize=${sorted.size}")
+
+        val defaultId = sorted.firstOrNull { it.id == PRODUCT_MONTHLY }?.id
+            ?: sorted.firstOrNull()?.id
+        Log.d(logTag, "fetchProducts(): defaultSelectedId=$defaultId")
+
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                products = sorted,
+                selectedProductId = it.selectedProductId ?: defaultId,
+            )
         }
     }
 
@@ -229,16 +239,18 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
 
-        billingClient.queryPurchasesAsync(params) { result, purchases ->
-            Log.d(
-                logTag,
-                "queryPurchasesAsync: code=${result.responseCode}, msg=${result.debugMessage}, purchasesSize=${purchases.size}",
-            )
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                viewModelScope.launch { handlePurchases(purchases, fromRestoreAction) }
-            } else {
-                _uiState.update { it.copy(isPurchasing = false) }
-            }
+        val purchasesResult = billingClient.queryPurchasesAsync(params)
+        val result = purchasesResult.billingResult
+        val purchases = purchasesResult.purchasesList
+
+        Log.d(
+            logTag,
+            "queryPurchasesAsync: code=${result.responseCode}, msg=${result.debugMessage}, purchasesSize=${purchases.size}",
+        )
+        if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+            handlePurchases(purchases, fromRestoreAction)
+        } else {
+            _uiState.update { it.copy(isPurchasing = false) }
         }
     }
 
@@ -259,7 +271,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                     val params = AcknowledgePurchaseParams.newBuilder()
                         .setPurchaseToken(purchase.purchaseToken)
                         .build()
-                    billingClient.acknowledgePurchase(params) {}
+                    billingClient.acknowledgePurchase(params)
                 }
             }
         }

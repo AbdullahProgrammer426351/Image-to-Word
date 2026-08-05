@@ -2,6 +2,7 @@ package com.image.word.converter.convert.docx.ui.util
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.model.ConvertedItem
@@ -79,6 +80,7 @@ object WordFileHelper {
             setDataAndType(uri, MIME_DOCX)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+        Toast.makeText(context, context.getString(R.string.done),Toast.LENGTH_SHORT).show()
         return runCatching {
             context.startActivity(Intent.createChooser(intent, context.getString(R.string.export)))
             true

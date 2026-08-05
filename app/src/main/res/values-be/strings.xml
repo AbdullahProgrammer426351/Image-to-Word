@@ -258,4 +258,7 @@
     <string name="free_limit_reached">Дасягнуты бясплатны ліміт</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Бясплатных спроб не засталося. Абнавіце падпіску на Premium, каб атрымаць неабмежаваны доступ.</string>
     <string name="name_already_exists">Файл з такой назвай ужо існуе.</string>
+    <string name="love_using_this_app">Падабаецца карыстацца гэтым дадаткам?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Вашы водгукі вельмі важныя і натхняюць нас на далейшае ўдасканаленне.</string>
+    <string name="feedback">Зваротная сувязь</string>
 </resources>

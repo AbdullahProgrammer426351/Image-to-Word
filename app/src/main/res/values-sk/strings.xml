@@ -258,4 +258,7 @@
     <string name="free_limit_reached">Dosiahnutý bezplatný limit</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nezostali žiadne bezplatné pokusy. Pre neobmedzený prístup prejdite na Premium.</string>
     <string name="name_already_exists">Názov súboru už existuje.</string>
+    <string name="love_using_this_app">Páči sa vám používanie tejto aplikácie?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Vaša spätná väzba má veľký význam a inšpiruje nás k neustálemu zlepšovaniu.</string>
+    <string name="feedback">Spätná väzba</string>
 </resources>

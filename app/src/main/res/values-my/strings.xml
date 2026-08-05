@@ -258,4 +258,7 @@
     <string name="free_limit_reached">အခမဲ့ကန့်သတ်ချက် ရောက်ရှိပါပြီ</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">အခမဲ့ကြိုးစားခွင့် မကျန်တော့ပါဘူး။ အကန့်အသတ်မရှိ ဝင်ရောက်ခွင့်အတွက် Premium သို့ အဆင့်မြှင့်တင်ပါ။</string>
     <string name="name_already_exists">ဖိုင်အမည် ရှိပြီးသားဖြစ်သည်။</string>
+    <string name="love_using_this_app">ဒီ app ကိုအသုံးပြုရတာ နှစ်သက်ပါသလား။</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">သင့်ရဲ့တုံ့ပြန်ချက်က ကြီးမားတဲ့ခြားနားချက်ကို ဖြစ်စေပြီး ကျွန်ုပ်တို့ကို ဆက်လက်တိုးတက်အောင် လုပ်ဆောင်ဖို့ လှုံ့ဆော်ပေးပါတယ်။</string>
+    <string name="feedback">တုံ့ပြန်ချက်</string>
 </resources>

@@ -41,16 +41,37 @@ import com.image.word.converter.convert.docx.util.SubscriptionTriggerManager
 import com.image.word.converter.convert.docx.util.bitmapToCacheUri
 import androidx.core.content.edit
 
+import com.image.word.converter.convert.docx.ui.components.RatingDialog
+import com.image.word.converter.convert.docx.ui.components.RatingDialogViewModel
+import com.image.word.converter.convert.docx.util.AppLinks
+
 @Composable
 fun AppRoot(activity: Activity) {
     val navController = rememberNavController()
     val sessionState = remember { SessionState() }
+    var returnHomeAfterSubscription by rememberSaveable { mutableStateOf(false) }
     val subscriptionViewModel: SubscriptionViewModel = viewModel()
     val mainViewModel: MainViewModel = viewModel()
+    val ratingViewModel: RatingDialogViewModel = viewModel()
     val subscriptionState by subscriptionViewModel.uiState.collectAsState()
+    val ratingState by ratingViewModel.showDialog.collectAsState()
     val attemptManager = remember { DailyAttemptManager(activity) }
     val limitTrigger = remember { SubscriptionTriggerManager() }
     val showLimit by limitTrigger.showLimitDialog.collectAsState()
+
+    if (ratingState) {
+        RatingDialog(
+            onDismiss = { ratingViewModel.dismiss() },
+            onLowRating = {
+                ratingViewModel.onRated()
+                AppLinks.sendFeedback(activity)
+            },
+            onHighRating = {
+                ratingViewModel.onRated()
+                AppLinks.rateApp(activity)
+            }
+        )
+    }
 
     AppNavigationHost(
         showLimitDialog = showLimit,
@@ -89,13 +110,20 @@ fun AppRoot(activity: Activity) {
             }
 
             composable(Routes.Walkthrough) {
+                var exitFlowStarted by rememberSaveable { mutableStateOf(false) }
                 WalkthroughScreen(
+                    isSubscribed = subscriptionState.isSubscribed,
                     onDone = {
+                        if (exitFlowStarted) return@WalkthroughScreen
+                        exitFlowStarted = true
+
+                        activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
+                            .edit { putBoolean("seen_walkthrough", true) }
+
                         InterstitialAdManager.shared.show(activity) {
-                            activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
-                                .edit { putBoolean("seen_walkthrough", true) }
-                            navController.navigate(Routes.main()) {
+                            navController.navigate(Routes.main(autoSub = true)) {
                                 popUpTo(Routes.Walkthrough) { inclusive = true }
+                                launchSingleTop = true
                             }
                         }
                     },
@@ -117,6 +145,7 @@ fun AppRoot(activity: Activity) {
                 MainTabsScreen(
                     navController = navController,
                     mainViewModel = mainViewModel,
+                    ratingViewModel = ratingViewModel,
                     sessionState = sessionState,
                     attemptManager = attemptManager,
                     isSubscribed = subscriptionState.isSubscribed,
@@ -251,7 +280,11 @@ fun AppRoot(activity: Activity) {
                             launchSingleTop = true
                         }
                     },
-                    onDone = { navController.navigate(Routes.Result) },
+                    onDone = {
+                        navController.navigate(Routes.Result) {
+                            popUpTo(Routes.Processing) { inclusive = true }
+                        }
+                    },
                 )
             }
 
@@ -259,13 +292,24 @@ fun AppRoot(activity: Activity) {
                 ResultScreen(
                     sessionState = sessionState,
                     mainViewModel = mainViewModel,
+                    ratingViewModel = ratingViewModel,
                     isSubscribed = subscriptionState.isSubscribed,
                     onBackHome = {
                         sessionState.clearSelectedImages()
                         sessionState.clearConvertedItems()
-                        navController.navigate(Routes.main()) {
-                            popUpTo(Routes.Main) { inclusive = false }
-                            launchSingleTop = true
+                        val shouldShowSubscription =
+                            !subscriptionState.isSubscribed && attemptManager.remainingAttempts == 0
+
+                        if (shouldShowSubscription) {
+                            returnHomeAfterSubscription = true
+                            navController.navigate(Routes.Subscription) {
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.navigate(Routes.main()) {
+                                popUpTo(Routes.Main) { inclusive = false }
+                                launchSingleTop = true
+                            }
                         }
                     },
                 )
@@ -273,7 +317,17 @@ fun AppRoot(activity: Activity) {
 
             composable(Routes.Subscription) {
                 SubscriptionScreen(
-                    onClose = { navController.popBackStack() },
+                    onClose = {
+                        if (returnHomeAfterSubscription) {
+                            returnHomeAfterSubscription = false
+                            navController.navigate(Routes.main()) {
+                                popUpTo(Routes.Main) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    },
                     viewModel = subscriptionViewModel,
                 )
             }

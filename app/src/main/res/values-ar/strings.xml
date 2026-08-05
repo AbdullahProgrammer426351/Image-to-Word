@@ -258,4 +258,7 @@
     <string name="free_limit_reached">تم الوصول إلى الحد الأقصى المجاني</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">نفدت المحاولات المجانية. اشترك في النسخة المميزة للوصول غير المحدود.</string>
     <string name="name_already_exists">اسم الملف موجود بالفعل.</string>
+    <string name="love_using_this_app">هل أعجبك استخدام هذا التطبيق؟</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">ملاحظاتكم تُحدث فرقاً كبيراً وتُلهمنا لمواصلة التحسين.</string>
+    <string name="feedback">تعليق</string>
 </resources>

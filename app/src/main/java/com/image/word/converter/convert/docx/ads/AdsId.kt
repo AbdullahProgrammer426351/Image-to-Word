@@ -1,13 +1,13 @@
 package com.image.word.converter.convert.docx.ads
 
 object AdsId {
-    private const val TEST_BANNER_ID = "ca-app-pub-3940256099942544/2435281174"
-    private const val TEST_NATIVE_ID = "ca-app-pub-3940256099942544/3986624511"
-    private const val TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/4411468910"
-    private const val TEST_FREQUENCY_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/4411468910"
-    private const val TEST_APP_OPEN_ID = "ca-app-pub-3940256099942544/5575463023"
-    private const val TEST_FREQUENCY_APP_OPEN_ID = "ca-app-pub-3940256099942544/5575463023"
-    private const val TEST_REWARDED_ID = "ca-app-pub-3940256099942544/1712485313"
+    private const val TEST_BANNER_ID = "ca-app-pub-3940256099942544/9214589741"
+    private const val TEST_NATIVE_ID = "ca-app-pub-3940256099942544/2247696110"
+    private const val TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
+    private const val TEST_FREQUENCY_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
+    private const val TEST_APP_OPEN_ID = "ca-app-pub-3940256099942544/9257395921"
+    private const val TEST_FREQUENCY_APP_OPEN_ID = "ca-app-pub-3940256099942544/9257395921"
+    private const val TEST_REWARDED_ID = "ca-app-pub-3940256099942544/5224354917"
 
     private const val PROD_BANNER_ID = "ca-app-pub-8218090797316916/1037750078"
     private const val PROD_NATIVE_ID = "ca-app-pub-8218090797316916/7268116504"

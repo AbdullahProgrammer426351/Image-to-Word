@@ -258,4 +258,7 @@
     <string name="free_limit_reached">무료 이용 한도 도달</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">무료 시도 횟수가 모두 소진되었습니다. 무제한 이용을 위해 프리미엄으로 업그레이드하세요.</string>
     <string name="name_already_exists">파일 이름이 이미 존재합니다.</string>
+    <string name="love_using_this_app">이 앱 사용이 마음에 드시나요?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">여러분의 피드백은 큰 도움이 되며, 저희가 계속해서 발전해 나갈 수 있도록 영감을 줍니다.</string>
+    <string name="feedback">피드백</string>
 </resources>

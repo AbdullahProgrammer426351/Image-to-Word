@@ -258,4 +258,7 @@
     <string name="free_limit_reached">ถึงขีดจำกัดฟรีแล้ว</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">ไม่มีสิทธิ์ใช้งานฟรีเหลือแล้ว อัปเกรดเป็น Premium เพื่อใช้งานแบบไม่จำกัด</string>
     <string name="name_already_exists">ชื่อไฟล์นี้มีอยู่แล้ว</string>
+    <string name="love_using_this_app">ชอบใช้แอปนี้ไหม?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">ความคิดเห็นของคุณมีความสำคัญอย่างยิ่งและเป็นแรงบันดาลใจให้เราพัฒนาต่อไป</string>
+    <string name="feedback">ข้อเสนอแนะ</string>
 </resources>

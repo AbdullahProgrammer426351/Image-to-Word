@@ -55,7 +55,7 @@ object AdsRemoteConfig {
         AdsGate.isNativeEnabled = remoteConfig.getBoolean(KEY_NATIVE_ENABLED)
         AdsGate.isRewardedEnabled = remoteConfig.getBoolean(KEY_REWARDED_ENABLED)
 
-        val useTestAds = testAdsEnabledRemote
+        val useTestAds = testAdsEnabledRemote && isDebugBuild
         AdsId.applyIds(useTestAds)
     }
 }

@@ -258,4 +258,7 @@
     <string name="free_limit_reached">Limiti i Lirë u Arrit</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Nuk kanë mbetur përpjekje falas. Përmirësojeni në Premium për akses të pakufizuar.</string>
     <string name="name_already_exists">Emri i skedarit ekziston tashmë.</string>
+    <string name="love_using_this_app">Të pëlqen të përdorësh këtë aplikacion?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Reagimet tuaja bëjnë një ndryshim të madh dhe na frymëzojnë të vazhdojmë të përmirësohemi.</string>
+    <string name="feedback">Reagime</string>
 </resources>

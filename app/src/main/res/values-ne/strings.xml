@@ -258,4 +258,7 @@
     <string name="free_limit_reached">नि:शुल्क सीमा पुग्यो</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">कुनै नि:शुल्क प्रयास बाँकी छैन। असीमित पहुँचको लागि प्रिमियममा स्तरवृद्धि गर्नुहोस्।</string>
     <string name="name_already_exists">फाइल नाम पहिले नै अवस्थित छ।</string>
+    <string name="love_using_this_app">यो एप प्रयोग गर्न मन पर्छ?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">तपाईंको प्रतिक्रियाले ठूलो फरक पार्छ र हामीलाई सुधार गरिरहन प्रेरित गर्छ।</string>
+    <string name="feedback">प्रतिक्रिया</string>
 </resources>

@@ -258,4 +258,7 @@
     <string name="free_limit_reached">Limite gratuito raggiunto.</string>
     <string name="no_free_attempts_left_upgrade_to_premium_for_unlimited_access">Non ci sono più tentativi gratuiti disponibili. Passa a Premium per un accesso illimitato.</string>
     <string name="name_already_exists">Il nome del file esiste già.</string>
+    <string name="love_using_this_app">Ti piace usare questa app?</string>
+    <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Il vostro feedback è fondamentale e ci motiva a continuare a migliorare.</string>
+    <string name="feedback">Feedback</string>
 </resources>
