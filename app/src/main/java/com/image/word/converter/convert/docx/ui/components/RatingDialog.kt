@@ -93,11 +93,11 @@ fun RatingDialog(
 ) {
     var rating by remember { mutableIntStateOf(0) }
     val emoji = when (rating.coerceAtLeast(1)) {
-        2 -> R.drawable.star2emoji
-        3 -> R.drawable.star3emoji
-        4 -> R.drawable.star4emoji
-        5 -> R.drawable.star5emoji
-        else -> R.drawable.star1emoji
+        2 -> R.drawable.star2_emoji
+        3 -> R.drawable.star3_emoji
+        4 -> R.drawable.star4_emoji
+        5 -> R.drawable.star5_emoji
+        else -> R.drawable.star1_emoji
     }
 
     Dialog(

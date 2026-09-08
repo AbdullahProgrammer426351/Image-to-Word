@@ -30,6 +30,7 @@ junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 playServicesMlkitTextRecognitionCommon = "19.1.0"
+firebaseAnalytics = "23.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -83,6 +84,7 @@ play-services-mlkit-text-recognition-common = { group = "com.google.android.gms"
 reorderable = { module = "org.burnoutcrew.composereorderable:reorderable", version.ref = "reorderable" }
 yalantis-ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucropVersion" }
 skydoves-colorpicker-compose = { group = "com.github.skydoves", name = "colorpicker-compose", version.ref = "skydovesColorPicker" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
 
 
 [plugins]

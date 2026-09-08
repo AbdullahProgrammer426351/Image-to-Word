@@ -13,8 +13,8 @@ android {
         applicationId = "com.image.word.converter.convert.docx"
         minSdk = 24
         targetSdk = 37
-        versionCode = 6
-        versionName = "1.05"
+        versionCode = 7
+        versionName = "1.06"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.firebase.analytics)
 
     // Third-party: Firebase Auth
     implementation(libs.firebase.auth)
