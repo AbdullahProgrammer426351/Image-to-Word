@@ -31,7 +31,7 @@
     <string name="back">กลับ</string>
     <string name="next">ต่อไป</string>
     <string name="no_data_found">ไม่พบข้อมูล</string>
-    <string name="free_uses_remaining">เหลือจำนวนการใช้งานฟรี 1%</string>
+    <string name="free_uses_remaining">เหลือจำนวนการใช้งานฟรี %1$d</string>
     <string name="no_free_uses_left">ไม่มีสิทธิ์ใช้งานฟรีเหลือแล้ว</string>
     <string name="failed_generic">เกิดข้อผิดพลาดบางอย่าง โปรดลองใหม่อีกครั้ง</string>
     <string name="ok">ตกลง</string>
@@ -91,7 +91,7 @@
     <string name="barcode_scanner">เครื่องสแกนบาร์โค้ด</string>
     <string name="more_tools">เครื่องมือเพิ่มเติม</string>
     <string name="more_tools_subtitle">ชุดเครื่องมือแบบเปิด</string>
-    <string name="remaining_attempts_label">เหลือจำนวนการใช้งานฟรี 1%</string>
+    <string name="remaining_attempts_label">เหลือจำนวนการใช้งานฟรี %1$d</string>
     <string name="go_premium_banner">สมัครสมาชิกแบบพรีเมียมเพื่อเข้าถึงแบบไม่จำกัด</string>
     <string name="get_started">เริ่มต้นใช้งาน</string>
     <string name="loading_data">กำลังโหลดข้อมูล…</string>

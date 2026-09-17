@@ -31,7 +31,7 @@
     <string name="back">पीछे</string>
     <string name="next">अगला</string>
     <string name="no_data_found">डाटा प्राप्त नहीं हुआ</string>
-    <string name="free_uses_remaining">शेष 1% निःशुल्क उपयोग।</string>
+    <string name="free_uses_remaining">शेष %1$d निःशुल्क उपयोग।</string>
     <string name="no_free_uses_left">अब कोई निःशुल्क उपयोग शेष नहीं है।</string>
     <string name="failed_generic">कुछ गड़बड़ हुई है। कृपया दोबारा प्रयास करें।</string>
     <string name="ok">ठीक है</string>
@@ -91,7 +91,7 @@
     <string name="barcode_scanner">बार कोड स्कैनर</string>
     <string name="more_tools">अधिक उपकरण</string>
     <string name="more_tools_subtitle">ओपन टूल संग्रह</string>
-    <string name="remaining_attempts_label">शेष 1% निःशुल्क उपयोग।</string>
+    <string name="remaining_attempts_label">शेष %1$d निःशुल्क उपयोग।</string>
     <string name="go_premium_banner">असीमित पहुंच के लिए प्रीमियम चुनें</string>
     <string name="get_started">शुरू हो जाओ</string>
     <string name="loading_data">डेटा लोड हो रहा है…</string>

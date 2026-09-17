@@ -1,6 +1,7 @@
 package com.image.word.converter.convert.docx.ui
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -10,6 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -94,7 +97,7 @@ fun AppRoot(activity: Activity) {
                         val proceed = {
                             if (!consumed) {
                                 consumed = true
-                                navController.navigate(destination) {
+                                navController.safeNavigate(destination) {
                                     popUpTo(Routes.Splash) { inclusive = true }
                                 }
                             }
@@ -121,7 +124,7 @@ fun AppRoot(activity: Activity) {
                             .edit { putBoolean("seen_walkthrough", true) }
 
                         InterstitialAdManager.shared.show(activity) {
-                            navController.navigate(Routes.main(autoSub = true)) {
+                            navController.safeNavigate(Routes.main(autoSub = true)) {
                                 popUpTo(Routes.Walkthrough) { inclusive = true }
                                 launchSingleTop = true
                             }
@@ -180,7 +183,7 @@ fun AppRoot(activity: Activity) {
                     isSubscribed = subscriptionState.isSubscribed,
                     onBack = {
                         InterstitialAdManager.shared.show(activity) {
-                            navController.popBackStack()
+                            navController.safeNavigate { navController.popBackStack() }
                         }
                     },
                     onNext = {
@@ -281,7 +284,7 @@ fun AppRoot(activity: Activity) {
                         }
                     },
                     onDone = {
-                        navController.navigate(Routes.Result) {
+                        navController.safeNavigate(Routes.Result) {
                             popUpTo(Routes.Processing) { inclusive = true }
                         }
                     },
@@ -333,4 +336,17 @@ fun AppRoot(activity: Activity) {
             }
         }
     }
+}
+
+private fun NavController.safeNavigate(
+    route: String,
+    builder: NavOptionsBuilder.() -> Unit = {},
+) {
+    runCatching { navigate(route, builder) }
+        .onFailure { Log.w("AppRoot", "Timed-out-safe navigation to $route failed; ignoring", it) }
+}
+
+private fun NavController.safeNavigate(builder: () -> Unit) {
+    runCatching(builder)
+        .onFailure { Log.w("AppRoot", "Safe navigation action failed; ignoring", it) }
 }

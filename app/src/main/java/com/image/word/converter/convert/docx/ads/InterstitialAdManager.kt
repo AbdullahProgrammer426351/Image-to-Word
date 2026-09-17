@@ -175,8 +175,13 @@ class InterstitialAdManager(private val adType: AdType) {
 
     private fun completePendingShowWithoutAd(reason: String) {
         val pending = pendingShow ?: return
+        val activity = pending.activity.get()
         Log.d(TAG, "$reason; continuing without ad")
         clearPendingShow()
+        if (activity == null || activity.isFinishing || activity.isDestroyed) {
+            Log.d(TAG, "Activity is no longer valid; skipping pending completion")
+            return
+        }
         pending.onComplete()
     }
 

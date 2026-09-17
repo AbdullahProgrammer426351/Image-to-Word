@@ -12,39 +12,44 @@ import java.net.URL
 
 class ImageToWordApi {
     suspend fun uploadImage(bitmap: Bitmap): String? = withContext(Dispatchers.IO) {
-        val data = ByteArrayOutputStream().use { stream ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-            stream.toByteArray()
-        }
-        val base64 = android.util.Base64.encodeToString(data, android.util.Base64.NO_WRAP)
-
-        val user = FirebaseAuth.getInstance().currentUser ?: run {
-            FirebaseAuth.getInstance().signInAnonymously().await().user
-        } ?: return@withContext null
-
-        val token = user.getIdToken(false).await().token ?: return@withContext null
-        val url = URL("https://us-central1-converter-api-project.cloudfunctions.net/imageToWord")
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            connectTimeout = 120_000
-            readTimeout = 120_000
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json")
-            setRequestProperty("Authorization", "Bearer $token")
-        }
-
-        val payload = JSONObject().put("image", base64).toString()
-        connection.outputStream.use { it.write(payload.toByteArray()) }
-        val body = runCatching {
-            val stream = if (connection.responseCode in 200..299) {
-                connection.inputStream
-            } else {
-                connection.errorStream
+        try {
+            val data = ByteArrayOutputStream().use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+                stream.toByteArray()
             }
-            stream?.bufferedReader()?.readText().orEmpty()
-        }.getOrDefault("")
+            val base64 = android.util.Base64.encodeToString(data, android.util.Base64.NO_WRAP)
 
-        parseFileUrl(body)
+            val user = FirebaseAuth.getInstance().currentUser ?: run {
+                FirebaseAuth.getInstance().signInAnonymously().await().user
+            } ?: return@withContext null
+
+            val token = user.getIdToken(false).await().token ?: return@withContext null
+            val url = URL("https://us-central1-converter-api-project.cloudfunctions.net/imageToWord")
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = 120_000
+                readTimeout = 120_000
+                doOutput = true
+                setRequestProperty("Content-Type", "application/json")
+                setRequestProperty("Authorization", "Bearer $token")
+            }
+
+            val payload = JSONObject().put("image", base64).toString()
+            connection.outputStream.use { it.write(payload.toByteArray()) }
+            val body = runCatching {
+                val stream = if (connection.responseCode in 200..299) {
+                    connection.inputStream
+                } else {
+                    connection.errorStream
+                }
+                stream?.bufferedReader()?.readText().orEmpty()
+            }.getOrDefault("")
+
+            parseFileUrl(body)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     private fun parseFileUrl(raw: String): String? {

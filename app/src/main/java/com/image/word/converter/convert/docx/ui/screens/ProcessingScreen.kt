@@ -39,9 +39,11 @@ import com.image.word.converter.convert.docx.ui.state.SessionState
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.NetworkMonitor
 import com.image.word.converter.convert.docx.util.decodeBitmap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 @Composable
 fun ProcessingScreen(
@@ -70,15 +72,18 @@ fun ProcessingScreen(
             return@LaunchedEffect
         }
 
-        val images = imageUris.mapNotNull { decodeBitmap(context.contentResolver, it) }
+        val images = withContext(Dispatchers.IO) {
+            imageUris.mapNotNull { decodeBitmap(context.contentResolver, it) }
+        }
         if (images.isEmpty()) {
             onResetToHome()
             return@LaunchedEffect
         }
 
         val converted = coroutineScope {
+            val limitedDispatcher = Dispatchers.IO.limitedParallelism(2)
             images.mapIndexed { index, bitmap ->
-                async {
+                async(limitedDispatcher) {
                     val fileUrl = api.uploadImage(bitmap)
                     if (fileUrl.isNullOrBlank()) return@async null
                     
