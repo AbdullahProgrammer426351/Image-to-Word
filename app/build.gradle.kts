@@ -22,6 +22,17 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
+            buildConfigField("String", "BACKEND_ENVIRONMENT", "\"emulator\"")
+            buildConfigField("boolean", "BACKEND_ACCOUNT_INTEGRATION_ENABLED", "true")
+            buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"demo-converter-credit\"")
+            buildConfigField(
+                "String",
+                "BACKEND_FUNCTIONS_BASE_URL",
+                "\"http://10.0.2.2:5001/demo-converter-credit/us-central1/\"",
+            )
+            buildConfigField("String", "BACKEND_AUTH_EMULATOR_HOST", "\"10.0.2.2\"")
+            buildConfigField("int", "BACKEND_AUTH_EMULATOR_PORT", "9099")
+            buildConfigField("boolean", "ISOLATE_PRODUCTION_SERVICES", "true")
 //            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -31,6 +42,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            buildConfigField("String", "BACKEND_ENVIRONMENT", "\"production-disabled\"")
+            buildConfigField("boolean", "BACKEND_ACCOUNT_INTEGRATION_ENABLED", "false")
+            buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"converter-api-project\"")
+            buildConfigField("String", "BACKEND_FUNCTIONS_BASE_URL", "\"\"")
+            buildConfigField("String", "BACKEND_AUTH_EMULATOR_HOST", "\"\"")
+            buildConfigField("int", "BACKEND_AUTH_EMULATOR_PORT", "0")
+            buildConfigField("boolean", "ISOLATE_PRODUCTION_SERVICES", "false")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,6 +63,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -98,6 +117,8 @@ dependencies {
     implementation(libs.play.services.mlkit.text.recognition.common)
 
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20250517")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

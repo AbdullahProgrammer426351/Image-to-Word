@@ -1,0 +1,40 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Exception java.net.UnknownHostException:\
+  at java.net.Inet6AddressImpl.lookupHostByName (Inet6AddressImpl.java:156)\
+  at java.net.Inet6AddressImpl.lookupAllHostAddr (Inet6AddressImpl.java:103)\
+  at java.net.InetAddress.getAllByName (InetAddress.java:1152)\
+  at com.android.okhttp.Dns$1.lookup (Dns.java:41)\
+  at com.android.okhttp.internal.http.RouteSelector.resetNextInetSocketAddress (RouteSelector.java:178)\
+  at com.android.okhttp.internal.http.RouteSelector.nextProxy (RouteSelector.java:144)\
+  at com.android.okhttp.internal.http.RouteSelector.next (RouteSelector.java:86)\
+  at com.android.okhttp.internal.http.StreamAllocation.findConnection (StreamAllocation.java:176)\
+  at com.android.okhttp.internal.http.StreamAllocation.findHealthyConnection (StreamAllocation.java:128)\
+  at com.android.okhttp.internal.http.StreamAllocation.newStream (StreamAllocation.java:97)\
+  at com.android.okhttp.internal.http.HttpEngine.connect (HttpEngine.java:289)\
+  at com.android.okhttp.internal.http.HttpEngine.sendRequest (HttpEngine.java:232)\
+  at com.android.okhttp.internal.huc.HttpURLConnectionImpl.execute (HttpURLConnectionImpl.java:465)\
+  at com.android.okhttp.internal.huc.HttpURLConnectionImpl.connect (HttpURLConnectionImpl.java:131)\
+  at com.android.okhttp.internal.huc.HttpURLConnectionImpl.getOutputStream (HttpURLConnectionImpl.java:262)\
+  at com.android.okhttp.internal.huc.DelegatingHttpsURLConnection.getOutputStream (DelegatingHttpsURLConnection.java:219)\
+  at com.android.okhttp.internal.huc.HttpsURLConnectionImpl.getOutputStream (HttpsURLConnectionImpl.java:30)\
+  at com.image.word.converter.convert.docx.data.ImageToWordApi$uploadImage$2.invokeSuspend (ImageToWordApi.kt:37)\
+  at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith (ContinuationImpl.kt:34)\
+  at kotlinx.coroutines.DispatchedTask.run (DispatchedTask.kt:100)\
+  at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run (LimitedDispatcher.kt:124)\
+  at kotlinx.coroutines.scheduling.TaskImpl.run (Tasks.kt:89)\
+  at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely (CoroutineScheduler.java:586)\
+  at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask (CoroutineScheduler.kt:798)\
+  at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker (CoroutineScheduler.kt:717)\
+  at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run (CoroutineScheduler.kt:704)\
+Caused by android.system.GaiException: android_getaddrinfo failed: EAI_NODATA (No address associated with hostname)\
+  at libcore.io.Linux.android_getaddrinfo\
+  at libcore.io.ForwardingOs.android_getaddrinfo (ForwardingOs.java:134)\
+  at libcore.io.BlockGuardOs.android_getaddrinfo (BlockGuardOs.java:222)\
+  at libcore.io.ForwardingOs.android_getaddrinfo (ForwardingOs.java:134)\
+  at java.net.Inet6AddressImpl.lookupHostByName (Inet6AddressImpl.java:135)}

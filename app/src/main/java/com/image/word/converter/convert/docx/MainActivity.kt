@@ -59,6 +59,7 @@ import com.image.word.converter.convert.docx.ads.AppOpenAdManager
 import com.image.word.converter.convert.docx.ads.ConsentManager
 import com.image.word.converter.convert.docx.ads.FrequencyAppOpenAdManager
 import com.image.word.converter.convert.docx.ads.InterstitialAdManager
+import com.image.word.converter.convert.docx.backend.BackendEnvironment
 import com.image.word.converter.convert.docx.subscriptions.SubscriptionViewModel
 import com.image.word.converter.convert.docx.ui.AppRoot
 import com.image.word.converter.convert.docx.ui.components.AssetImage
@@ -85,13 +86,18 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(Unit) {
-                AdsRemoteConfig.initialize(this@MainActivity) {
-                    ConsentManager.shared.requestConsent(this@MainActivity) {
-                        AdsInitializer.initialize(this@MainActivity)
-                        InterstitialAdManager.shared.load(this@MainActivity)
-                        InterstitialAdManager.frequencyShared.load(this@MainActivity)
-                        AppOpenAdManager.shared.loadIfNeeded(this@MainActivity)
-                        AdsGate.canShowResumeAppOpen = true
+                if (BackendEnvironment.current().isolateProductionServices) {
+                    AdsGate.canRequestAds = false
+                    AdsGate.canShowResumeAppOpen = false
+                } else {
+                    AdsRemoteConfig.initialize(this@MainActivity) {
+                        ConsentManager.shared.requestConsent(this@MainActivity) {
+                            AdsInitializer.initialize(this@MainActivity)
+                            InterstitialAdManager.shared.load(this@MainActivity)
+                            InterstitialAdManager.frequencyShared.load(this@MainActivity)
+                            AppOpenAdManager.shared.loadIfNeeded(this@MainActivity)
+                            AdsGate.canShowResumeAppOpen = true
+                        }
                     }
                 }
             }

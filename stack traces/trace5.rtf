@@ -1,0 +1,34 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Exception java.lang.IllegalStateException:\
+  at androidx.lifecycle.LifecycleRegistryKt.checkLifecycleStateTransition (LifecycleRegistry.kt:435)\
+  at androidx.lifecycle.LifecycleRegistryKt.access$checkLifecycleStateTransition (LifecycleRegistry.kt:1)\
+  at androidx.lifecycle.LifecycleRegistry.moveToState (LifecycleRegistry.kt:170)\
+  at androidx.lifecycle.LifecycleRegistry.setCurrentState (LifecycleRegistry.kt:140)\
+  at androidx.navigation.internal.NavBackStackEntryImpl.updateState$navigation_common_release (NavBackStackEntryImpl.kt:107)\
+  at androidx.navigation.internal.NavBackStackEntryImpl.setMaxLifecycle$navigation_common_release (NavBackStackEntryImpl.kt:86)\
+  at androidx.navigation.NavBackStackEntry.setMaxLifecycle (NavBackStackEntry.android.kt:111)\
+  at androidx.navigation.internal.NavControllerImpl.updateBackStackLifecycle$navigation_runtime_release (NavControllerImpl.kt:847)\
+  at androidx.navigation.internal.NavControllerImpl.dispatchOnDestinationChanged$navigation_runtime_release (NavControllerImpl.kt:687)\
+  at androidx.navigation.internal.NavControllerImpl.navigate$navigation_runtime_release (NavControllerImpl.kt:1224)\
+  at androidx.navigation.internal.NavControllerImpl.navigate$navigation_runtime_release (NavControllerImpl.kt:1552)\
+  at androidx.navigation.internal.NavControllerImpl.navigate$navigation_runtime_release$default (NavControllerImpl.kt:1528)\
+  at androidx.navigation.internal.NavControllerImpl.navigate$navigation_runtime_release (NavControllerImpl.java:1525)\
+  at androidx.navigation.NavController.navigate (NavController.android.kt:1003)\
+  at com.image.word.converter.convert.docx.ui.AppRootKt.AppRoot$lambda$14$0$0$1$3$0$1 (AppRoot.kt:124)\
+  at com.image.word.converter.convert.docx.ads.InterstitialAdManager.onceOnMain$lambda$0 (InterstitialAdManager.java:199)\
+  at com.image.word.converter.convert.docx.ads.InterstitialAdManager.completePendingShowWithoutAd (InterstitialAdManager.kt:180)\
+  at com.image.word.converter.convert.docx.ads.InterstitialAdManager.schedulePendingShowTimeout$lambda$0 (InterstitialAdManager.kt:170)\
+  at android.os.Handler.handleCallback (Handler.java:958)\
+  at android.os.Handler.dispatchMessage (Handler.java:99)\
+  at android.os.Looper.loopOnce (Looper.java:224)\
+  at android.os.Looper.loop (Looper.java:318)\
+  at android.app.ActivityThread.main (ActivityThread.java:8727)\
+  at java.lang.reflect.Method.invoke\
+  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run (RuntimeInit.java:561)\
+  at com.android.internal.os.ZygoteInit.main (ZygoteInit.java:1013)}
