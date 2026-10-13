@@ -1,6 +1,6 @@
 # Android Backend Contract (V2)
 
-Status: frozen for Android implementation against local emulators. The four HTTP functions in this document are currently guarded to `demo-converter-credit`; they are not production-deployed. The original production `imageToWord` function is unchanged.
+Status: frozen for Android implementation. The four HTTP functions use production-capable Gen 2 exports but remain undeployed; demo execution is still strictly guarded to `demo-converter-credit`, and production requires explicit backend configuration. The original production `imageToWord` function is unchanged.
 
 ## 1. Architecture and source of truth
 
@@ -59,7 +59,7 @@ The prepared header is:
 X-Firebase-AppCheck: <token>
 ```
 
-App Check is not enforced yet. While enforcement is disabled, requests work without the header and a supplied token is not used as authorization. Firebase Authentication remains required independently.
+App Check is not enforced yet. In monitor mode, a missing token is allowed/logged as `missing`, a valid token is verified and logged as `valid`, and an invalid supplied token is allowed/logged as `invalid`. The backend can also compare the verified App Check App ID with its server-owned application registry; strict identity enforcement requires the reviewed production Firebase App ID and must be enabled before a second app is admitted. Tokens are never logged. Firebase Authentication remains required independently.
 
 For development, Android should register and use the Firebase App Check debug provider/token only in debug builds. Production will use Play Integrity. When backend enforcement is intentionally enabled, a missing or invalid token returns HTTP `403`, code `APP_CHECK_FAILED`; a valid App Check token still does not replace Firebase Authentication.
 
@@ -167,7 +167,8 @@ Request:
 - `idempotencyKey` is 1-128 characters from letters, digits, `.`, `_`, `:`, or `-`. A UUID is recommended.
 - Android must not send credits, file size, user ID, pricing, or other fields.
 - The backend decodes the image, uses the decoded byte count, loads server pricing, and reserves/finalizes credits transactionally.
-- Current emulator settings cap the decoded file at 25 MiB. The deployed server configuration is authoritative and may be lower; Android should treat HTTP `413 FILE_TOO_LARGE` as final for that file.
+- The backend has an 18 MiB decoded JPEG hard ceiling. SystemSettings may configure a lower limit but cannot raise this ceiling. Android should treat HTTP `413 FILE_TOO_LARGE` as final for that file.
+- The decoded bytes must contain a valid JPEG signature; non-JPEG Base64 returns `400 INVALID_BASE64`.
 
 Success (including a completed idempotent retry):
 
@@ -306,6 +307,7 @@ Method mismatches return HTTP `405` with code `INVALID_REQUEST`. `ACCOUNT_NOT_FO
 ## 11. Backend responsibilities
 
 - Verify Firebase Auth for every V2 call and derive identity from the token.
+- Select the fixed `IMAGE_TO_WORD_APP` wallet internally; never accept `walletId`, application ID, or package name as client authority.
 - Optionally verify App Check now, and enforce it only after an intentional production rollout.
 - Own user bootstrap, free/paid grants, settings, price calculation, reservations, consumption/release, conversions, subscriptions, acknowledgement, and sanitized errors.
 - Use Firestore transactions and deterministic identifiers for concurrency and idempotency.
@@ -317,4 +319,4 @@ Debug Android integration must use the Auth Emulator and Functions Emulator unde
 
 Use a separate debug Firebase configuration where practical. Disable or isolate production Remote Config fetch/activation, Analytics, Crashlytics reporting, and Ads traffic in emulator/integration builds so local tests do not mutate production telemetry, experiments, crash dashboards, or ad behavior. These are Android-side recommendations only; this backend milestone changes no Android code.
 
-Before production, replace emulator-only guards deliberately; configure reviewed Firestore settings/rules/indexes, real Google Play service credentials and package access, RTDN/IAM, supported product mappings, Secret Manager, App Check Play Integrity, monitoring, and rollback. Deploy only after an explicit production review. No secret belongs in this contract.
+Before production, configure the existing explicit production gate, reviewed Firestore settings/rules/indexes, ADC/Play Console package access, RTDN/IAM, Secret Manager, App Check Play Integrity, alerts, and rollback. Deploy only after an explicit production review. No secret belongs in this contract.

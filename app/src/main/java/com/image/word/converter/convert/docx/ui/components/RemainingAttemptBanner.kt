@@ -18,6 +18,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
+import com.image.word.converter.convert.docx.backend.AccountRepositoryState
 
 @Composable
 fun RemainingAttemptBanner(
@@ -56,6 +57,35 @@ fun RemainingAttemptBanner(
             .padding(horizontal = 12.dp, vertical = 10.dp),
         style = MaterialTheme.typography.bodySmall,
         color = Color.White,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+fun BackendCreditsBanner(
+    accountState: AccountRepositoryState,
+) {
+    val credits = when (accountState) {
+        is AccountRepositoryState.Ready -> accountState.account.credits.available
+        is AccountRepositoryState.Loading -> accountState.previous?.credits?.available
+        is AccountRepositoryState.Degraded -> accountState.previous?.credits?.available
+        AccountRepositoryState.Disabled -> null
+    }
+    val label = when {
+        credits != null -> stringResource(R.string.credits_available, credits)
+        accountState is AccountRepositoryState.Loading -> stringResource(R.string.credits_loading)
+        else -> stringResource(R.string.credits_unavailable)
+    }
+
+    Text(
+        text = label,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = Color.White,
+        fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
     )
 }

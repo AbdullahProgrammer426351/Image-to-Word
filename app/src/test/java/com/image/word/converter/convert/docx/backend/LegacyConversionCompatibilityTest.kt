@@ -21,4 +21,15 @@ class LegacyConversionCompatibilityTest {
         assertFalse(source.contains("imageToWordV2"))
         assertFalse(source.contains("idempotencyKey"))
     }
+
+    @Test
+    fun v2ProcessingPath_doesNotFallbackToLegacyApi() {
+        val source = File(
+            "src/main/java/com/image/word/converter/convert/docx/ui/screens/CreditAwareProcessingScreen.kt",
+        ).readText()
+
+        assertTrue(source.contains("ConversionBackendMode.LEGACY"))
+        assertTrue(source.contains("ImageConversionBatchRunner"))
+        assertFalse(source.contains("ImageToWordApi"))
+    }
 }

@@ -60,6 +60,47 @@ class BackendJsonParserTest {
         assertEquals(404, failure.error.httpStatus)
     }
 
+    @Test
+    fun conversionSuccess_parsesAuthoritativeChargeAndBalance() {
+        val result = BackendJsonParser.parseImageConversionEnvelope(
+            raw = """
+                {
+                  "success": true,
+                  "result": {"file":"https://provider.example/result.docx"},
+                  "conversionId": "conversion-1",
+                  "credits": {"charged":5,"available":90}
+                }
+            """.trimIndent(),
+            httpStatus = 200,
+        ) as BackendResult.Success
+
+        assertEquals("https://provider.example/result.docx", result.value.resultUrl)
+        assertEquals("conversion-1", result.value.conversionId)
+        assertEquals(5L, result.value.credits.charged)
+        assertEquals(90L, result.value.credits.available)
+    }
+
+    @Test
+    fun insufficientCredits_parsesRequiredAndAvailableWithoutClientCalculation() {
+        val result = BackendJsonParser.parseImageConversionEnvelope(
+            raw = """
+                {
+                  "success": false,
+                  "error": {"code":"INSUFFICIENT_CREDITS","message":"Insufficient credits"},
+                  "conversionId": "conversion-2",
+                  "credits": {"required":5,"available":2}
+                }
+            """.trimIndent(),
+            httpStatus = 402,
+        ) as BackendResult.Failure
+
+        val error = (result.failure as BackendFailure.Server).error
+        assertEquals("INSUFFICIENT_CREDITS", error.code)
+        assertEquals("conversion-2", error.conversionId)
+        assertEquals(5L, error.requiredCredits)
+        assertEquals(2L, error.availableCredits)
+    }
+
     companion object {
         fun accountEnvelope(
             subscription: String = """

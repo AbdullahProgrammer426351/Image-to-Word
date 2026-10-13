@@ -30,7 +30,7 @@ import com.image.word.converter.convert.docx.ui.screens.BatchPreviewScreen
 import com.image.word.converter.convert.docx.ui.screens.CapturePreviewScreen
 import com.image.word.converter.convert.docx.ui.screens.FilterScreen
 import com.image.word.converter.convert.docx.ui.screens.HighlighterScreen
-import com.image.word.converter.convert.docx.ui.screens.ProcessingScreen
+import com.image.word.converter.convert.docx.ui.screens.CreditAwareProcessingScreen
 import com.image.word.converter.convert.docx.ui.screens.ResultScreen
 import com.image.word.converter.convert.docx.ui.screens.SignatureOverlayScreen
 import com.image.word.converter.convert.docx.ui.screens.SplashScreen
@@ -41,6 +41,9 @@ import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.SubscriptionTriggerManager
+import com.image.word.converter.convert.docx.backend.BackendEnvironment
+import com.image.word.converter.convert.docx.backend.ConversionAccessPolicy
+import com.image.word.converter.convert.docx.backend.ConversionBackendMode
 import com.image.word.converter.convert.docx.util.bitmapToCacheUri
 import androidx.core.content.edit
 
@@ -61,6 +64,9 @@ fun AppRoot(activity: Activity) {
     val attemptManager = remember { DailyAttemptManager(activity) }
     val limitTrigger = remember { SubscriptionTriggerManager() }
     val showLimit by limitTrigger.showLimitDialog.collectAsState()
+    val conversionMode = remember {
+        ConversionAccessPolicy.backendMode(BackendEnvironment.current())
+    }
 
     if (ratingState) {
         RatingDialog(
@@ -187,7 +193,12 @@ fun AppRoot(activity: Activity) {
                         }
                     },
                     onNext = {
-                        if (!attemptManager.canUse(subscriptionState.isSubscribed)) {
+                        if (!ConversionAccessPolicy.canStart(
+                                mode = conversionMode,
+                                isLocallySubscribed = subscriptionState.isSubscribed,
+                                remainingLocalAttempts = attemptManager.remainingAttempts,
+                            )
+                        ) {
                             limitTrigger.showLimit()
                         } else {
                             navController.navigate(Routes.Processing)
@@ -271,7 +282,7 @@ fun AppRoot(activity: Activity) {
             }
 
             composable(Routes.Processing) {
-                ProcessingScreen(
+                CreditAwareProcessingScreen(
                     activity = activity,
                     sessionState = sessionState,
                     mainViewModel = mainViewModel,
@@ -301,7 +312,9 @@ fun AppRoot(activity: Activity) {
                         sessionState.clearSelectedImages()
                         sessionState.clearConvertedItems()
                         val shouldShowSubscription =
-                            !subscriptionState.isSubscribed && attemptManager.remainingAttempts == 0
+                            conversionMode == ConversionBackendMode.LEGACY &&
+                                !subscriptionState.isSubscribed &&
+                                attemptManager.remainingAttempts == 0
 
                         if (shouldShowSubscription) {
                             returnHomeAfterSubscription = true

@@ -31,6 +31,26 @@ data class BackendError(
     val code: String,
     val message: String,
     val httpStatus: Int,
+    val conversionId: String? = null,
+    val conversionStatus: String? = null,
+    val requiredCredits: Long? = null,
+    val availableCredits: Long? = null,
+)
+
+data class ImageConversionRequest(
+    val image: String,
+    val idempotencyKey: String,
+)
+
+data class ConversionCredits(
+    val charged: Long,
+    val available: Long,
+)
+
+data class ImageConversionResponse(
+    val resultUrl: String,
+    val conversionId: String,
+    val credits: ConversionCredits,
 )
 
 sealed interface BackendResult<out T> {

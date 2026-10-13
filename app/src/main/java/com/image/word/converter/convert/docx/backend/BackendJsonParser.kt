@@ -12,13 +12,42 @@ object BackendJsonParser {
     }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
 
     fun parseErrorEnvelope(raw: String, httpStatus: Int): BackendResult.Failure = runCatching {
-        val error = JSONObject(raw).getJSONObject("error")
+        val root = JSONObject(raw)
+        val error = root.getJSONObject("error")
+        val credits = root.optJSONObject("credits")
         BackendResult.Failure(
             BackendFailure.Server(
                 BackendError(
                     code = error.getString("code"),
                     message = error.getString("message"),
                     httpStatus = httpStatus,
+                    conversionId = root.nullableString("conversionId"),
+                    conversionStatus = root.nullableString("status"),
+                    requiredCredits = credits?.nullableLong("required"),
+                    availableCredits = credits?.nullableLong("available"),
+                ),
+            ),
+        )
+    }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
+
+    fun parseImageConversionEnvelope(
+        raw: String,
+        httpStatus: Int,
+    ): BackendResult<ImageConversionResponse> = runCatching {
+        val root = JSONObject(raw)
+        if (!root.optBoolean("success", false)) {
+            return parseErrorEnvelope(raw, httpStatus)
+        }
+        val credits = root.getJSONObject("credits")
+        val resultUrl = extractResultUrl(root.get("result"))
+            ?: throw IllegalArgumentException("Conversion result did not contain a document URL")
+        BackendResult.Success(
+            ImageConversionResponse(
+                resultUrl = resultUrl,
+                conversionId = root.getString("conversionId"),
+                credits = ConversionCredits(
+                    charged = credits.getLong("charged"),
+                    available = credits.getLong("available"),
                 ),
             ),
         )
@@ -68,4 +97,21 @@ object BackendJsonParser {
 
     private fun JSONObject.nullableBoolean(key: String): Boolean? =
         if (!has(key) || isNull(key)) null else getBoolean(key)
+
+    private fun JSONObject.nullableLong(key: String): Long? =
+        if (!has(key) || isNull(key)) null else getLong(key)
+
+    private fun extractResultUrl(value: Any?): String? = when (value) {
+        is String -> value.takeIf { it.isNotBlank() }
+        is JSONObject -> {
+            sequenceOf("file", "url", "resultUrl")
+                .mapNotNull { value.nullableString(it) }
+                .firstOrNull { it.isNotBlank() }
+                ?: sequenceOf("result", "data")
+                    .mapNotNull { key -> value.opt(key).takeUnless { it == null || it == JSONObject.NULL } }
+                    .mapNotNull(::extractResultUrl)
+                    .firstOrNull()
+        }
+        else -> null
+    }
 }

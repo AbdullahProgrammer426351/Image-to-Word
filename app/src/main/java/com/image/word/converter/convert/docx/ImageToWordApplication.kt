@@ -11,6 +11,7 @@ import com.image.word.converter.convert.docx.ads.AdsGate
 import com.image.word.converter.convert.docx.backend.AccountRepository
 import com.image.word.converter.convert.docx.backend.AccountRepositoryState
 import com.image.word.converter.convert.docx.backend.BackendAccountStore
+import com.image.word.converter.convert.docx.backend.BackendClientStore
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
 import com.image.word.converter.convert.docx.backend.DisabledBackendClient
 import com.image.word.converter.convert.docx.backend.FirebaseAnonymousAuthSession
@@ -47,6 +48,7 @@ class ImageToWordApplication : Application() {
             backendClient = backendClient,
         )
         BackendAccountStore.repository = repository
+        BackendClientStore.client = backendClient
 
         if (environment.accountIntegrationEnabled) {
             applicationScope.launch { logDiagnosticState(environment, repository) }

@@ -65,9 +65,27 @@ class AccountRepositoryTest {
         assertTrue(degraded.failure is BackendFailure.Server)
     }
 
-    private fun sampleAccount() = AccountState(
+    @Test
+    fun refresh_replacesCachedCreditsWithAuthoritativeAccountState() = runTest {
+        val repository = AccountRepository(
+            integrationEnabled = true,
+            authSession = FakeAuthSession(),
+            backendClient = FakeBackendClient(
+                bootstrapResponse = { BackendResult.Success(sampleAccount(available = 95)) },
+                accountResponse = { BackendResult.Success(sampleAccount(available = 90)) },
+            ),
+        )
+
+        repository.initialize()
+        repository.refresh()
+
+        val ready = repository.state.value as AccountRepositoryState.Ready
+        assertEquals(90L, ready.account.credits.available)
+    }
+
+    private fun sampleAccount(available: Long = 95) = AccountState(
         user = BackendUser("backend-user", "Guest", null, "ANONYMOUS"),
-        credits = CreditsState(95, 0, "2026-10-17T12:00:00.000Z"),
+        credits = CreditsState(available, 0, "2026-10-17T12:00:00.000Z"),
         subscription = SubscriptionState(null, null, null, null, null),
     )
 }
@@ -89,4 +107,8 @@ private class FakeBackendClient(
 ) : BackendClient {
     override suspend fun bootstrapUser(): BackendResult<AccountState> = bootstrapResponse()
     override suspend fun getAccountState(): BackendResult<AccountState> = accountResponse()
+    override suspend fun imageToWord(
+        request: ImageConversionRequest,
+    ): BackendResult<ImageConversionResponse> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }

@@ -49,13 +49,14 @@ class UrlConnectionBackendTransport : BackendHttpTransport {
 
     private companion object {
         const val CONNECT_TIMEOUT_MILLIS = 15_000
-        const val READ_TIMEOUT_MILLIS = 30_000
+        const val READ_TIMEOUT_MILLIS = 120_000
     }
 }
 
 interface BackendClient {
     suspend fun bootstrapUser(): BackendResult<AccountState>
     suspend fun getAccountState(): BackendResult<AccountState>
+    suspend fun imageToWord(request: ImageConversionRequest): BackendResult<ImageConversionResponse>
 }
 
 class HttpBackendClient(
@@ -75,6 +76,22 @@ class HttpBackendClient(
         body = null,
     )
 
+    override suspend fun imageToWord(
+        request: ImageConversionRequest,
+    ): BackendResult<ImageConversionResponse> {
+        val body = org.json.JSONObject()
+            .put("image", request.image)
+            .put("idempotencyKey", request.idempotencyKey)
+            .toString()
+        return executeAuthenticated(
+            function = BackendFunction.IMAGE_TO_WORD,
+            method = "POST",
+            body = body,
+        ) { response ->
+            BackendJsonParser.parseImageConversionEnvelope(response.body, response.statusCode)
+        }
+    }
+
     private suspend fun executeAccountRequest(
         function: BackendFunction,
         method: String,
@@ -83,21 +100,40 @@ class HttpBackendClient(
         if (!environment.accountIntegrationEnabled) {
             return BackendResult.Failure(BackendFailure.IntegrationDisabled)
         }
-        return executeOnce(function, method, body, forceRefresh = false).let { first ->
+        return executeAuthenticated(function, method, body) { response ->
+            if (response.statusCode in 200..299) {
+                BackendJsonParser.parseAccountEnvelope(response.body)
+            } else {
+                BackendJsonParser.parseErrorEnvelope(response.body, response.statusCode)
+            }
+        }
+    }
+
+    private suspend fun <T> executeAuthenticated(
+        function: BackendFunction,
+        method: String,
+        body: String?,
+        parse: (BackendHttpResponse) -> BackendResult<T>,
+    ): BackendResult<T> {
+        if (!environment.accountIntegrationEnabled) {
+            return BackendResult.Failure(BackendFailure.IntegrationDisabled)
+        }
+        return executeOnce(function, method, body, forceRefresh = false, parse).let { first ->
             if (first.isExpiredAuthenticationFailure()) {
-                executeOnce(function, method, body, forceRefresh = true)
+                executeOnce(function, method, body, forceRefresh = true, parse)
             } else {
                 first
             }
         }
     }
 
-    private suspend fun executeOnce(
+    private suspend fun <T> executeOnce(
         function: BackendFunction,
         method: String,
         body: String?,
         forceRefresh: Boolean,
-    ): BackendResult<AccountState> {
+        parse: (BackendHttpResponse) -> BackendResult<T>,
+    ): BackendResult<T> {
         val token = authSession.idToken(forceRefresh).getOrElse {
             return BackendResult.Failure(BackendFailure.Authentication(it))
         }
@@ -117,14 +153,10 @@ class HttpBackendClient(
             )
         }.getOrElse { return BackendResult.Failure(BackendFailure.Network(it)) }
 
-        return if (response.statusCode in 200..299) {
-            BackendJsonParser.parseAccountEnvelope(response.body)
-        } else {
-            BackendJsonParser.parseErrorEnvelope(response.body, response.statusCode)
-        }
+        return parse(response)
     }
 
-    private fun BackendResult<AccountState>.isExpiredAuthenticationFailure(): Boolean {
+    private fun BackendResult<*>.isExpiredAuthenticationFailure(): Boolean {
         val error = (this as? BackendResult.Failure)?.failure as? BackendFailure.Server ?: return false
         return error.error.httpStatus == 403 && error.error.code == "UNAUTHENTICATED"
     }
@@ -135,5 +167,10 @@ class DisabledBackendClient : BackendClient {
         BackendResult.Failure(BackendFailure.IntegrationDisabled)
 
     override suspend fun getAccountState(): BackendResult<AccountState> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun imageToWord(
+        request: ImageConversionRequest,
+    ): BackendResult<ImageConversionResponse> =
         BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }

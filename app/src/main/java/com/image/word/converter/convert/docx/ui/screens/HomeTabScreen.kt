@@ -21,6 +21,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +43,11 @@ import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.MiniOptionCard
 import com.image.word.converter.convert.docx.ui.components.RemainingAttemptBanner
+import com.image.word.converter.convert.docx.ui.components.BackendCreditsBanner
+import com.image.word.converter.convert.docx.backend.BackendAccountStore
+import com.image.word.converter.convert.docx.backend.BackendEnvironment
+import com.image.word.converter.convert.docx.backend.ConversionAccessPolicy
+import com.image.word.converter.convert.docx.backend.ConversionBackendMode
 import com.image.word.converter.convert.docx.ui.theme.DarkSurfaceVariant
 import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
@@ -55,6 +63,10 @@ fun HomeTabScreen(
     onUrl: () -> Unit,
 ) {
     val isDark = isSystemInDarkTheme()
+    val conversionMode = remember {
+        ConversionAccessPolicy.backendMode(BackendEnvironment.current())
+    }
+    val backendAccountState by BackendAccountStore.repository.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -64,11 +76,15 @@ fun HomeTabScreen(
             .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        RemainingAttemptBanner(
-            attemptManager = attemptManager,
-            isSubscribed = isSubscribed,
-            onPremium = onOpenSubscription,
-        )
+        if (conversionMode == ConversionBackendMode.V2) {
+            BackendCreditsBanner(accountState = backendAccountState)
+        } else {
+            RemainingAttemptBanner(
+                attemptManager = attemptManager,
+                isSubscribed = isSubscribed,
+                onPremium = onOpenSubscription,
+            )
+        }
 
         Column(
             modifier = Modifier.padding(horizontal = 10.dp),

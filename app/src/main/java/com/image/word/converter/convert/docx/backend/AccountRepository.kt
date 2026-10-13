@@ -91,3 +91,8 @@ object BackendAccountStore {
     lateinit var repository: AccountRepository
         internal set
 }
+
+object BackendClientStore {
+    lateinit var client: BackendClient
+        internal set
+}
