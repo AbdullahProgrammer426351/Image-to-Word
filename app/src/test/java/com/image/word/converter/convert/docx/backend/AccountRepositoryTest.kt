@@ -111,4 +111,9 @@ private class FakeBackendClient(
         request: ImageConversionRequest,
     ): BackendResult<ImageConversionResponse> =
         BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun verifySubscriptionPurchase(
+        request: SubscriptionVerificationRequest,
+    ): BackendResult<AccountState> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }

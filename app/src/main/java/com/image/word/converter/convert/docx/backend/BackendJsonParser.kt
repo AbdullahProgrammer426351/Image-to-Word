@@ -53,6 +53,17 @@ object BackendJsonParser {
         )
     }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
 
+    fun parseSubscriptionVerificationEnvelope(
+        raw: String,
+        httpStatus: Int,
+    ): BackendResult<AccountState> = runCatching {
+        val root = JSONObject(raw)
+        if (!root.optBoolean("success", false)) {
+            return parseErrorEnvelope(raw, httpStatus)
+        }
+        BackendResult.Success(parseAccount(root.getJSONObject("account")))
+    }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
+
     private fun parseError(root: JSONObject, httpStatus: Int): BackendResult.Failure {
         val error = root.getJSONObject("error")
         return BackendResult.Failure(

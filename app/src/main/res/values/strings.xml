@@ -172,6 +172,13 @@
     <string name="purchase_successful">Purchase successful!</string>
     <string name="str_no_subscription_found_to_restore">No previous subscriptions found.</string>
     <string name="processing_purchase">Processing Purchase…</string>
+    <string name="subscription_offer_unavailable">A single verified offer is not available for this plan.</string>
+    <string name="subscription_purchase_pending">Your purchase is pending in Google Play and is not active yet.</string>
+    <string name="subscription_emulator_purchase_blocked">Real Google Play purchase tokens are never sent to the local fake verifier. Use the emulator test fixture for local validation.</string>
+    <string name="subscription_verification_retrying">Google Play verification is temporarily unavailable. Your purchase was saved and will be retried with the same token.</string>
+    <string name="subscription_verification_failed">The backend could not verify this purchase. No subscription or credits were granted locally.</string>
+    <string name="subscription_not_active">Google Play verification completed, but the backend reports that this subscription is not currently active.</string>
+    <string name="subscription_ownership_conflict">This purchase belongs to a different backend account.</string>
     <string name="please_wait_purchase">Please wait while we complete your transaction.</string>
 
     <string name="failed_generic">Something went wrong. Please try again.</string>

@@ -105,6 +105,36 @@ class HttpBackendClientTest {
         assertFalse(request.body.orEmpty().contains("wallet"))
     }
 
+    @Test
+    fun subscriptionVerification_sendsOnlyProductAndTokenWithAuthentication() = runTest {
+        val transport = RecordingTransport(
+            BackendHttpResponse(
+                200,
+                """{"success":true,"account":${BackendJsonParserTest.accountObject()}}""",
+            ),
+        )
+        val client = HttpBackendClient(emulatorEnvironment(), SuccessfulAuthSession(), transport)
+
+        val result = client.verifySubscriptionPurchase(
+            SubscriptionVerificationRequest("imagetoword_1w", "same-private-token"),
+        )
+
+        assertTrue(result is BackendResult.Success)
+        val request = transport.requests.single()
+        assertEquals(
+            "http://10.0.2.2:5001/demo-converter-credit/us-central1/verifySubscriptionPurchaseV2",
+            request.url,
+        )
+        assertEquals("Bearer test-id-token", request.headers["Authorization"])
+        val body = JSONObject(request.body!!)
+        assertEquals(setOf("productId", "purchaseToken"), body.keys().asSequence().toSet())
+        assertEquals("imagetoword_1w", body.getString("productId"))
+        assertEquals("same-private-token", body.getString("purchaseToken"))
+        assertFalse(request.body.orEmpty().contains("userId"))
+        assertFalse(request.body.orEmpty().contains("credit", ignoreCase = true))
+        assertFalse(request.body.orEmpty().contains("basePlan"))
+    }
+
     private fun emulatorEnvironment() = BackendEnvironment(
         name = BackendEnvironment.EMULATOR,
         accountIntegrationEnabled = true,

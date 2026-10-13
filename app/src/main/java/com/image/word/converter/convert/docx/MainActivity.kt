@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -70,13 +71,13 @@ import com.image.word.converter.convert.docx.ui.theme.ImageToWordTheme
 
 class MainActivity : ComponentActivity() {
     private var didGoBackgroundAfterLaunch = false
+    private val subscriptionViewModel: SubscriptionViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
-            val subscriptionViewModel: SubscriptionViewModel = viewModel()
             val themeViewModel: ThemeViewModel = viewModel()
             val uiState by subscriptionViewModel.uiState.collectAsState()
             val themeMode by themeViewModel.themeMode.collectAsState()
@@ -121,6 +122,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        subscriptionViewModel.onAppResume()
         if (!AdsGate.canShowResumeAppOpen) return
         if (!didGoBackgroundAfterLaunch) return
 

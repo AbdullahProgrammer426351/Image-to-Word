@@ -57,6 +57,9 @@ interface BackendClient {
     suspend fun bootstrapUser(): BackendResult<AccountState>
     suspend fun getAccountState(): BackendResult<AccountState>
     suspend fun imageToWord(request: ImageConversionRequest): BackendResult<ImageConversionResponse>
+    suspend fun verifySubscriptionPurchase(
+        request: SubscriptionVerificationRequest,
+    ): BackendResult<AccountState>
 }
 
 class HttpBackendClient(
@@ -89,6 +92,25 @@ class HttpBackendClient(
             body = body,
         ) { response ->
             BackendJsonParser.parseImageConversionEnvelope(response.body, response.statusCode)
+        }
+    }
+
+    override suspend fun verifySubscriptionPurchase(
+        request: SubscriptionVerificationRequest,
+    ): BackendResult<AccountState> {
+        val body = org.json.JSONObject()
+            .put("productId", request.productId)
+            .put("purchaseToken", request.purchaseToken)
+            .toString()
+        return executeAuthenticated(
+            function = BackendFunction.VERIFY_SUBSCRIPTION_PURCHASE,
+            method = "POST",
+            body = body,
+        ) { response ->
+            BackendJsonParser.parseSubscriptionVerificationEnvelope(
+                response.body,
+                response.statusCode,
+            )
         }
     }
 
@@ -172,5 +194,10 @@ class DisabledBackendClient : BackendClient {
     override suspend fun imageToWord(
         request: ImageConversionRequest,
     ): BackendResult<ImageConversionResponse> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun verifySubscriptionPurchase(
+        request: SubscriptionVerificationRequest,
+    ): BackendResult<AccountState> =
         BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }

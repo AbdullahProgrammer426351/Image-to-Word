@@ -75,11 +75,38 @@ Terminal validation, credit, disabled, and provider-failure responses are not au
 
 The result parser accepts the contract's direct result URL and current provider object URL shapes. Successful responses retain the conversion ID, actual charged credits, and returned available balance; `AccountRepository.refresh()` remains the shared home-state reconciliation point.
 
-## Current Billing boundary
+## Backend-verified Google Play subscriptions
 
-Google Play Billing is intentionally not migrated in this milestone. `SubscriptionViewModel` still owns current Play purchase and local subscription behavior, including unrelated premium tool locks and ad behavior.
+Billing Library 9.1.0 queries only `imagetoword_1w` and `imagetoword_1m`. A V2-enabled purchase follows this sequence:
 
-This creates a temporary product inconsistency: local `isSubscribed` can still affect premium tools and ads, but it cannot bypass backend credits or unlock V2 conversions. Similarly, `DailyAttemptManager` remains for the release/legacy conversion path but is not read or mutated by enabled V2 eligibility or completion. The dedicated Billing milestone must move purchase verification and subscription authority to `verifySubscriptionPurchaseV2` without weakening this conversion boundary.
+1. Google Play returns a `PURCHASED` subscription with its actual product ID and purchase token.
+2. Android persists that exact pair in app-private storage before verification.
+3. The authenticated backend client sends exactly `productId` and `purchaseToken` to `verifySubscriptionPurchaseV2`.
+4. The backend verifies Play ownership/state, grants any eligible period credits idempotently, and owns acknowledgement.
+5. Android accepts the returned account projection and immediately refreshes `getAccountStateV2`.
+6. Subscription UI, premium indicators, ads, and credits read the authoritative account repository.
+
+Play `PURCHASED` by itself never sets `isSubscribed` and never adds credits. `PENDING` is displayed as pending and is not verified as active. Android does not acknowledge in V2 mode. Backend statuses `ACTIVE`, `GRACE_PERIOD`, and `CANCELLED` remain entitled only through the authoritative `periodEnd`; `EXPIRED`, `ON_HOLD`, `PAUSED`, `PENDING`, and `REVOKED` are not active. Loading or degraded repository states retain the previous authoritative account for UI continuity instead of declaring a verified subscriber expired.
+
+### Restore and recovery
+
+`queryPurchasesAsync` runs after Billing setup/reconnection, explicit Restore, and app resume. Current purchased weekly/monthly tokens are submitted to the backend even for existing subscribers upgrading to V2. Duplicate callbacks within one Play result are collapsed; later duplicate restores safely submit the same token because the backend grant and acknowledgement operations are idempotent.
+
+Network, authentication, invalid-response, internal, and subscription-verification failures receive bounded same-token retries. If still unresolved, the product/token pair remains in app-private `MODE_PRIVATE` preferences, is excluded from cloud backup/device transfer, and is retried on reconnect, app resume, restore, and by a network-constrained `JobScheduler` recovery job in a future non-emulator V2 deployment. Tokens are never logged. Invalid purchases and ownership conflicts are terminal for the current account and are removed from retry storage.
+
+The recovery path is designed around Google's acknowledgement deadline: the backend attempts acknowledgement in the original verification request, Android retries transient backend/acknowledgement failures without changing the token, and persistent recovery does not depend solely on the paywall remaining open.
+
+### Product and offer selection
+
+Android displays Google Play's formatted recurring price and billing period. It selects only an eligible offer whose recurring paid phase matches the selected product (`P1W` for weekly, `P1M` for monthly). Android does not invent or hardcode base-plan IDs. If zero or multiple returned offers match, that product is unavailable rather than silently purchasing the first offer. No yearly product is queried or displayed.
+
+### Release and emulator safety
+
+Release V2 remains disabled. The published-app path retains its existing local Billing/acknowledgement behavior until a separately approved backend rollout; it cannot call a production V2 URL because the release Functions base is empty and integration is disabled.
+
+Debug uses the Firebase emulator and its fake Google Play verifier. The interactive app refuses to forward tokens obtained from the real Play Billing client to that fake verifier. Automated emulator validation supplies an explicitly seeded fake Play token to the instrumentation test. Real purchases are never started automatically, and no production Firebase or Google Play mutation is part of this workflow.
+
+`DailyAttemptManager` remains only for the release/legacy conversion path and is not read or mutated by V2 eligibility or completion.
 
 ## Running locally
 
@@ -103,6 +130,19 @@ With the Firebase emulators running and an Android Emulator connected, run the e
 
 The instrumentation test performs a real anonymous Auth Emulator sign-in and calls `bootstrapUserV2`; it never substitutes a production or fake identity. Manual conversion validation should use a small JPEG and confirm a single Conversion record/charge, refreshed home balance, same-key reconciliation after ambiguity, and independent outcomes for a multi-image selection.
 
+For subscription integration, first seed a fake Google Play fixture in the Firestore emulator using the backend's test harness. Then run only the Billing emulator test with that fixture's non-production product/token pair:
+
+```shell
+./gradlew connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.image.word.converter.convert.docx.backend.BackendBillingEmulatorIntegrationTest \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayProductId=imagetoword_1w \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayPurchaseToken=<seeded-fake-token>
+```
+
+This validates fake Billing input through Firebase Auth, `verifySubscriptionPurchaseV2`, backend acknowledgement simulation, account acceptance, and `getAccountStateV2`. It is not evidence of real Google Play verification.
+
+Before production rollout, a Play license tester must validate actual weekly and monthly ProductDetails/offers, purchase and pending flows, restore after reinstall/account continuity, cancellation/grace/expiry behavior, backend service-account access, server acknowledgement within Google's deadline, duplicate callbacks, upgrade/linked-token behavior, and recovery from a deliberately interrupted verification. Those tests require a deployed non-production backend connected to the real Play Developer API; real tokens must never be sent to the emulator fake.
+
 ## Implemented client components
 
 The backend layer is under `app/src/main/java/com/image/word/converter/convert/docx/backend/`:
@@ -114,5 +154,9 @@ The backend layer is under `app/src/main/java/com/image/word/converter/convert/d
 - `BackendModels`: public projection and conversion models
 - `AccountRepository`: centralized authoritative account state and refresh behavior
 - `ImageConversionBatchRunner`: bounded per-image execution and same-key retry policy
+- `BackendSubscriptionVerifier`: persistent same-token backend verification and authoritative account refresh
+- `PrivatePendingPurchaseStore`: app-private recovery state excluded from backup
+- `SubscriptionVerificationRetryService`: network-constrained persistent recovery for an enabled non-emulator rollout
+- `SubscriptionOfferPolicy`: unambiguous Play-metadata-based weekly/monthly offer selection
 
-Android does not access Firestore directly. `verifySubscriptionPurchaseV2` is named in the endpoint registry for the next milestone but is not called yet.
+Android does not access Firestore directly. The backend owns subscription verification, credit allocation, reconciliation, and acknowledgement.

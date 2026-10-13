@@ -101,7 +101,56 @@ class BackendJsonParserTest {
         assertEquals(2L, error.availableCredits)
     }
 
+    @Test
+    fun monthlySubscriptionVerification_parsesAuthoritativeAccountAndCredits() {
+        val subscription = """
+            {
+              "plan": "MONTHLY",
+              "status": "ACTIVE",
+              "periodEnd": "2026-11-17T12:00:00.000Z",
+              "autoRenewing": true,
+              "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"
+            }
+        """.trimIndent()
+        val result = BackendJsonParser.parseSubscriptionVerificationEnvelope(
+            raw = """{"success":true,"account":${accountObject(subscription, 1295)}}""",
+            httpStatus = 200,
+        ) as BackendResult.Success
+
+        assertEquals("MONTHLY", result.value.subscription.plan)
+        assertEquals("ACTIVE", result.value.subscription.status)
+        assertEquals(1_295L, result.value.credits.available)
+    }
+
     companion object {
+        fun accountObject(
+            subscription: String = """
+                {
+                  "plan": "WEEKLY",
+                  "status": "ACTIVE",
+                  "periodEnd": "2026-10-17T12:00:00.000Z",
+                  "autoRenewing": true,
+                  "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"
+                }
+            """.trimIndent(),
+            available: Long = 95,
+        ): String = """
+            {
+              "user": {
+                "id": "backend-user",
+                "userName": "Guest",
+                "email": null,
+                "accountType": "ANONYMOUS"
+              },
+              "credits": {
+                "available": $available,
+                "reserved": 0,
+                "nextExpiryAt": "2026-10-17T12:00:00.000Z"
+              },
+              "subscription": $subscription
+            }
+        """.trimIndent()
+
         fun accountEnvelope(
             subscription: String = """
                 {
@@ -112,24 +161,6 @@ class BackendJsonParserTest {
                   "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"
                 }
             """.trimIndent(),
-        ): String = """
-            {
-              "success": true,
-              "account": {
-                "user": {
-                  "id": "backend-user",
-                  "userName": "Guest",
-                  "email": null,
-                  "accountType": "ANONYMOUS"
-                },
-                "credits": {
-                  "available": 95,
-                  "reserved": 0,
-                  "nextExpiryAt": "2026-10-17T12:00:00.000Z"
-                },
-                "subscription": $subscription
-              }
-            }
-        """.trimIndent()
+        ): String = """{"success":true,"account":${accountObject(subscription)}}"""
     }
 }

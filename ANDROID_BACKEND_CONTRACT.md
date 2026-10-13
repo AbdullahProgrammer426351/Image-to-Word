@@ -288,6 +288,7 @@ The backend verifies with Google Play, stores/reconciles the Subscription, creat
 | 503 | `CONVERSION_DISABLED` | Converter/endpoints disabled for this environment |
 | 503 | `PRICING_UNAVAILABLE` | Server pricing unavailable; retry later |
 | 503 | `SUBSCRIPTION_VERIFICATION_FAILED` | Play verification/acknowledgement unavailable; retry same token later |
+| 503 | `SUBSCRIPTIONS_DISABLED` | Subscription V2 is not configured for this environment; retain the token and do not grant entitlement |
 | 500 | `INTERNAL_ERROR` | Sanitized unexpected server error; retry only with normal backoff |
 
 Method mismatches return HTTP `405` with code `INVALID_REQUEST`. `ACCOUNT_NOT_FOUND`/404 is limited to account-state-before-bootstrap.

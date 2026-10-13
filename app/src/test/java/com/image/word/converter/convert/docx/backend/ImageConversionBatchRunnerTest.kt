@@ -173,6 +173,11 @@ private class RecordingConversionClient(
         requests += request
         return responses.removeFirst()
     }
+
+    override suspend fun verifySubscriptionPurchase(
+        request: SubscriptionVerificationRequest,
+    ): BackendResult<AccountState> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }
 
 private data object TestAuthSession : AuthSession {

@@ -72,6 +72,11 @@ class AccountRepository(
         }
     }
 
+    suspend fun acceptAuthoritativeAccount(account: AccountState) = operationMutex.withLock {
+        if (!integrationEnabled) return@withLock
+        _state.value = AccountRepositoryState.Ready(account)
+    }
+
     private fun applyResult(result: BackendResult<AccountState>, previous: AccountState?) {
         _state.value = when (result) {
             is BackendResult.Success -> AccountRepositoryState.Ready(result.value)

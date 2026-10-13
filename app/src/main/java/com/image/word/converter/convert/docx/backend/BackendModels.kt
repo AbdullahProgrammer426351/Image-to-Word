@@ -53,6 +53,11 @@ data class ImageConversionResponse(
     val credits: ConversionCredits,
 )
 
+data class SubscriptionVerificationRequest(
+    val productId: String,
+    val purchaseToken: String,
+)
+
 sealed interface BackendResult<out T> {
     data class Success<T>(val value: T) : BackendResult<T>
     data class Failure(val failure: BackendFailure) : BackendResult<Nothing>

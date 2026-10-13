@@ -21,75 +21,105 @@ import com.android.billingclient.api.acknowledgePurchase
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import com.image.word.converter.convert.docx.R
+import com.image.word.converter.convert.docx.backend.BackendAccountStore
+import com.image.word.converter.convert.docx.backend.BackendClientStore
+import com.image.word.converter.convert.docx.backend.BackendEnvironment
+import com.image.word.converter.convert.docx.backend.BackendFailure
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Currency
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), PurchasesUpdatedListener {
-    private val logTag = "SUB_DEBUG"
+    private val logTag = "SUBSCRIPTION"
+    private val environment = BackendEnvironment.current()
+    private val usesBackendAuthority = environment.accountIntegrationEnabled
     private val _uiState = MutableStateFlow(SubscriptionUiState())
     val uiState: StateFlow<SubscriptionUiState> = _uiState
 
     private val productIds = listOf(PRODUCT_WEEKLY, PRODUCT_MONTHLY)
+    private val pendingStore = PrivatePendingPurchaseStore(app)
+    private val backendVerifier = if (usesBackendAuthority) {
+        BackendSubscriptionVerifier(
+            backendClient = BackendClientStore.client,
+            accountGateway = RepositoryAccountGateway(BackendAccountStore.repository),
+            pendingStore = pendingStore,
+        )
+    } else {
+        null
+    }
 
     private val billingClient: BillingClient = BillingClient.newBuilder(app)
         .setListener(this)
         .enablePendingPurchases(
             PendingPurchasesParams.newBuilder()
                 .enableOneTimeProducts()
-                .build()
+                .build(),
         )
+        .enableAutoServiceReconnection()
         .build()
 
     private val productDetailsById = mutableMapOf<String, ProductDetails>()
+    private var billingReady = false
+    private var resumeQueryRequested = false
 
     init {
+        if (usesBackendAuthority) observeAuthoritativeAccount()
         startConnection()
     }
 
     fun selectProduct(productId: String) {
-        _uiState.update { it.copy(selectedProductId = productId) }
+        if (productId in productIds) {
+            _uiState.update { it.copy(selectedProductId = productId) }
+        }
     }
 
     fun purchase(activity: Activity) {
         val selectedId = _uiState.value.selectedProductId ?: return
-        val productDetails = productDetailsById[selectedId] ?: return
-        val offerDetails = productDetails.subscriptionOfferDetails?.firstOrNull() ?: return
-        val params = BillingFlowParams.ProductDetailsParams.newBuilder()
-            .setProductDetails(productDetails)
-            .setOfferToken(offerDetails.offerToken)
-            .build()
-        val flowParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(listOf(params))
-            .build()
-
-        _uiState.update { it.copy(isPurchasing = true, alertMessage = null, purchaseSuccessful = false) }
-        billingClient.launchBillingFlow(activity, flowParams)
+        purchaseByProductId(activity, selectedId)
     }
 
     fun purchaseByProductId(activity: Activity, productId: String) {
-        selectProduct(productId)
-        val productDetails = productDetailsById[productId] ?: return
-        val offerDetails = productDetails.subscriptionOfferDetails?.firstOrNull() ?: return
+        val product = _uiState.value.products.singleOrNull { it.id == productId }
+            ?: return showAlert(R.string.subscription_offer_unavailable)
+        val productDetails = productDetailsById[productId]
+            ?: return showAlert(R.string.subscription_offer_unavailable)
         val params = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(productDetails)
-            .setOfferToken(offerDetails.offerToken)
+            .setOfferToken(product.offerToken)
             .build()
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(params))
             .build()
-        _uiState.update { it.copy(isPurchasing = true, alertMessage = null, purchaseSuccessful = false) }
-        billingClient.launchBillingFlow(activity, flowParams)
+
+        _uiState.update {
+            it.copy(isPurchasing = true, alertMessage = null, purchaseSuccessful = false)
+        }
+        val result = billingClient.launchBillingFlow(activity, flowParams)
+        if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+            _uiState.update {
+                it.copy(
+                    isPurchasing = false,
+                    alertMessage = result.debugMessage.ifBlank { app.getString(R.string.purchase_failed) },
+                )
+            }
+        }
     }
 
     fun restorePurchases() {
-        viewModelScope.launch {
-            queryActivePurchases(fromRestoreAction = true)
+        viewModelScope.launch { queryActivePurchases(fromRestoreAction = true) }
+    }
+
+    fun onAppResume() {
+        if (billingReady) {
+            viewModelScope.launch { recoverThenQuery() }
+        } else {
+            resumeQueryRequested = true
         }
     }
 
@@ -116,29 +146,38 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             }
             return
         }
+        viewModelScope.launch { handlePurchases(purchases) }
+    }
 
+    private fun observeAuthoritativeAccount() {
         viewModelScope.launch {
-            handlePurchases(purchases)
+            BackendAccountStore.repository.state.collectLatest { repositoryState ->
+                val entitlement = BackendEntitlementPolicy.from(repositoryState)
+                _uiState.update {
+                    it.copy(
+                        isSubscribed = entitlement.isSubscribed,
+                        availableCredits = entitlement.availableCredits,
+                        isEntitlementLoading = entitlement.isLoading,
+                        isBackendTemporarilyUnavailable = entitlement.isTemporarilyUnavailable,
+                    )
+                }
+            }
         }
     }
 
     private fun startConnection() {
-        Log.d(logTag, "startConnection() called")
-        Log.d(
-            logTag,
-            "Runtime identity: packageName=${app.packageName}",
-        )
         billingClient.startConnection(
             object : BillingClientStateListener {
                 override fun onBillingSetupFinished(result: BillingResult) {
-                    Log.d(
-                        logTag,
-                        "onBillingSetupFinished: code=${result.responseCode}, msg=${result.debugMessage}",
-                    )
                     if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                        billingReady = true
                         viewModelScope.launch {
                             fetchProducts()
-                            queryActivePurchases()
+                            recoverThenQuery()
+                            if (resumeQueryRequested) {
+                                resumeQueryRequested = false
+                                recoverThenQuery()
+                            }
                         }
                     } else {
                         _uiState.update {
@@ -146,7 +185,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                                 isLoading = false,
                                 alertMessage = app.getString(
                                     R.string.billing_unavailable,
-                                    result.debugMessage
+                                    result.debugMessage,
                                 ),
                             )
                         }
@@ -154,41 +193,37 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                 }
 
                 override fun onBillingServiceDisconnected() {
-                    Log.d(logTag, "onBillingServiceDisconnected()")
-                    // The client will try to reconnect automatically on the next request.
+                    billingReady = false
                 }
             },
         )
     }
 
+    private suspend fun recoverThenQuery() {
+        if (usesBackendAuthority && canSubmitRealPlayTokensToBackend()) {
+            backendVerifier?.retryPersisted()?.let(::applyVerificationResult)
+        }
+        queryActivePurchases()
+    }
+
     private suspend fun fetchProducts() {
         _uiState.update { it.copy(isLoading = true) }
-        Log.d(logTag, "fetchProducts(): requesting ids=$productIds")
-        val products = productIds.map {
+        val products = productIds.map { productId ->
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(it)
+                .setProductId(productId)
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build()
         }
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(products)
-            .build()
-
-        val productDetailsResult = billingClient.queryProductDetails(params)
-        val result = productDetailsResult.billingResult
-        val productDetailsList = productDetailsResult.productDetailsList ?: emptyList()
-
-        Log.d(
-            logTag,
-            "queryProductDetailsAsync: code=${result.responseCode}, msg=${result.debugMessage}, listSize=${productDetailsList.size}",
+        val result = billingClient.queryProductDetails(
+            QueryProductDetailsParams.newBuilder().setProductList(products).build(),
         )
-        if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+        if (result.billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
             _uiState.update {
                 it.copy(
                     isLoading = false,
                     alertMessage = app.getString(
                         R.string.failed_to_load_subscriptions,
-                        result.debugMessage
+                        result.billingResult.debugMessage,
                     ),
                 )
             }
@@ -196,59 +231,43 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         }
 
         productDetailsById.clear()
-        productDetailsList.forEach { details ->
-            productDetailsById[details.productId] = details
-            val offerCount = details.subscriptionOfferDetails?.size ?: 0
-            Log.d(
-                logTag,
-                "ProductDetails: id=${details.productId}, title=${details.title}, offerCount=$offerCount",
-            )
-        }
-        val mapped = productDetailsList.mapNotNull {
-            val mappedProduct = mapToSubscriptionProduct(it)
-            if (mappedProduct == null) {
-                Log.d(logTag, "mapToSubscriptionProduct: dropped id=${it.productId}")
-            } else {
-                Log.d(
-                    logTag,
-                    "mapToSubscriptionProduct: kept id=${mappedProduct.id}, price=${mappedProduct.priceFormatted}, period=${mappedProduct.billingPeriod}",
-                )
+        val mapped = result.productDetailsList.orEmpty().mapNotNull { details ->
+            mapToSubscriptionProduct(details)?.also {
+                productDetailsById[details.productId] = details
             }
-            mappedProduct
         }
         val productOrder = productIds.withIndex().associate { it.value to it.index }
         val sorted = mapped.sortedBy { productOrder[it.id] ?: Int.MAX_VALUE }
-        Log.d(logTag, "fetchProducts(): mappedSize=${mapped.size}, sortedSize=${sorted.size}")
-
         val defaultId = sorted.firstOrNull { it.id == PRODUCT_MONTHLY }?.id
             ?: sorted.firstOrNull()?.id
-        Log.d(logTag, "fetchProducts(): defaultSelectedId=$defaultId")
-
         _uiState.update {
             it.copy(
                 isLoading = false,
                 products = sorted,
-                selectedProductId = it.selectedProductId ?: defaultId,
+                selectedProductId = it.selectedProductId?.takeIf { id -> sorted.any { p -> p.id == id } }
+                    ?: defaultId,
+                alertMessage = if (sorted.isEmpty()) {
+                    app.getString(R.string.subscription_offer_unavailable)
+                } else {
+                    it.alertMessage
+                },
             )
         }
     }
 
     private suspend fun queryActivePurchases(fromRestoreAction: Boolean = false) {
-        Log.d(logTag, "queryActivePurchases(fromRestoreAction=$fromRestoreAction)")
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-
-        val purchasesResult = billingClient.queryPurchasesAsync(params)
-        val result = purchasesResult.billingResult
-        val purchases = purchasesResult.purchasesList
-
-        Log.d(
-            logTag,
-            "queryPurchasesAsync: code=${result.responseCode}, msg=${result.debugMessage}, purchasesSize=${purchases.size}",
+        if (!billingReady) {
+            if (fromRestoreAction) showAlert(R.string.subscription_offer_unavailable)
+            return
+        }
+        val purchasesResult = billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
         )
-        if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-            handlePurchases(purchases, fromRestoreAction)
+        if (purchasesResult.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+            handlePurchases(purchasesResult.purchasesList, fromRestoreAction)
+            if (usesBackendAuthority) BackendAccountStore.repository.refresh()
         } else {
             _uiState.update { it.copy(isPurchasing = false) }
         }
@@ -258,20 +277,69 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         purchases: List<Purchase>,
         fromRestoreAction: Boolean = false,
     ) {
-        Log.d(logTag, "handlePurchases(fromRestoreAction=$fromRestoreAction): size=${purchases.size}")
+        if (!usesBackendAuthority) {
+            handleLegacyPurchases(purchases, fromRestoreAction)
+            return
+        }
+
+        val candidates = purchases.mapNotNull(::toCandidate)
+        if (candidates.any { it.state == PlayPurchaseState.PENDING }) {
+            _uiState.update {
+                it.copy(
+                    isPurchasing = false,
+                    alertMessage = app.getString(R.string.subscription_purchase_pending),
+                )
+            }
+        }
+        val purchased = candidates.filter { it.state == PlayPurchaseState.PURCHASED }
+        if (purchased.isNotEmpty()) {
+            if (!canSubmitRealPlayTokensToBackend()) {
+                _uiState.update {
+                    it.copy(
+                        isPurchasing = false,
+                        alertMessage = app.getString(R.string.subscription_emulator_purchase_blocked),
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isPurchasing = true, alertMessage = null) }
+                SubscriptionVerificationRetryScheduler.schedule(app)
+                backendVerifier?.process(purchased)?.let { batch ->
+                    applyVerificationResult(batch)
+                    if (!batch.hasRetryableFailure && pendingStore.all().isEmpty()) {
+                        SubscriptionVerificationRetryScheduler.cancel(app)
+                    }
+                }
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    isPurchasing = false,
+                    restoreToastMessage = if (fromRestoreAction) {
+                        app.getString(R.string.str_no_subscription_found_to_restore)
+                    } else {
+                        it.restoreToastMessage
+                    },
+                )
+            }
+        }
+    }
+
+    private suspend fun handleLegacyPurchases(
+        purchases: List<Purchase>,
+        fromRestoreAction: Boolean,
+    ) {
         var hasActive = false
-        purchases.forEach { purchase ->
-            Log.d(
-                logTag,
-                "Purchase: products=${purchase.products}, state=${purchase.purchaseState}, acknowledged=${purchase.isAcknowledged}",
-            )
-            if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+        purchases.distinctBy { it.purchaseToken }.forEach { purchase ->
+            if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+                purchase.products.any { it in productIds }
+            ) {
                 hasActive = true
                 if (!purchase.isAcknowledged) {
-                    val params = AcknowledgePurchaseParams.newBuilder()
-                        .setPurchaseToken(purchase.purchaseToken)
-                        .build()
-                    billingClient.acknowledgePurchase(params)
+                    billingClient.acknowledgePurchase(
+                        AcknowledgePurchaseParams.newBuilder()
+                            .setPurchaseToken(purchase.purchaseToken)
+                            .build(),
+                    )
                 }
             }
         }
@@ -282,83 +350,136 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                 purchaseSuccessful = hasActive,
                 alertMessage = if (hasActive) app.getString(R.string.purchase_successful) else it.alertMessage,
                 restoreToastMessage = if (fromRestoreAction && !hasActive) {
-                    getApplication<Application>().getString(R.string.str_no_subscription_found_to_restore)
+                    app.getString(R.string.str_no_subscription_found_to_restore)
                 } else {
                     it.restoreToastMessage
                 },
             )
         }
-        Log.d(logTag, "handlePurchases(): hasActive=$hasActive")
     }
 
-    private fun mapToSubscriptionProduct(details: ProductDetails): SubscriptionProduct? {
-        val offer = details.subscriptionOfferDetails?.firstOrNull()
-        if (offer == null) {
-            Log.d(logTag, "mapToSubscriptionProduct(${details.productId}): no subscriptionOfferDetails")
-            return null
+    private fun toCandidate(purchase: Purchase): PlayPurchaseCandidate? {
+        val supportedProducts = purchase.products.filter { it in productIds }.distinct()
+        if (supportedProducts.size != 1) return null
+        val state = when (purchase.purchaseState) {
+            Purchase.PurchaseState.PURCHASED -> PlayPurchaseState.PURCHASED
+            Purchase.PurchaseState.PENDING -> PlayPurchaseState.PENDING
+            else -> PlayPurchaseState.UNSPECIFIED
         }
-        val pricingPhase = offer.pricingPhases.pricingPhaseList
-            .firstOrNull { it.priceAmountMicros > 0 } ?: offer.pricingPhases.pricingPhaseList.firstOrNull()
-            ?: run {
-                Log.d(logTag, "mapToSubscriptionProduct(${details.productId}): no pricing phases")
-                return null
-            }
+        Log.d(logTag, "Observed Play purchase product=${supportedProducts.single()}, state=$state")
+        return PlayPurchaseCandidate(
+            productId = supportedProducts.single(),
+            purchaseToken = purchase.purchaseToken,
+            state = state,
+        )
+    }
 
-        val currency = try {
-            Currency.getInstance(pricingPhase.priceCurrencyCode)
-        } catch (_: IllegalArgumentException) {
-            null
+    private fun applyVerificationResult(batch: PurchaseVerificationBatch) {
+        if (batch.hasRetryableFailure) {
+            SubscriptionVerificationRetryScheduler.schedule(app)
         }
-        val price = BigDecimal(pricingPhase.priceAmountMicros).divide(BigDecimal(1_000_000))
-        val formatter = NumberFormat.getCurrencyInstance().apply {
-            if (currency != null) this.currency = currency
+        val rejected = batch.outcomes.filterIsInstance<PurchaseVerificationOutcome.Rejected>().firstOrNull()
+        val verifiedEntitlement = batch.outcomes
+            .filterIsInstance<PurchaseVerificationOutcome.Verified>()
+            .any { verified ->
+                BackendEntitlementPolicy.from(
+                    com.image.word.converter.convert.docx.backend.AccountRepositoryState.Ready(
+                        verified.account,
+                    ),
+                ).isSubscribed
+            }
+        val message = when {
+            verifiedEntitlement -> app.getString(R.string.purchase_successful)
+            batch.hasVerifiedPurchase -> app.getString(R.string.subscription_not_active)
+            batch.hasRetryableFailure -> app.getString(R.string.subscription_verification_retrying)
+            batch.hasPendingPurchase -> app.getString(R.string.subscription_purchase_pending)
+            rejected?.failure is BackendFailure.Authentication ->
+                app.getString(R.string.authentication_failed_message)
+            (rejected?.failure as? BackendFailure.Server)?.error?.code ==
+                "PURCHASE_TOKEN_OWNERSHIP_CONFLICT" ->
+                app.getString(R.string.subscription_ownership_conflict)
+            else -> app.getString(R.string.subscription_verification_failed)
+        }
+        _uiState.update {
+            it.copy(
+                isPurchasing = false,
+                purchaseSuccessful = verifiedEntitlement,
+                alertMessage = message,
+            )
+        }
+    }
+
+    private fun canSubmitRealPlayTokensToBackend(): Boolean =
+        usesBackendAuthority && !environment.isEmulator
+
+    private fun mapToSubscriptionProduct(details: ProductDetails): SubscriptionProduct? {
+        if (details.productId !in productIds) return null
+        val offers = details.subscriptionOfferDetails.orEmpty().map { offer ->
+            PlaySubscriptionOffer(
+                offerToken = offer.offerToken,
+                basePlanId = offer.basePlanId,
+                offerId = offer.offerId,
+                pricingPhases = offer.pricingPhases.pricingPhaseList.map { phase ->
+                    PlayPricingPhase(
+                        formattedPrice = phase.formattedPrice,
+                        priceAmountMicros = phase.priceAmountMicros,
+                        priceCurrencyCode = phase.priceCurrencyCode,
+                        billingPeriod = phase.billingPeriod,
+                    )
+                },
+            )
+        }
+        val selected = SubscriptionOfferPolicy.select(details.productId, offers) ?: return null
+        val phase = selected.recurringPhase
+        val formatter = currencyFormatter(phase.priceCurrencyCode)
+        val price = BigDecimal(phase.priceAmountMicros).divide(BigDecimal(1_000_000))
+        return SubscriptionProduct(
+            id = details.productId,
+            title = details.title,
+            priceFormatted = phase.formattedPrice,
+            billingPeriod = phase.billingPeriod,
+            label = app.getString(getLabel(details.productId)),
+            offerToken = selected.offer.offerToken,
+            weeklyEquivalentText = weeklyEquivalent(price, formatter, phase.billingPeriod),
+            priceAmountMicros = phase.priceAmountMicros,
+            priceCurrencyCode = phase.priceCurrencyCode,
+        )
+    }
+
+    private fun currencyFormatter(currencyCode: String): NumberFormat =
+        NumberFormat.getCurrencyInstance().apply {
+            runCatching { currency = Currency.getInstance(currencyCode) }
             minimumFractionDigits = 2
             maximumFractionDigits = 2
             roundingMode = RoundingMode.DOWN
         }
-        val formatted = formatter.format(price)
-        val code = formatter.currency?.currencyCode ?: ""
-
-        val formattedPrice = formatted.replace(
-            Regex("^$code\\s*"),
-            "$code "
-        )
-        val billingPeriod = pricingPhase.billingPeriod ?: ""
-        val weeklyEquivalentText = weeklyEquivalent(price, formatter, billingPeriod)
-
-        return SubscriptionProduct(
-            id = details.productId,
-            title = details.title,
-            priceFormatted = formattedPrice,
-            billingPeriod = billingPeriod,
-            label = app.applicationContext.getString(getLabel(details.productId)),
-            offerToken = offer.offerToken,
-            weeklyEquivalentText = weeklyEquivalentText,
-            priceAmountMicros = pricingPhase.priceAmountMicros,
-            priceCurrencyCode = pricingPhase.priceCurrencyCode,
-        )
-    }
 
     @StringRes
-    private fun getLabel(id:String) : Int {
-        return when(id) {
-            PRODUCT_MONTHLY -> R.string.monthly
-            else -> R.string.weekly
-        }
+    private fun getLabel(id: String): Int = when (id) {
+        PRODUCT_MONTHLY -> R.string.monthly
+        else -> R.string.weekly
     }
 
     private fun weeklyEquivalent(
         price: BigDecimal,
         formatter: NumberFormat,
-        billingPeriod: String
+        billingPeriod: String,
     ): String {
         val weekly = when (billingPeriod) {
             "P1W" -> price
             "P1M" -> price.divide(BigDecimal(4), 6, RoundingMode.DOWN)
-            "P1Y" -> price.divide(BigDecimal(52), 6, RoundingMode.DOWN)
             else -> price
         }
-        return "${formatter.format(weekly)} / ${app.applicationContext.getString(R.string.week)}"
+        return "${formatter.format(weekly)} / ${app.getString(R.string.week)}"
+    }
+
+    private fun showAlert(@StringRes message: Int) {
+        _uiState.update { it.copy(isPurchasing = false, alertMessage = app.getString(message)) }
+    }
+
+    override fun onCleared() {
+        billingClient.endConnection()
+        super.onCleared()
     }
 
     companion object {

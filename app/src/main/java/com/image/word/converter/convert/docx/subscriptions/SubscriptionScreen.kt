@@ -155,6 +155,25 @@ fun SubscriptionScreen(
         ) {
             SubscriptionHeader()
 
+            uiState.availableCredits?.let { credits ->
+                Text(
+                    text = stringResource(R.string.credits_available, credits),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (uiState.isBackendTemporarilyUnavailable) {
+                Text(
+                    text = stringResource(R.string.credits_unavailable),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
             premiumItems.forEach { resId ->
                 Row(
                     modifier = Modifier

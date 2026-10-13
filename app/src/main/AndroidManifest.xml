@@ -51,6 +51,11 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <service
+            android:name=".subscriptions.SubscriptionVerificationRetryService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

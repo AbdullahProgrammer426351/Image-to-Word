@@ -21,4 +21,7 @@ data class SubscriptionUiState(
     val alertMessage: String? = null,
     val purchaseSuccessful: Boolean = false,
     val restoreToastMessage: String? = null,
+    val availableCredits: Long? = null,
+    val isEntitlementLoading: Boolean = false,
+    val isBackendTemporarilyUnavailable: Boolean = false,
 )
