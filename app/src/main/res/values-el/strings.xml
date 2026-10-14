@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Σας αρέσει να χρησιμοποιείτε αυτήν την εφαρμογή;</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Τα σχόλιά σας κάνουν μεγάλη διαφορά και μας εμπνέουν να συνεχίσουμε να βελτιωνόμαστε.</string>
     <string name="feedback">Ανατροφοδότηση</string>
+    <string name="upgrade_heading">Αναβάθμιση σε Premium</string>
+    <string name="upgrade_desc">Αποκτήστε πρόσβαση Premium για να μετατρέψετε τα αρχεία σας γρήγορα και εύκολα.</string>
 </resources>

@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Падабаецца карыстацца гэтым дадаткам?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Вашы водгукі вельмі важныя і натхняюць нас на далейшае ўдасканаленне.</string>
     <string name="feedback">Зваротная сувязь</string>
+    <string name="upgrade_heading">Абнавіць да прэміум-класа</string>
+    <string name="upgrade_desc">Атрымайце прэміум-доступ, каб хутка і лёгка канвертаваць свае файлы.</string>
 </resources>

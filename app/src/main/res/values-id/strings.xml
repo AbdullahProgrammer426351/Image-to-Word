@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Suka menggunakan aplikasi ini?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Masukan Anda sangat berarti dan menginspirasi kami untuk terus meningkatkan kualitas layanan.</string>
     <string name="feedback">Masukan</string>
+    <string name="upgrade_heading">Tingkatkan ke Premium</string>
+    <string name="upgrade_desc">Dapatkan akses Premium untuk mengonversi file Anda dengan cepat dan mudah.</string>
 </resources>

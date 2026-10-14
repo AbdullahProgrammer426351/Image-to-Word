@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Uyakuthanda ukusebenzisa lolu hlelo lokusebenza?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Impendulo yakho yenza umehluko omkhulu futhi isikhuthaza ukuthi siqhubeke sithuthuka.</string>
     <string name="feedback">Impendulo</string>
+    <string name="upgrade_heading">Thuthukela ku-Premium</string>
+    <string name="upgrade_desc">Thola ukufinyelela kwe-Premium ukuze uguqule amafayela akho ngokushesha futhi kalula.</string>
 </resources>

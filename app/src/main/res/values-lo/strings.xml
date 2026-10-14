@@ -261,4 +261,6 @@
     <string name="love_using_this_app">ມັກໃຊ້ແອັບນີ້ບໍ?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">ຄຳຕິຊົມຂອງທ່ານສ້າງຄວາມແຕກຕ່າງຢ່າງໃຫຍ່ຫຼວງ ແລະ ເປັນແຮງບັນດານໃຈໃຫ້ພວກເຮົາປັບປຸງຢ່າງຕໍ່ເນື່ອງ.</string>
     <string name="feedback">ຄຳຕິຊົມ</string>
+    <string name="upgrade_heading">ອັບເກຣດເປັນພຣີມຽມ</string>
+    <string name="upgrade_desc">ຮັບສິດການເຂົ້າເຖິງແບບພຣີມຽມເພື່ອແປງໄຟລ໌ຂອງທ່ານໄດ້ໄວ ແລະ ງ່າຍດາຍ.</string>
 </resources>

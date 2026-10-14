@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Elskar þú að nota þetta forrit?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Ábendingar þínar skipta miklu máli og hvetja okkur til að halda áfram að bæta okkur.</string>
     <string name="feedback">Ábendingar</string>
+    <string name="upgrade_heading">Uppfæra í Premium</string>
+    <string name="upgrade_desc">Fáðu Premium aðgang til að umbreyta skránum þínum fljótt og auðveldlega.</string>
 </resources>

@@ -261,4 +261,6 @@
     <string name="love_using_this_app">عاشق استفاده از این برنامه هستید؟</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">نظرات شما تأثیر زیادی دارد و ما را برای ادامه‌ی پیشرفت، الهام می‌بخشد.</string>
     <string name="feedback">بازخورد</string>
+    <string name="upgrade_heading">ارتقا به پریمیوم</string>
+    <string name="upgrade_desc">برای تبدیل سریع و آسان فایل‌های خود، به نسخه پریمیوم دسترسی پیدا کنید.</string>
 </resources>

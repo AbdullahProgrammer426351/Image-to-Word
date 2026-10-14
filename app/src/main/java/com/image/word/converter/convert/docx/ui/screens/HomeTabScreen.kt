@@ -64,11 +64,11 @@ fun HomeTabScreen(
             .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        RemainingAttemptBanner(
-            attemptManager = attemptManager,
-            isSubscribed = isSubscribed,
-            onPremium = onOpenSubscription,
-        )
+//        RemainingAttemptBanner(
+//            attemptManager = attemptManager,
+//            isSubscribed = isSubscribed,
+//            onPremium = onOpenSubscription,
+//        )
 
         Column(
             modifier = Modifier.padding(horizontal = 10.dp),

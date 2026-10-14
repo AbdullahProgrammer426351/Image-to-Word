@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Vind je deze app leuk?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Uw feedback maakt een groot verschil en inspireert ons om continu te blijven verbeteren.</string>
     <string name="feedback">Feedback</string>
+    <string name="upgrade_heading">Upgrade naar Premium</string>
+    <string name="upgrade_desc">Krijg Premium-toegang om uw bestanden snel en eenvoudig te converteren.</string>
 </resources>

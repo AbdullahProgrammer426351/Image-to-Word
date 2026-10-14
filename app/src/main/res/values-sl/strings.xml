@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Radi uporabljate to aplikacijo?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Vaše povratne informacije nam veliko pomenijo in nas navdihujejo, da se še naprej izboljšujemo.</string>
     <string name="feedback">Povratne informacije</string>
+    <string name="upgrade_heading">Nadgradite na Premium</string>
+    <string name="upgrade_desc">Pridobite Premium dostop za hitro in enostavno pretvorbo datotek.</string>
 </resources>

@@ -261,4 +261,6 @@
     <string name="love_using_this_app">ဒီ app ကိုအသုံးပြုရတာ နှစ်သက်ပါသလား။</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">သင့်ရဲ့တုံ့ပြန်ချက်က ကြီးမားတဲ့ခြားနားချက်ကို ဖြစ်စေပြီး ကျွန်ုပ်တို့ကို ဆက်လက်တိုးတက်အောင် လုပ်ဆောင်ဖို့ လှုံ့ဆော်ပေးပါတယ်။</string>
     <string name="feedback">တုံ့ပြန်ချက်</string>
+    <string name="upgrade_heading">ပရီမီယံသို့ အဆင့်မြှင့်တင်ပါ</string>
+    <string name="upgrade_desc">သင့်ဖိုင်များကို မြန်ဆန်လွယ်ကူစွာ ပြောင်းလဲရန် Premium ဝင်ရောက်ခွင့်ကို ရယူလိုက်ပါ။</string>
 </resources>

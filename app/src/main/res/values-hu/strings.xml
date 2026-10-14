@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Szereted ezt az alkalmazást használni?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">A visszajelzésed nagy változást hoz, és arra ösztönöz minket, hogy folyamatosan fejlődjünk.</string>
     <string name="feedback">Visszacsatolás</string>
+    <string name="upgrade_heading">Prémium verzióra váltás</string>
+    <string name="upgrade_desc">Prémium hozzáférést kapsz, hogy gyorsan és egyszerűen konvertálhasd a fájljaidat.</string>
 </resources>

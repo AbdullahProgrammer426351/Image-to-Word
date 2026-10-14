@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Kas sulle meeldib seda rakendust kasutada?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Teie tagasiside on väga oluline ja inspireerib meid pidevalt paremaks muutuma.</string>
     <string name="feedback">Tagasiside</string>
+    <string name="upgrade_heading">Uuenda Premium-tasemele</string>
+    <string name="upgrade_desc">Hankige Premium-juurdepääs, et oma faile kiiresti ja hõlpsalt teisendada.</string>
 </resources>

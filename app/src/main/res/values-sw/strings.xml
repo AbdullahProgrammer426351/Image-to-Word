@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Unapenda kutumia programu hii?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Maoni yako yanaleta tofauti kubwa na yanatutia moyo kuendelea kuboresha.</string>
     <string name="feedback">Maoni</string>
+    <string name="upgrade_heading">Boresha hadi Premium</string>
+    <string name="upgrade_desc">Pata ufikiaji wa Premium ili kubadilisha faili zako haraka na kwa urahisi.</string>
 </resources>

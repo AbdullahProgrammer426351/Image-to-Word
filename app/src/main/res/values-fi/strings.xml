@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Tykkäätkö käyttää tätä sovellusta?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Palautteesi on meille tärkeää ja se innostaa meitä parantamaan toimintaamme jatkuvasti.</string>
     <string name="feedback">Palaute</string>
+    <string name="upgrade_heading">Päivitä Premium-tasolle</string>
+    <string name="upgrade_desc">Hanki Premium-käyttöoikeus tiedostojesi muuntamiseen nopeasti ja helposti.</string>
 </resources>

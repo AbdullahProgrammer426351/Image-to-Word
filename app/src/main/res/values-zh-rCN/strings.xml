@@ -261,4 +261,6 @@
     <string name="love_using_this_app">喜欢使用这款应用吗？</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">您的反馈对我们意义重大，激励我们不断改进。</string>
     <string name="feedback">反馈</string>
+    <string name="upgrade_heading">升级至高级版</string>
+    <string name="upgrade_desc">获取高级权限，即可快速轻松地转换文件。</string>
 </resources>

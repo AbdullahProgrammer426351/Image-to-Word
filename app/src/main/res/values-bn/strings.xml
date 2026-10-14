@@ -261,4 +261,6 @@
     <string name="love_using_this_app">এই অ্যাপটি ব্যবহার করতে ভালোবাসেন?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">আপনার মতামত আমাদের জন্য অত্যন্ত গুরুত্বপূর্ণ এবং এটি আমাদের আরও উন্নত হতে অনুপ্রাণিত করে।</string>
     <string name="feedback">প্রতিক্রিয়া</string>
+    <string name="upgrade_heading">প্রিমিয়ামে আপগ্রেড করুন</string>
+    <string name="upgrade_desc">আপনার ফাইলগুলো দ্রুত ও সহজে রূপান্তর করতে প্রিমিয়াম অ্যাক্সেস নিন।</string>
 </resources>

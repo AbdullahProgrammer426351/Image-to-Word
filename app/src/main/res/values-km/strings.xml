@@ -261,4 +261,6 @@
     <string name="love_using_this_app">ចូលចិត្តប្រើកម្មវិធីនេះទេ?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">មតិកែលម្អរបស់អ្នកធ្វើឱ្យមានភាពខុសគ្នាយ៉ាងខ្លាំង និងជម្រុញទឹកចិត្តយើងឱ្យបន្តកែលម្អ។</string>
     <string name="feedback">មតិប្រតិកម្ម</string>
+    <string name="upgrade_heading">ធ្វើឱ្យប្រសើរឡើងទៅ Premium</string>
+    <string name="upgrade_desc">ទទួលបានសិទ្ធិចូលប្រើ Premium ដើម្បីបំប្លែងឯកសាររបស់អ្នកបានយ៉ាងរហ័ស និងងាយស្រួល។</string>
 </resources>

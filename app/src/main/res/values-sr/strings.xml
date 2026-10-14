@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Волите да користите ову апликацију?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Ваше повратне информације чине велику разлику и инспиришу нас да се наставимо усавршавати.</string>
     <string name="feedback">Повратне информације</string>
+    <string name="upgrade_heading">Надоградите на Премиум</string>
+    <string name="upgrade_desc">Добијте премијум приступ за брзу и једноставну конверзију датотека.</string>
 </resources>

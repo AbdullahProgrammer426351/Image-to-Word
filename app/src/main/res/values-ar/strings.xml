@@ -261,4 +261,6 @@
     <string name="love_using_this_app">هل أعجبك استخدام هذا التطبيق؟</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">ملاحظاتكم تُحدث فرقاً كبيراً وتُلهمنا لمواصلة التحسين.</string>
     <string name="feedback">تعليق</string>
+    <string name="upgrade_heading">قم بالترقية إلى الإصدار المميز</string>
+    <string name="upgrade_desc">احصل على وصول مميز لتحويل ملفاتك بسرعة وسهولة.</string>
 </resources>

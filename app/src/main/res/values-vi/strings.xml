@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Bạn thích sử dụng ứng dụng này chứ?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Những phản hồi của bạn tạo nên sự khác biệt lớn và truyền cảm hứng cho chúng tôi tiếp tục cải tiến.</string>
     <string name="feedback">Nhận xét</string>
+    <string name="upgrade_heading">Nâng cấp lên gói Premium</string>
+    <string name="upgrade_desc">Đăng ký gói Premium để chuyển đổi tệp của bạn nhanh chóng và dễ dàng.</string>
 </resources>

@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Вам нравится это приложение?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Ваши отзывы имеют огромное значение и вдохновляют нас на постоянное совершенствование.</string>
     <string name="feedback">Обратная связь</string>
+    <string name="upgrade_heading">Перейти на Премиум-версию</string>
+    <string name="upgrade_desc">Получите премиум-доступ, чтобы быстро и легко конвертировать файлы.</string>
 </resources>

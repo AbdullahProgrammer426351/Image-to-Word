@@ -261,4 +261,6 @@
     <string name="love_using_this_app">ይህንን መተግበሪያ መጠቀም ይወዳሉ?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">የእርስዎ ግብረመልስ ትልቅ ለውጥ ያመጣል እና መሻሻልን እንድንቀጥል ያነሳሳናል።</string>
     <string name="feedback">ግብረመልስ</string>
+    <string name="upgrade_heading">ወደ ፕሪሚየም ያሻሽሉ</string>
+    <string name="upgrade_desc">ፋይሎችዎን በፍጥነት እና በቀላሉ ለመቀየር ፕሪሚየም መዳረሻ ያግኙ።</string>
 </resources>

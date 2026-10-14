@@ -261,4 +261,6 @@
     <string name="love_using_this_app">ಈ ಅಪ್ಲಿಕೇಶನ್ ಬಳಸಲು ಇಷ್ಟಪಡುತ್ತೀರಾ?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ ದೊಡ್ಡ ವ್ಯತ್ಯಾಸವನ್ನುಂಟು ಮಾಡುತ್ತದೆ ಮತ್ತು ಸುಧಾರಿಸುವುದನ್ನು ಮುಂದುವರಿಸಲು ನಮಗೆ ಸ್ಫೂರ್ತಿ ನೀಡುತ್ತದೆ.</string>
     <string name="feedback">ಪ್ರತಿಕ್ರಿಯೆ</string>
+    <string name="upgrade_heading">ಪ್ರೀಮಿಯಂಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ</string>
+    <string name="upgrade_desc">ನಿಮ್ಮ ಫೈಲ್‌ಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಮತ್ತು ಸುಲಭವಾಗಿ ಪರಿವರ್ತಿಸಲು ಪ್ರೀಮಿಯಂ ಪ್ರವೇಶವನ್ನು ಪಡೆಯಿರಿ.</string>
 </resources>

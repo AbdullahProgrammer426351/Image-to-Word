@@ -261,4 +261,6 @@
     <string name="love_using_this_app">このアプリを使うのが好きですか？</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">皆様からのフィードバックは非常に重要であり、私たちが改善を続けるための励みとなります。</string>
     <string name="feedback">フィードバック</string>
+    <string name="upgrade_heading">プレミアムにアップグレード</string>
+    <string name="upgrade_desc">プレミアムアクセスを取得すれば、ファイルをすばやく簡単に変換できます。</string>
 </resources>

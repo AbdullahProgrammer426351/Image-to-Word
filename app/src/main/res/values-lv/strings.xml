@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Patīk lietot šo lietotni?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Jūsu atsauksmes ir ļoti svarīgas un iedvesmo mūs turpināt uzlaboties.</string>
     <string name="feedback">Atsauksmes</string>
+    <string name="upgrade_heading">Jaunināt uz Premium</string>
+    <string name="upgrade_desc">Iegūstiet Premium piekļuvi, lai ātri un vienkārši konvertētu failus.</string>
 </resources>

@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Ti piace usare questa app?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Il vostro feedback è fondamentale e ci motiva a continuare a migliorare.</string>
     <string name="feedback">Feedback</string>
+    <string name="upgrade_heading">Passa a Premium</string>
+    <string name="upgrade_desc">Ottieni l\'accesso Premium per convertire i tuoi file in modo rapido e semplice.</string>
 </resources>

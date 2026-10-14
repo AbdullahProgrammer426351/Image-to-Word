@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Të pëlqen të përdorësh këtë aplikacion?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Reagimet tuaja bëjnë një ndryshim të madh dhe na frymëzojnë të vazhdojmë të përmirësohemi.</string>
     <string name="feedback">Reagime</string>
+    <string name="upgrade_heading">Përmirëso në Premium</string>
+    <string name="upgrade_desc">Merrni akses Premium për të konvertuar skedarët tuaj shpejt dhe lehtë.</string>
 </resources>

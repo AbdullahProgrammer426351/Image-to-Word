@@ -261,4 +261,6 @@
     <string name="love_using_this_app">אוהבים להשתמש באפליקציה הזו?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">המשוב שלכם עושה הבדל גדול ומעורר בנו השראה להמשיך להשתפר.</string>
     <string name="feedback">מָשׁוֹב</string>
+    <string name="upgrade_heading">שדרג לפרימיום</string>
+    <string name="upgrade_desc">קבלו גישת פרימיום כדי להמיר את הקבצים שלכם במהירות ובקלות.</string>
 </resources>

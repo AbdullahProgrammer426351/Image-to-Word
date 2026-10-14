@@ -261,4 +261,6 @@
     <string name="love_using_this_app">T\'agrada utilitzar aquesta aplicació?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Els vostres comentaris marquen una gran diferència i ens inspiren a seguir millorant.</string>
     <string name="feedback">Comentaris</string>
+    <string name="upgrade_heading">Actualitza a Premium</string>
+    <string name="upgrade_desc">Obtén accés Premium per convertir els teus fitxers de manera ràpida i senzilla.</string>
 </resources>

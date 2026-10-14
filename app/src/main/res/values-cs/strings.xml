@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Rádi používáte tuto aplikaci?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Vaše zpětná vazba má velký význam a inspiruje nás k dalšímu zlepšování.</string>
     <string name="feedback">Zpětná vazba</string>
+    <string name="upgrade_heading">Upgradujte na prémiovou verzi</string>
+    <string name="upgrade_desc">Získejte prémiový přístup pro rychlou a snadnou konverzi souborů.</string>
 </resources>

@@ -285,4 +285,6 @@
     <string name="love_using_this_app">Love using this app?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Your feedback makes a big difference and inspires us to keep improving.</string>
     <string name="feedback">Feedback</string>
+    <string name="upgrade_heading">Upgrade to Premium</string>
+    <string name="upgrade_desc">Get Premium access to convert your files quickly and easily.</string>
 </resources>

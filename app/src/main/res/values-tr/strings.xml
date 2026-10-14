@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Bu uygulamayı kullanmayı seviyor musunuz?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Geri bildirimleriniz büyük fark yaratıyor ve sürekli gelişmemiz için bize ilham veriyor.</string>
     <string name="feedback">Geri bildirim</string>
+    <string name="upgrade_heading">Premium\'a yükseltin</string>
+    <string name="upgrade_desc">Dosyalarınızı hızlı ve kolay bir şekilde dönüştürmek için Premium erişim elde edin.</string>
 </resources>

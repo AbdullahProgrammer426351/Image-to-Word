@@ -261,4 +261,6 @@
     <string name="love_using_this_app">यो एप प्रयोग गर्न मन पर्छ?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">तपाईंको प्रतिक्रियाले ठूलो फरक पार्छ र हामीलाई सुधार गरिरहन प्रेरित गर्छ।</string>
     <string name="feedback">प्रतिक्रिया</string>
+    <string name="upgrade_heading">प्रिमियममा स्तरवृद्धि गर्नुहोस्</string>
+    <string name="upgrade_desc">तपाईंको फाइलहरू छिटो र सजिलै रूपान्तरण गर्न प्रिमियम पहुँच प्राप्त गर्नुहोस्।</string>
 </resources>

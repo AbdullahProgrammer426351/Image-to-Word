@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Энэ аппликейшнийг ашиглах дуртай юу?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Таны санал хүсэлт бидэнд том өөрчлөлтийг авчирч, үргэлжлүүлэн сайжруулах урам зориг өгдөг.</string>
     <string name="feedback">Санал хүсэлт</string>
+    <string name="upgrade_heading">Премиум руу шинэчлэх</string>
+    <string name="upgrade_desc">Файлуудаа хурдан бөгөөд хялбар хөрвүүлэхийн тулд Дээд зэрэглэлийн хандалт аваарай.</string>
 </resources>

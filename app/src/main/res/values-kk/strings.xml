@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Бұл қолданбаны пайдалану ұнай ма?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Сіздің пікіріңіз үлкен өзгеріс әкеледі және бізді жетілдіруді жалғастыруға шабыттандырады.</string>
     <string name="feedback">Кері байланыс</string>
+    <string name="upgrade_heading">Премиумға жаңарту</string>
+    <string name="upgrade_desc">Файлдарыңызды жылдам және оңай түрлендіру үшін премиум қатынас алыңыз.</string>
 </resources>

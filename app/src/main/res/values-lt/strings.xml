@@ -261,4 +261,6 @@
     <string name="love_using_this_app">Mėgstate naudoti šią programėlę?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">Jūsų atsiliepimai labai svarbūs ir įkvepia mus toliau tobulėti.</string>
     <string name="feedback">Atsiliepimai</string>
+    <string name="upgrade_heading">Atnaujinkite į „Premium“</string>
+    <string name="upgrade_desc">Gaukite „Premium“ prieigą, kad galėtumėte greitai ir lengvai konvertuoti failus.</string>
 </resources>

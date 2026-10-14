@@ -261,4 +261,6 @@
     <string name="love_using_this_app">이 앱 사용이 마음에 드시나요?</string>
     <string name="your_feedback_makes_a_big_difference_and_inspires_us_to_keep_improving">여러분의 피드백은 큰 도움이 되며, 저희가 계속해서 발전해 나갈 수 있도록 영감을 줍니다.</string>
     <string name="feedback">피드백</string>
+    <string name="upgrade_heading">프리미엄으로 업그레이드하세요</string>
+    <string name="upgrade_desc">프리미엄 서비스를 이용하면 파일을 빠르고 쉽게 변환할 수 있습니다.</string>
 </resources>
