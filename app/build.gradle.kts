@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.google.firebase.crashlytics)
 }
 
+val physicalDeviceIntegrationTest =
+    providers.gradleProperty("physicalDeviceIntegrationTest").orNull == "true"
+
 android {
     namespace = "com.image.word.converter.convert.docx"
     compileSdk = 37
@@ -22,15 +25,30 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
+            if (physicalDeviceIntegrationTest) {
+                applicationIdSuffix = ".integrationtest"
+                resValue("string", "google_app_id", "1:000000000000:android:demo-converter-credit")
+                resValue("string", "google_api_key", "demo-converter-credit")
+                resValue("string", "project_id", "demo-converter-credit")
+                resValue("string", "gcm_defaultSenderId", "000000000000")
+            }
             buildConfigField("String", "BACKEND_ENVIRONMENT", "\"emulator\"")
             buildConfigField("boolean", "BACKEND_ACCOUNT_INTEGRATION_ENABLED", "true")
             buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"demo-converter-credit\"")
             buildConfigField(
                 "String",
                 "BACKEND_FUNCTIONS_BASE_URL",
-                "\"http://10.0.2.2:5001/demo-converter-credit/us-central1/\"",
+                if (physicalDeviceIntegrationTest) {
+                    "\"http://127.0.0.1:5001/demo-converter-credit/us-central1/\""
+                } else {
+                    "\"http://10.0.2.2:5001/demo-converter-credit/us-central1/\""
+                },
             )
-            buildConfigField("String", "BACKEND_AUTH_EMULATOR_HOST", "\"10.0.2.2\"")
+            buildConfigField(
+                "String",
+                "BACKEND_AUTH_EMULATOR_HOST",
+                if (physicalDeviceIntegrationTest) "\"127.0.0.1\"" else "\"10.0.2.2\"",
+            )
             buildConfigField("int", "BACKEND_AUTH_EMULATOR_PORT", "9099")
             buildConfigField("boolean", "ISOLATE_PRODUCTION_SERVICES", "true")
 //            isShrinkResources = true
@@ -64,6 +82,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
     }
 
     packaging {
@@ -72,6 +91,12 @@ android {
             excludes += "/META-INF/LICENSE*"
             excludes += "/META-INF/NOTICE*"
         }
+    }
+}
+
+if (physicalDeviceIntegrationTest) {
+    tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+        enabled = false
     }
 }
 

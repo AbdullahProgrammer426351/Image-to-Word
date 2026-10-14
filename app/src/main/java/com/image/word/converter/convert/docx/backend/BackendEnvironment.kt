@@ -17,8 +17,8 @@ data class BackendEnvironment(
         if (isEmulator) {
             require(accountIntegrationEnabled) { "The emulator environment must enable account integration" }
             require(firebaseProjectId == DEMO_PROJECT_ID) { "Debug integration must use the demo Firebase project" }
-            require(functionsBaseUrl == DEMO_FUNCTIONS_BASE_URL) { "Debug integration must use the Functions Emulator" }
-            require(authEmulatorHost == DEMO_AUTH_HOST && authEmulatorPort == DEMO_AUTH_PORT) {
+            require(functionsBaseUrl in DEMO_FUNCTIONS_BASE_URLS) { "Debug integration must use the Functions Emulator" }
+            require(authEmulatorHost in DEMO_AUTH_HOSTS && authEmulatorPort == DEMO_AUTH_PORT) {
                 "Debug integration must use the Auth Emulator"
             }
             require(isolateProductionServices) { "Emulator integration must isolate production services" }
@@ -39,8 +39,14 @@ data class BackendEnvironment(
         const val DEMO_PROJECT_ID = "demo-converter-credit"
         const val DEMO_FUNCTIONS_BASE_URL =
             "http://10.0.2.2:5001/demo-converter-credit/us-central1/"
+        const val DEVICE_DEMO_FUNCTIONS_BASE_URL =
+            "http://127.0.0.1:5001/demo-converter-credit/us-central1/"
         const val DEMO_AUTH_HOST = "10.0.2.2"
+        const val DEVICE_DEMO_AUTH_HOST = "127.0.0.1"
         const val DEMO_AUTH_PORT = 9099
+        private val DEMO_FUNCTIONS_BASE_URLS =
+            setOf(DEMO_FUNCTIONS_BASE_URL, DEVICE_DEMO_FUNCTIONS_BASE_URL)
+        private val DEMO_AUTH_HOSTS = setOf(DEMO_AUTH_HOST, DEVICE_DEMO_AUTH_HOST)
 
         fun current(): BackendEnvironment = BackendEnvironment(
             name = BuildConfig.BACKEND_ENVIRONMENT,
