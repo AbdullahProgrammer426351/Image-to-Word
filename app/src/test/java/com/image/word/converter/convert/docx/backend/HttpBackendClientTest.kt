@@ -277,6 +277,7 @@ class HttpBackendClientTest {
         authEmulatorHost = BackendEnvironment.DEMO_AUTH_HOST,
         authEmulatorPort = BackendEnvironment.DEMO_AUTH_PORT,
         isolateProductionServices = true,
+        firebaseAppId = BackendEnvironment.DEMO_FIREBASE_APP_ID,
     )
 
     private fun disabledProductionEnvironment() = BackendEnvironment(

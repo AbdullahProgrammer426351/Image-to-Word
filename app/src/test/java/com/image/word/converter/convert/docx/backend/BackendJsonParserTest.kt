@@ -78,6 +78,20 @@ class BackendJsonParserTest {
     }
 
     @Test
+    fun malformedSuccessOrMissingRequiredFields_returnsInvalidResponse() {
+        val malformed = BackendJsonParser.parseImageConversionEnvelope("{not-json", 200)
+        assertTrue(malformed is BackendResult.Failure)
+        assertTrue((malformed as BackendResult.Failure).failure is BackendFailure.InvalidResponse)
+
+        val missingCredits = BackendJsonParser.parseImageConversionEnvelope(
+            """{"success":true,"result":"https://example.test/result.docx","conversionId":"c1"}""",
+            200,
+        )
+        assertTrue(missingCredits is BackendResult.Failure)
+        assertTrue((missingCredits as BackendResult.Failure).failure is BackendFailure.InvalidResponse)
+    }
+
+    @Test
     fun conversionSuccess_parsesAuthoritativeChargeAndBalance() {
         val result = BackendJsonParser.parseImageConversionEnvelope(
             raw = """

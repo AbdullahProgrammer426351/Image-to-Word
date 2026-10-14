@@ -293,6 +293,7 @@
     <string name="no_conversion_entitlement_subscribe">No conversion entitlement available. Subscribe.</string>
     <string name="credits_loading">Loading credits…</string>
     <string name="credits_unavailable">Credits temporarily unavailable</string>
+    <string name="account_state_retry_message">We could not confirm your conversion access. Check your connection and try again.</string>
     <string name="conversion_needs_attention">Conversion needs attention</string>
     <string name="retry">Retry</string>
     <string name="continue_label">Continue</string>

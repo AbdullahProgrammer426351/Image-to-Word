@@ -10,6 +10,7 @@ data class BackendEnvironment(
     val authEmulatorHost: String?,
     val authEmulatorPort: Int?,
     val isolateProductionServices: Boolean,
+    val firebaseAppId: String = "",
 ) {
     val isEmulator: Boolean = name == EMULATOR
 
@@ -22,10 +23,40 @@ data class BackendEnvironment(
                 "Debug integration must use the Auth Emulator"
             }
             require(isolateProductionServices) { "Emulator integration must isolate production services" }
-        } else if (accountIntegrationEnabled) {
-            require(functionsBaseUrl.startsWith("https://")) {
-                "An enabled non-emulator backend must use HTTPS"
+            require(firebaseAppId == DEMO_FIREBASE_APP_ID) {
+                "Debug integration must use the demo Firebase Android app"
             }
+        } else if (accountIntegrationEnabled) {
+            require(name == PRODUCTION_INTERNAL) {
+                "Only the approved internal environment may enable V2 production access"
+            }
+            require(firebaseProjectId == PRODUCTION_PROJECT_ID) {
+                "V2 production access must use the approved Firebase project"
+            }
+            require(firebaseAppId == PRODUCTION_FIREBASE_APP_ID) {
+                "V2 production access must use the approved Firebase Android app"
+            }
+            require(functionsBaseUrl == PRODUCTION_FUNCTIONS_BASE_URL) {
+                "V2 production access must use the approved Functions endpoint"
+            }
+            require(functionsBaseUrl.startsWith("https://") && !functionsBaseUrl.contains("?")) {
+                "An enabled non-emulator backend must use a secure, exact HTTPS endpoint"
+            }
+            require(authEmulatorHost == null && authEmulatorPort == null) {
+                "Production V2 must not configure an Auth emulator"
+            }
+            require(!isolateProductionServices) {
+                "Production V2 must not isolate production services"
+            }
+        } else {
+            require(name == PRODUCTION_DISABLED) {
+                "Unknown disabled backend environment"
+            }
+            require(functionsBaseUrl.isBlank()) { "Disabled release must not configure a backend URL" }
+            require(authEmulatorHost == null && authEmulatorPort == null) {
+                "Disabled release must not configure an Auth emulator"
+            }
+            require(!isolateProductionServices) { "Disabled release must not isolate production services" }
         }
     }
 
@@ -36,7 +67,12 @@ data class BackendEnvironment(
 
     companion object {
         const val EMULATOR = "emulator"
+        const val PRODUCTION_DISABLED = "production-disabled"
+        const val PRODUCTION_INTERNAL = "production-internal"
         const val DEMO_PROJECT_ID = "demo-converter-credit"
+        const val PRODUCTION_PROJECT_ID = "converter-api-project"
+        const val DEMO_FIREBASE_APP_ID = "1:000000000000:android:demo-converter-credit"
+        const val PRODUCTION_FIREBASE_APP_ID = "1:1080587695450:android:3dbc635eb260638e852f63"
         const val DEMO_FUNCTIONS_BASE_URL =
             "http://10.0.2.2:5001/demo-converter-credit/us-central1/"
         const val DEVICE_DEMO_FUNCTIONS_BASE_URL =
@@ -44,6 +80,8 @@ data class BackendEnvironment(
         const val DEMO_AUTH_HOST = "10.0.2.2"
         const val DEVICE_DEMO_AUTH_HOST = "127.0.0.1"
         const val DEMO_AUTH_PORT = 9099
+        const val PRODUCTION_FUNCTIONS_BASE_URL =
+            "https://us-central1-converter-api-project.cloudfunctions.net/"
         private val DEMO_FUNCTIONS_BASE_URLS =
             setOf(DEMO_FUNCTIONS_BASE_URL, DEVICE_DEMO_FUNCTIONS_BASE_URL)
         private val DEMO_AUTH_HOSTS = setOf(DEMO_AUTH_HOST, DEVICE_DEMO_AUTH_HOST)
@@ -56,6 +94,7 @@ data class BackendEnvironment(
             authEmulatorHost = BuildConfig.BACKEND_AUTH_EMULATOR_HOST.ifBlank { null },
             authEmulatorPort = BuildConfig.BACKEND_AUTH_EMULATOR_PORT.takeIf { it > 0 },
             isolateProductionServices = BuildConfig.ISOLATE_PRODUCTION_SERVICES,
+            firebaseAppId = BuildConfig.BACKEND_FIREBASE_APP_ID,
         )
     }
 }

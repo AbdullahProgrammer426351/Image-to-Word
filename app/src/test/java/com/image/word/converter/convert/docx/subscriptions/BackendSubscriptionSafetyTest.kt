@@ -39,4 +39,17 @@ class BackendSubscriptionSafetyTest {
             "1:1080587695450:android:3dbc635eb260638e852f63",
         ))
     }
+
+    @Test
+    fun diagnosticsDoNotLogAccountBalancesOrPurchaseSecrets() {
+        val source = File(
+            "src/main/java/com/image/word/converter/convert/docx/ImageToWordApplication.kt",
+        ).readText()
+
+        assertFalse(source.contains("availableCredits="))
+        assertFalse(source.contains("subscriptionStatus="))
+        assertFalse(source.contains("purchaseToken"))
+        assertFalse(source.contains("idToken"))
+        assertFalse(source.contains("appCheckToken"))
+    }
 }

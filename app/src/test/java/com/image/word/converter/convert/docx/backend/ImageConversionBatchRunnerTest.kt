@@ -126,6 +126,44 @@ class ImageConversionBatchRunnerTest {
         )
     }
 
+    @Test
+    fun v2EntryRequiresAuthoritativeAccountState() {
+        assertEquals(
+            V2EntryState.LOADING,
+            ConversionAccessPolicy.v2EntryState(AccountRepositoryState.Loading()),
+        )
+        assertEquals(
+            V2EntryState.TEMPORARILY_UNAVAILABLE,
+            ConversionAccessPolicy.v2EntryState(
+                AccountRepositoryState.Degraded(previous = null, failure = BackendFailure.Network(Exception("offline"))),
+            ),
+        )
+        assertEquals(
+            V2EntryState.ALLOWED,
+            ConversionAccessPolicy.v2EntryState(
+                AccountRepositoryState.Ready(sampleAccount(95).copy(
+                    conversionAccess = ConversionAccessState(
+                        mode = ConversionAccessMode.CREDIT_BASED,
+                        canConvert = true,
+                        freeConversion = FreeConversionState("USED", false),
+                    ),
+                )),
+            ),
+        )
+        assertEquals(
+            V2EntryState.NOT_ENTITLED,
+            ConversionAccessPolicy.v2EntryState(
+                AccountRepositoryState.Ready(sampleAccount(0).copy(
+                    conversionAccess = ConversionAccessState(
+                        mode = ConversionAccessMode.NONE,
+                        canConvert = false,
+                        freeConversion = FreeConversionState("USED", false),
+                    ),
+                )),
+            ),
+        )
+    }
+
     private fun successfulConversion(): BackendResult<ImageConversionResponse> =
         BackendResult.Success(
             ImageConversionResponse(

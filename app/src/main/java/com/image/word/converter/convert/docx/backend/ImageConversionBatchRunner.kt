@@ -107,4 +107,24 @@ object ConversionAccessPolicy {
         ConversionBackendMode.V2 -> true
         ConversionBackendMode.LEGACY -> isLocallySubscribed || remainingLocalAttempts > 0
     }
+
+    fun v2EntryState(state: AccountRepositoryState): V2EntryState = when (state) {
+        is AccountRepositoryState.Ready -> {
+            if (state.account.conversionAccess.canConvert) {
+                V2EntryState.ALLOWED
+            } else {
+                V2EntryState.NOT_ENTITLED
+            }
+        }
+        is AccountRepositoryState.Loading -> V2EntryState.LOADING
+        is AccountRepositoryState.Degraded -> V2EntryState.TEMPORARILY_UNAVAILABLE
+        AccountRepositoryState.Disabled -> V2EntryState.TEMPORARILY_UNAVAILABLE
+    }
+}
+
+enum class V2EntryState {
+    LOADING,
+    TEMPORARILY_UNAVAILABLE,
+    ALLOWED,
+    NOT_ENTITLED,
 }

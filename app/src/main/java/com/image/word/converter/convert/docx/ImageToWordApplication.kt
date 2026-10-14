@@ -120,9 +120,7 @@ class ImageToWordApplication : Application() {
                 is AccountRepositoryState.Loading -> Log.d(LOG_TAG, "accountState=loading")
                 is AccountRepositoryState.Ready -> Log.d(
                     LOG_TAG,
-                    "authenticated=true, backendUserResolved=true, " +
-                        "availableCredits=${state.account.credits.available}, " +
-                        "subscriptionStatus=${state.account.subscription.status}",
+                    "authenticated=true, backendUserResolved=true",
                 )
                 is AccountRepositoryState.Degraded -> Log.w(
                     LOG_TAG,

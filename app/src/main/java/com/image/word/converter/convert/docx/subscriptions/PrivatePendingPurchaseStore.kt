@@ -34,29 +34,11 @@ class PrivatePendingPurchaseStore(
     }
 
     private fun readEntries(): List<SubscriptionVerificationRequest> = runCatching {
-        val array = JSONArray(preferences.getString(KEY_PENDING, "[]"))
-        buildList {
-            for (index in 0 until array.length()) {
-                val item = array.getJSONObject(index)
-                val productId = item.getString("productId")
-                val token = item.getString("purchaseToken")
-                if (productId in BackendSubscriptionVerifier.SUPPORTED_PRODUCT_IDS && token.isNotBlank()) {
-                    add(SubscriptionVerificationRequest(productId, token))
-                }
-            }
-        }
+        PendingPurchaseCodec.decode(preferences.getString(KEY_PENDING, "[]").orEmpty())
     }.getOrDefault(emptyList())
 
     private fun writeEntries(entries: Collection<SubscriptionVerificationRequest>) {
-        val array = JSONArray()
-        entries.forEach { request ->
-            array.put(
-                JSONObject()
-                    .put("productId", request.productId)
-                    .put("purchaseToken", request.purchaseToken),
-            )
-        }
-        check(preferences.edit().putString(KEY_PENDING, array.toString()).commit()) {
+        check(preferences.edit().putString(KEY_PENDING, PendingPurchaseCodec.encode(entries)).commit()) {
             "Unable to persist pending purchase verification"
         }
     }
@@ -65,4 +47,32 @@ class PrivatePendingPurchaseStore(
         const val PREFERENCES_NAME = "pending_subscription_verification"
         const val KEY_PENDING = "requests"
     }
+}
+
+internal object PendingPurchaseCodec {
+    fun decode(raw: String): List<SubscriptionVerificationRequest> {
+        val array = JSONArray(raw)
+        return buildList {
+            for (index in 0 until array.length()) {
+                runCatching {
+                    val item = array.getJSONObject(index)
+                    val productId = item.getString("productId")
+                    val token = item.getString("purchaseToken")
+                    if (productId in BackendSubscriptionVerifier.SUPPORTED_PRODUCT_IDS && token.isNotBlank()) {
+                        add(SubscriptionVerificationRequest(productId, token))
+                    }
+                }
+            }
+        }.distinctBy { it.purchaseToken }
+    }
+
+    fun encode(entries: Collection<SubscriptionVerificationRequest>): String = JSONArray().apply {
+        entries.distinctBy { it.purchaseToken }.forEach { request ->
+            put(
+                JSONObject()
+                    .put("productId", request.productId)
+                    .put("purchaseToken", request.purchaseToken),
+            )
+        }
+    }.toString()
 }

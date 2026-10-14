@@ -37,6 +37,11 @@ android {
             buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"demo-converter-credit\"")
             buildConfigField(
                 "String",
+                "BACKEND_FIREBASE_APP_ID",
+                "\"1:000000000000:android:demo-converter-credit\"",
+            )
+            buildConfigField(
+                "String",
                 "BACKEND_FUNCTIONS_BASE_URL",
                 if (physicalDeviceIntegrationTest) {
                     "\"http://127.0.0.1:5001/demo-converter-credit/us-central1/\""
@@ -63,6 +68,11 @@ android {
             buildConfigField("String", "BACKEND_ENVIRONMENT", "\"production-disabled\"")
             buildConfigField("boolean", "BACKEND_ACCOUNT_INTEGRATION_ENABLED", "false")
             buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"converter-api-project\"")
+            buildConfigField(
+                "String",
+                "BACKEND_FIREBASE_APP_ID",
+                "\"1:1080587695450:android:3dbc635eb260638e852f63\"",
+            )
             buildConfigField("String", "BACKEND_FUNCTIONS_BASE_URL", "\"\"")
             buildConfigField("String", "BACKEND_AUTH_EMULATOR_HOST", "\"\"")
             buildConfigField("int", "BACKEND_AUTH_EMULATOR_PORT", "0")
@@ -78,6 +88,11 @@ android {
             buildConfigField("String", "BACKEND_ENVIRONMENT", "\"production-internal\"")
             buildConfigField("boolean", "BACKEND_ACCOUNT_INTEGRATION_ENABLED", "true")
             buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"converter-api-project\"")
+            buildConfigField(
+                "String",
+                "BACKEND_FIREBASE_APP_ID",
+                "\"1:1080587695450:android:3dbc635eb260638e852f63\"",
+            )
             buildConfigField(
                 "String",
                 "BACKEND_FUNCTIONS_BASE_URL",

@@ -8,8 +8,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
@@ -18,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ads.AppOpenAdManager
 import com.image.word.converter.convert.docx.ads.InterstitialAdManager
 import com.image.word.converter.convert.docx.subscriptions.SubscriptionScreen
@@ -42,14 +45,17 @@ import com.image.word.converter.convert.docx.ui.state.SessionState
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.SubscriptionTriggerManager
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
+import com.image.word.converter.convert.docx.backend.BackendAccountStore
 import com.image.word.converter.convert.docx.backend.ConversionAccessPolicy
 import com.image.word.converter.convert.docx.backend.ConversionBackendMode
+import com.image.word.converter.convert.docx.backend.V2EntryState
 import com.image.word.converter.convert.docx.util.bitmapToCacheUri
 import androidx.core.content.edit
 
 import com.image.word.converter.convert.docx.ui.components.RatingDialog
 import com.image.word.converter.convert.docx.ui.components.RatingDialogViewModel
 import com.image.word.converter.convert.docx.util.AppLinks
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppRoot(activity: Activity) {
@@ -66,6 +72,30 @@ fun AppRoot(activity: Activity) {
     val showLimit by limitTrigger.showLimitDialog.collectAsState()
     val conversionMode = remember {
         ConversionAccessPolicy.backendMode(BackendEnvironment.current())
+    }
+    val accountState by BackendAccountStore.repository.state.collectAsState()
+    val recoveryScope = rememberCoroutineScope()
+    var showBackendRecovery by remember { mutableStateOf(false) }
+
+    if (showBackendRecovery) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showBackendRecovery = false },
+            title = { androidx.compose.material3.Text(stringResource(R.string.credits_unavailable)) },
+            text = { androidx.compose.material3.Text(stringResource(R.string.account_state_retry_message)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showBackendRecovery = false
+                    recoveryScope.launch { BackendAccountStore.repository.refresh() }
+                }) {
+                    androidx.compose.material3.Text(stringResource(R.string.retry))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showBackendRecovery = false }) {
+                    androidx.compose.material3.Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     if (ratingState) {
@@ -193,15 +223,28 @@ fun AppRoot(activity: Activity) {
                         }
                     },
                     onNext = {
-                        if (!ConversionAccessPolicy.canStart(
-                                mode = conversionMode,
-                                isLocallySubscribed = subscriptionState.isSubscribed,
-                                remainingLocalAttempts = attemptManager.remainingAttempts,
-                            )
-                        ) {
-                            limitTrigger.showLimit()
+                        if (conversionMode == ConversionBackendMode.V2) {
+                            when (ConversionAccessPolicy.v2EntryState(accountState)) {
+                                V2EntryState.ALLOWED -> navController.navigate(Routes.Processing)
+                                V2EntryState.NOT_ENTITLED -> limitTrigger.showLimit()
+                                V2EntryState.LOADING,
+                                V2EntryState.TEMPORARILY_UNAVAILABLE,
+                                -> {
+                                    showBackendRecovery = true
+                                    recoveryScope.launch { BackendAccountStore.repository.refresh() }
+                                }
+                            }
                         } else {
-                            navController.navigate(Routes.Processing)
+                            if (!ConversionAccessPolicy.canStart(
+                                    mode = conversionMode,
+                                    isLocallySubscribed = subscriptionState.isSubscribed,
+                                    remainingLocalAttempts = attemptManager.remainingAttempts,
+                                )
+                            ) {
+                                limitTrigger.showLimit()
+                            } else {
+                                navController.navigate(Routes.Processing)
+                            }
                         }
                     },
                     onAdjust = { index -> navController.navigate(Routes.adjust(index)) },
