@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.image.word.converter.convert.docx.R
@@ -257,6 +258,13 @@ fun SubscriptionScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
+                                if (usesCreditSubscriptions) {
+                                    Text(
+                                        text = stringResource(creditBenefitText(product.id)),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                             Text(
                                 text = product.weeklyEquivalentText,
@@ -364,6 +372,13 @@ fun SubscriptionScreen(
             },
         )
     }
+}
+
+@StringRes
+private fun creditBenefitText(productId: String): Int = when (productId) {
+    SubscriptionViewModel.PRODUCT_WEEKLY -> R.string.weekly_credit_benefit
+    SubscriptionViewModel.PRODUCT_MONTHLY -> R.string.monthly_credit_benefit
+    else -> R.string.sub_feature_subscription_credits
 }
 
 @Composable
