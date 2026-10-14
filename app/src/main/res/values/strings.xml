@@ -274,7 +274,9 @@
     <string name="word_share_failed">Unable to share Word file.</string>
     <string name="word_export_failed">Unable to export Word file.</string>
     <string name="subscription_desc_ios">Unlock advanced scanning, premium editing tools, and unlimited document scans.</string>
+    <string name="subscription_desc_credits">Subscribe to receive credits for document conversions, plus premium editing tools and an ad-free experience.</string>
     <string name="sub_feature_unlimited_scanning">Unlimited Scanning</string>
+    <string name="sub_feature_subscription_credits">Credits for Document Conversions</string>
     <string name="sub_feature_high_accuracy">High-Accuracy Word Output</string>
     <string name="sub_feature_fast_smooth">Fast &amp; Smooth</string>
     <string name="sub_feature_ads_free">Ads-Free</string>

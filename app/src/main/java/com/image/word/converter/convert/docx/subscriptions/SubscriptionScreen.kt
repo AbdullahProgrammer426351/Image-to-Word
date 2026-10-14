@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.image.word.converter.convert.docx.R
+import com.image.word.converter.convert.docx.backend.BackendEnvironment
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
 import com.image.word.converter.convert.docx.ui.theme.WordGradients
@@ -76,6 +77,9 @@ fun SubscriptionScreen(
     val activity = context as? Activity
     var showAlert by remember { mutableStateOf(false) }
     var alertMessage by remember { mutableStateOf("") }
+    val usesCreditSubscriptions = remember {
+        BackendEnvironment.current().accountIntegrationEnabled
+    }
 
     LaunchedEffect(uiState.isSubscribed) {
         if (uiState.isSubscribed) onClose()
@@ -94,7 +98,11 @@ fun SubscriptionScreen(
     }
 
     val premiumItems = listOf(
-        R.string.sub_feature_unlimited_scanning,
+        if (usesCreditSubscriptions) {
+            R.string.sub_feature_subscription_credits
+        } else {
+            R.string.sub_feature_unlimited_scanning
+        },
         R.string.sub_feature_high_accuracy,
         R.string.sub_feature_fast_smooth,
         R.string.sub_feature_ads_free,
@@ -153,7 +161,7 @@ fun SubscriptionScreen(
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            SubscriptionHeader()
+            SubscriptionHeader(usesCreditSubscriptions = usesCreditSubscriptions)
 
             uiState.availableCredits?.let { credits ->
                 Text(
@@ -340,7 +348,7 @@ fun SubscriptionScreen(
 }
 
 @Composable
-private fun SubscriptionHeader() {
+private fun SubscriptionHeader(usesCreditSubscriptions: Boolean) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -367,7 +375,13 @@ private fun SubscriptionHeader() {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = stringResource(R.string.subscription_desc_ios),
+            text = stringResource(
+                if (usesCreditSubscriptions) {
+                    R.string.subscription_desc_credits
+                } else {
+                    R.string.subscription_desc_ios
+                },
+            ),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp),
