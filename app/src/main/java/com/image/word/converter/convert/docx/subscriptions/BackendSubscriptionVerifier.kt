@@ -154,6 +154,7 @@ class BackendSubscriptionVerifier(
 }
 
 private fun BackendFailure.isRetryableSubscriptionFailure(): Boolean = when (this) {
+    is BackendFailure.AppCheck,
     is BackendFailure.Authentication,
     is BackendFailure.Network,
     is BackendFailure.InvalidResponse,

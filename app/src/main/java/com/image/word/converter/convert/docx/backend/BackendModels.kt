@@ -65,6 +65,7 @@ sealed interface BackendResult<out T> {
 
 sealed interface BackendFailure {
     data class Authentication(val cause: Throwable? = null) : BackendFailure
+    data class AppCheck(val cause: Throwable? = null) : BackendFailure
     data class Network(val cause: Throwable) : BackendFailure
     data class Server(val error: BackendError) : BackendFailure
     data class InvalidResponse(val cause: Throwable? = null) : BackendFailure

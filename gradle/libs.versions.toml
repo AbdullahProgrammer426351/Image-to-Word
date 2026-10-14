@@ -18,6 +18,7 @@ ucropVersion = "2.2.8"
 ump = "4.0.0"
 firebaseCrashlytics = "20.1.0"
 firebaseAuth = "24.2.0"
+firebaseAppCheck = "19.4.1"
 firebaseConfig = "23.1.0"
 googleGmsGoogleServices = "4.5.0"
 googleFirebaseCrashlytics = "3.0.7"
@@ -56,6 +57,8 @@ androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "l
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 # Third-party: Firebase Auth SDK
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+# Third-party: Firebase App Check Play Integrity provider
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity", version.ref = "firebaseAppCheck" }
 # Third-party: Firebase Remote Config SDK
 firebase-config = { group = "com.google.firebase", name = "firebase-config", version.ref = "firebaseConfig" }
 # Third-party: Kotlin coroutines bridge for Google Play Services Tasks

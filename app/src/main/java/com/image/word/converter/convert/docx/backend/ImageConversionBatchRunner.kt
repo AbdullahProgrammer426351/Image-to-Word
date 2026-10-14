@@ -78,6 +78,7 @@ class ImageConversionBatchRunner(
     private fun BackendResult<ImageConversionResponse>.shouldRetry(): Boolean {
         val failure = (this as? BackendResult.Failure)?.failure ?: return false
         return when (failure) {
+            is BackendFailure.AppCheck,
             is BackendFailure.Network -> true
             is BackendFailure.Server -> failure.error.code == "CONVERSION_PENDING"
             else -> false

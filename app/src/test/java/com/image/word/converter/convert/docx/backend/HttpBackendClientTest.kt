@@ -13,13 +13,19 @@ class HttpBackendClientTest {
         val transport = RecordingTransport(
             BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
         )
-        val client = HttpBackendClient(emulatorEnvironment(), SuccessfulAuthSession(), transport)
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            SuccessfulAppCheckSession(),
+            transport,
+        )
 
         val result = client.bootstrapUser()
 
         assertTrue(result is BackendResult.Success)
         val request = transport.requests.single()
         assertEquals("Bearer test-id-token", request.headers["Authorization"])
+        assertEquals("test-app-check-token", request.headers["X-Firebase-AppCheck"])
         assertEquals("application/json", request.headers["Content-Type"])
         assertEquals("{}", request.body)
         assertFalse(request.body.orEmpty().contains("userId"))
@@ -31,7 +37,12 @@ class HttpBackendClientTest {
             BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
         )
         val environment = emulatorEnvironment()
-        val client = HttpBackendClient(environment, SuccessfulAuthSession(), transport)
+        val client = HttpBackendClient(
+            environment,
+            SuccessfulAuthSession(),
+            DisabledAppCheckSession,
+            transport,
+        )
 
         client.getAccountState()
 
@@ -42,6 +53,7 @@ class HttpBackendClientTest {
         )
         assertFalse(url.contains("converter-api-project"))
         assertFalse(url.startsWith("https://"))
+        assertFalse(transport.requests.single().headers.containsKey("X-Firebase-AppCheck"))
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -69,12 +81,88 @@ class HttpBackendClientTest {
                 BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
             ),
         )
-        val client = HttpBackendClient(emulatorEnvironment(), auth, transport)
+        val appCheck = SuccessfulAppCheckSession()
+        val client = HttpBackendClient(emulatorEnvironment(), auth, appCheck, transport)
 
         val result = client.getAccountState()
 
         assertTrue(result is BackendResult.Success)
         assertEquals(listOf(false, true), auth.forceRefreshCalls)
+        assertEquals(listOf(false, false), appCheck.forceRefreshCalls)
+    }
+
+    @Test
+    fun rejectedAppCheckToken_forcesOneRefreshAndRetries() = runTest {
+        val auth = SuccessfulAuthSession()
+        val appCheck = SuccessfulAppCheckSession()
+        val transport = QueueTransport(
+            mutableListOf(
+                BackendHttpResponse(
+                    403,
+                    """{"success":false,"error":{"code":"APP_CHECK_FAILED","message":"Rejected"}}""",
+                ),
+                BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
+            ),
+        )
+        val client = HttpBackendClient(emulatorEnvironment(), auth, appCheck, transport)
+
+        val result = client.getAccountState()
+
+        assertTrue(result is BackendResult.Success)
+        assertEquals(listOf(false, false), auth.forceRefreshCalls)
+        assertEquals(listOf(false, true), appCheck.forceRefreshCalls)
+        assertEquals(2, transport.requests.size)
+    }
+
+    @Test
+    fun temporaryAppCheckAcquisitionFailure_retriesOnceWithForcedRefresh() = runTest {
+        val appCheck = QueueAppCheckSession(
+            mutableListOf(
+                Result.failure(IllegalStateException("temporarily unavailable")),
+                Result.success("refreshed-app-check-token"),
+            ),
+        )
+        val transport = RecordingTransport(
+            BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
+        )
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            appCheck,
+            transport,
+        )
+
+        val result = client.getAccountState()
+
+        assertTrue(result is BackendResult.Success)
+        assertEquals(listOf(false, true), appCheck.forceRefreshCalls)
+        assertEquals("refreshed-app-check-token", transport.requests.single().headers["X-Firebase-AppCheck"])
+    }
+
+    @Test
+    fun repeatedAppCheckAcquisitionFailure_returnsTypedFailureWithoutSendingRequest() = runTest {
+        val appCheck = QueueAppCheckSession(
+            mutableListOf(
+                Result.failure(IllegalStateException("first failure")),
+                Result.failure(IllegalStateException("second failure")),
+            ),
+        )
+        val transport = RecordingTransport(
+            BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
+        )
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            appCheck,
+            transport,
+        )
+
+        val result = client.getAccountState()
+
+        assertTrue(result is BackendResult.Failure)
+        assertTrue((result as BackendResult.Failure).failure is BackendFailure.AppCheck)
+        assertEquals(listOf(false, true), appCheck.forceRefreshCalls)
+        assertTrue(transport.requests.isEmpty())
     }
 
     @Test
@@ -85,7 +173,12 @@ class HttpBackendClientTest {
                 """{"success":true,"result":"https://example.test/result.docx","conversionId":"c1","credits":{"charged":5,"available":90}}""",
             ),
         )
-        val client = HttpBackendClient(emulatorEnvironment(), SuccessfulAuthSession(), transport)
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            SuccessfulAppCheckSession(),
+            transport,
+        )
 
         val result = client.imageToWord(ImageConversionRequest("/9j/AA==", "stable-key"))
 
@@ -96,6 +189,7 @@ class HttpBackendClientTest {
             request.url,
         )
         assertEquals("Bearer test-id-token", request.headers["Authorization"])
+        assertEquals("test-app-check-token", request.headers["X-Firebase-AppCheck"])
         val body = JSONObject(request.body!!)
         assertEquals(setOf("image", "idempotencyKey"), body.keys().asSequence().toSet())
         assertEquals("/9j/AA==", body.getString("image"))
@@ -103,6 +197,9 @@ class HttpBackendClientTest {
         assertFalse(request.body.orEmpty().contains("credit", ignoreCase = true))
         assertFalse(request.body.orEmpty().contains("userId"))
         assertFalse(request.body.orEmpty().contains("wallet"))
+        assertFalse(request.toString().contains("test-id-token"))
+        assertFalse(request.toString().contains("test-app-check-token"))
+        assertFalse(request.toString().contains("/9j/AA=="))
     }
 
     @Test
@@ -113,7 +210,12 @@ class HttpBackendClientTest {
                 """{"success":true,"account":${BackendJsonParserTest.accountObject()}}""",
             ),
         )
-        val client = HttpBackendClient(emulatorEnvironment(), SuccessfulAuthSession(), transport)
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            SuccessfulAppCheckSession(),
+            transport,
+        )
 
         val result = client.verifySubscriptionPurchase(
             SubscriptionVerificationRequest("imagetoword_1w", "same-private-token"),
@@ -126,6 +228,7 @@ class HttpBackendClientTest {
             request.url,
         )
         assertEquals("Bearer test-id-token", request.headers["Authorization"])
+        assertEquals("test-app-check-token", request.headers["X-Firebase-AppCheck"])
         val body = JSONObject(request.body!!)
         assertEquals(setOf("productId", "purchaseToken"), body.keys().asSequence().toSet())
         assertEquals("imagetoword_1w", body.getString("productId"))
@@ -133,6 +236,37 @@ class HttpBackendClientTest {
         assertFalse(request.body.orEmpty().contains("userId"))
         assertFalse(request.body.orEmpty().contains("credit", ignoreCase = true))
         assertFalse(request.body.orEmpty().contains("basePlan"))
+        assertFalse(request.toString().contains("same-private-token"))
+    }
+
+    @Test
+    fun disabledProductionV2_neverAcquiresTokensOrSendsRequest() = runTest {
+        val auth = SuccessfulAuthSession()
+        val appCheck = SuccessfulAppCheckSession()
+        val transport = RecordingTransport(
+            BackendHttpResponse(200, BackendJsonParserTest.accountEnvelope()),
+        )
+        val client = HttpBackendClient(disabledProductionEnvironment(), auth, appCheck, transport)
+
+        val result = client.getAccountState()
+
+        assertTrue(result is BackendResult.Failure)
+        assertTrue((result as BackendResult.Failure).failure is BackendFailure.IntegrationDisabled)
+        assertTrue(auth.forceRefreshCalls.isEmpty())
+        assertTrue(appCheck.forceRefreshCalls.isEmpty())
+        assertTrue(transport.requests.isEmpty())
+    }
+
+    @Test
+    fun appCheckProviderPolicy_isolatedByEnvironment() {
+        assertEquals(
+            AppCheckProviderMode.DISABLED,
+            AppCheckEnvironmentPolicy.providerMode(emulatorEnvironment()),
+        )
+        assertEquals(
+            AppCheckProviderMode.PLAY_INTEGRITY,
+            AppCheckEnvironmentPolicy.providerMode(disabledProductionEnvironment()),
+        )
     }
 
     private fun emulatorEnvironment() = BackendEnvironment(
@@ -144,6 +278,16 @@ class HttpBackendClientTest {
         authEmulatorPort = BackendEnvironment.DEMO_AUTH_PORT,
         isolateProductionServices = true,
     )
+
+    private fun disabledProductionEnvironment() = BackendEnvironment(
+        name = "production-disabled",
+        accountIntegrationEnabled = false,
+        firebaseProjectId = "converter-api-project",
+        functionsBaseUrl = "",
+        authEmulatorHost = null,
+        authEmulatorPort = null,
+        isolateProductionServices = false,
+    )
 }
 
 private class SuccessfulAuthSession : AuthSession {
@@ -154,6 +298,26 @@ private class SuccessfulAuthSession : AuthSession {
     override suspend fun idToken(forceRefresh: Boolean): Result<String> {
         forceRefreshCalls += forceRefresh
         return Result.success("test-id-token")
+    }
+}
+
+private class SuccessfulAppCheckSession : AppCheckSession {
+    val forceRefreshCalls = mutableListOf<Boolean>()
+
+    override suspend fun token(forceRefresh: Boolean): Result<String?> {
+        forceRefreshCalls += forceRefresh
+        return Result.success("test-app-check-token")
+    }
+}
+
+private class QueueAppCheckSession(
+    private val results: MutableList<Result<String?>>,
+) : AppCheckSession {
+    val forceRefreshCalls = mutableListOf<Boolean>()
+
+    override suspend fun token(forceRefresh: Boolean): Result<String?> {
+        forceRefreshCalls += forceRefresh
+        return results.removeAt(0)
     }
 }
 
@@ -171,6 +335,10 @@ private class RecordingTransport(
 private class QueueTransport(
     private val responses: MutableList<BackendHttpResponse>,
 ) : BackendHttpTransport {
-    override suspend fun execute(request: BackendHttpRequest): BackendHttpResponse =
-        responses.removeAt(0)
+    val requests = mutableListOf<BackendHttpRequest>()
+
+    override suspend fun execute(request: BackendHttpRequest): BackendHttpResponse {
+        requests += request
+        return responses.removeAt(0)
+    }
 }

@@ -33,6 +33,14 @@ There is no runtime fallback from an enabled V2 conversion to the legacy endpoin
 
 `FirebaseAnonymousAuthSession` reuses the current anonymous user or signs in anonymously, obtains an ID token for every backend request, and supports one forced token refresh following `403 UNAUTHENTICATED`.
 
+## Firebase App Check
+
+Non-emulator builds install the official Play Integrity App Check provider during `Application.onCreate`, before this application accesses Firebase Auth, Analytics, or Crashlytics. The V2 HTTP client obtains a cached App Check token for each authenticated request and sends it as `X-Firebase-AppCheck`; the Firebase Auth `Authorization: Bearer` header remains independent and unchanged.
+
+The client performs at most one forced App Check refresh, and only after initial SDK token acquisition fails or the backend returns `403 APP_CHECK_FAILED`. A repeated acquisition failure becomes a typed, retryable `BackendFailure.AppCheck`; no backend request is sent without the required production token. Request diagnostics redact both credential headers and request bodies, and application logs contain neither Auth nor App Check tokens.
+
+The `demo-converter-credit` emulator environment uses `DisabledAppCheckSession`: it neither initializes Play Integrity nor sends a fabricated App Check token. This preserves local Auth/Functions emulator tests while backend App Check is in monitor-only mode. There is no debug-provider dependency or hardcoded debug token in the application. Release still installs Play Integrity but cannot make a production V2 request while `BACKEND_ACCOUNT_INTEGRATION_ENABLED=false` and the Functions URL is empty. Backend enforcement is not controlled or enabled by Android.
+
 On debug startup, `AccountRepository` authenticates and calls `bootstrapUserV2`. The returned account projection becomes the authoritative in-memory UI state. `refresh()` calls `getAccountStateV2` and bootstraps if the backend reports `404 ACCOUNT_NOT_FOUND`.
 
 Repository states are `Loading`, `Ready`, `Degraded`, and `Disabled`. A degraded state may retain the last account for display continuity, but it is never conversion or entitlement authority.
@@ -87,6 +95,28 @@ Billing Library 9.1.0 queries only `imagetoword_1w` and `imagetoword_1m`. A V2-e
 6. Subscription UI, premium indicators, ads, and credits read the authoritative account repository.
 
 Play `PURCHASED` by itself never sets `isSubscribed` and never adds credits. `PENDING` is displayed as pending and is not verified as active. Android does not acknowledge in V2 mode. Backend statuses `ACTIVE`, `GRACE_PERIOD`, and `CANCELLED` remain entitled only through the authoritative `periodEnd`; `EXPIRED`, `ON_HOLD`, `PAUSED`, `PENDING`, and `REVOKED` are not active. Loading or degraded repository states retain the previous authoritative account for UI continuity instead of declaring a verified subscriber expired.
+
+### Subscription-transition compatibility audit
+
+The existing and future credit subscriptions reuse the same Play products:
+
+- Weekly: `imagetoword_1w`
+- Monthly: `imagetoword_1m`
+
+There are no proposed product IDs, local credit grants, or local grandfathering heuristics in Android. In V2, a `PURCHASED` callback is converted to a product/token candidate and passed to backend verification; only the returned account projection can activate subscription UI. Android does not infer an existing subscriber from app version, install date, purchase age, or local Billing state.
+
+The production-disabled legacy path is intentionally unchanged: a restored `PURCHASED` weekly/monthly item sets the local subscribed flag and Android acknowledges it. `queryPurchasesAsync(SUBS)` runs after initial Billing setup/reconnection, explicit Restore, and app resume; in V2 the same restored product/token is submitted to the backend instead of granting local entitlement.
+
+The current V2 projection is not yet capable of representing the confirmed transition rule that an existing subscriber is temporarily unlimited only until the next successful renewal. It exposes only a finite `credits.available` value and a subscription status/period, `BackendCreditsBanner` always renders a numeric balance when available, and conversion always calls the credit-backed `imageToWordV2`. The generic `isSubscribed` flag can drive premium/ad UI, but it does not identify temporary unlimited conversion access. No Android code has been added to guess that state.
+
+After the backend response contract is finalized, Android needs one server-derived conversion-access model with at least these renderable states:
+
+- free conversion available (one) or already used (zero), without presenting the free use as a credit balance;
+- temporary grandfathered unlimited access, with a non-lifetime unlimited label and no client-side deduction;
+- metered subscriber credits using the authoritative balance;
+- loading or temporarily unavailable state that retains prior authority without inventing access.
+
+The smallest follow-up is to parse the finalized server fields into that model, use it in the home banner and subscription screen, and map backend conversion eligibility/errors to the same state. The backend must continue deciding conversion permission and charges. No free-use or unlimited gating can safely be implemented from the current fields alone, so those UI changes intentionally wait for the finalized contract.
 
 ### Restore and recovery
 
@@ -149,6 +179,7 @@ The backend layer is under `app/src/main/java/com/image/word/converter/convert/d
 
 - `BackendEnvironment`: compile-time endpoint selection and fail-closed validation
 - `AuthSession`: Firebase authentication/token boundary
+- `AppCheckSession`: Firebase App Check token boundary with emulator isolation
 - `BackendHttpClient`: authenticated account and conversion HTTP operations
 - `BackendJsonParser`: typed account, conversion, credit, and structured-error parsing
 - `BackendModels`: public projection and conversion models

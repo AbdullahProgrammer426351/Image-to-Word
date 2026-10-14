@@ -6,14 +6,21 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.image.word.converter.convert.docx.ads.AdsGate
 import com.image.word.converter.convert.docx.backend.AccountRepository
 import com.image.word.converter.convert.docx.backend.AccountRepositoryState
+import com.image.word.converter.convert.docx.backend.AppCheckEnvironmentPolicy
+import com.image.word.converter.convert.docx.backend.AppCheckProviderMode
+import com.image.word.converter.convert.docx.backend.AppCheckSession
 import com.image.word.converter.convert.docx.backend.BackendAccountStore
 import com.image.word.converter.convert.docx.backend.BackendClientStore
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
 import com.image.word.converter.convert.docx.backend.DisabledBackendClient
+import com.image.word.converter.convert.docx.backend.DisabledAppCheckSession
+import com.image.word.converter.convert.docx.backend.FirebaseAppCheckSession
 import com.image.word.converter.convert.docx.backend.FirebaseAnonymousAuthSession
 import com.image.word.converter.convert.docx.backend.HttpBackendClient
 import com.image.word.converter.convert.docx.backend.UrlConnectionBackendTransport
@@ -29,6 +36,7 @@ class ImageToWordApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         val environment = BackendEnvironment.current()
+        val appCheckSession = createAppCheckSession(environment)
         isolateProductionServicesIfNeeded(environment)
 
         val firebaseAuth = createBackendFirebaseAuth(environment)
@@ -37,6 +45,7 @@ class ImageToWordApplication : Application() {
             HttpBackendClient(
                 environment = environment,
                 authSession = authSession,
+                appCheckSession = appCheckSession,
                 transport = UrlConnectionBackendTransport(),
             )
         } else {
@@ -55,6 +64,19 @@ class ImageToWordApplication : Application() {
             applicationScope.launch { repository.initialize() }
         }
     }
+
+    private fun createAppCheckSession(environment: BackendEnvironment): AppCheckSession =
+        when (AppCheckEnvironmentPolicy.providerMode(environment)) {
+            AppCheckProviderMode.DISABLED -> DisabledAppCheckSession
+            AppCheckProviderMode.PLAY_INTEGRITY -> {
+                val appCheck = FirebaseAppCheck.getInstance()
+                appCheck.installAppCheckProviderFactory(
+                    PlayIntegrityAppCheckProviderFactory.getInstance(),
+                )
+                appCheck.setTokenAutoRefreshEnabled(true)
+                FirebaseAppCheckSession(appCheck)
+            }
+        }
 
     private fun createBackendFirebaseAuth(environment: BackendEnvironment): FirebaseAuth {
         if (!environment.isEmulator) return FirebaseAuth.getInstance()

@@ -300,6 +300,7 @@ private fun uniqueV2FileName(mainViewModel: MainViewModel, index: Int): String {
 }
 
 private fun BackendResult.Failure.isSafelyRetryable(): Boolean = when (val value = failure) {
+    is BackendFailure.AppCheck,
     is BackendFailure.Network -> true
     is BackendFailure.Server -> value.error.code == "CONVERSION_PENDING"
     else -> false
@@ -313,7 +314,9 @@ private fun buildConversionDialog(
 ): ConversionDialogState {
     val serverErrors = failures.mapNotNull { it.failure as? BackendFailure.Server }
     val primary = serverErrors.firstOrNull()
-    val hasAuthenticationFailure = failures.any { it.failure is BackendFailure.Authentication }
+    val hasAuthenticationFailure = failures.any {
+        it.failure is BackendFailure.Authentication || it.failure is BackendFailure.AppCheck
+    }
     val (title, detail) = when {
         hasAuthenticationFailure -> context.getString(R.string.authentication_failed_title) to
             context.getString(R.string.authentication_failed_message)

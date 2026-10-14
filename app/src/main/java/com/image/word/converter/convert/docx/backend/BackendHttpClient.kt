@@ -10,7 +10,10 @@ data class BackendHttpRequest(
     val url: String,
     val headers: Map<String, String>,
     val body: String?,
-)
+) {
+    override fun toString(): String =
+        "BackendHttpRequest(method=$method, url=$url, headerNames=${headers.keys.sorted()}, bodyPresent=${body != null})"
+}
 
 data class BackendHttpResponse(
     val statusCode: Int,
@@ -65,6 +68,7 @@ interface BackendClient {
 class HttpBackendClient(
     private val environment: BackendEnvironment,
     private val authSession: AuthSession,
+    private val appCheckSession: AppCheckSession,
     private val transport: BackendHttpTransport,
 ) : BackendClient {
     override suspend fun bootstrapUser(): BackendResult<AccountState> = executeAccountRequest(
@@ -140,11 +144,31 @@ class HttpBackendClient(
         if (!environment.accountIntegrationEnabled) {
             return BackendResult.Failure(BackendFailure.IntegrationDisabled)
         }
-        return executeOnce(function, method, body, forceRefresh = false, parse).let { first ->
-            if (first.isExpiredAuthenticationFailure()) {
-                executeOnce(function, method, body, forceRefresh = true, parse)
-            } else {
-                first
+        var authRefreshAttempted = false
+        var appCheckRefreshAttempted = false
+        var forceAuthRefresh = false
+        var forceAppCheckRefresh = false
+        while (true) {
+            val result = executeOnce(
+                function = function,
+                method = method,
+                body = body,
+                forceAuthRefresh = forceAuthRefresh,
+                forceAppCheckRefresh = forceAppCheckRefresh,
+                parse = parse,
+            )
+            forceAuthRefresh = false
+            forceAppCheckRefresh = false
+            when {
+                result.isExpiredAuthenticationFailure() && !authRefreshAttempted -> {
+                    authRefreshAttempted = true
+                    forceAuthRefresh = true
+                }
+                result.requiresAppCheckRefresh() && !appCheckRefreshAttempted -> {
+                    appCheckRefreshAttempted = true
+                    forceAppCheckRefresh = true
+                }
+                else -> return result
             }
         }
     }
@@ -153,14 +177,19 @@ class HttpBackendClient(
         function: BackendFunction,
         method: String,
         body: String?,
-        forceRefresh: Boolean,
+        forceAuthRefresh: Boolean,
+        forceAppCheckRefresh: Boolean,
         parse: (BackendHttpResponse) -> BackendResult<T>,
     ): BackendResult<T> {
-        val token = authSession.idToken(forceRefresh).getOrElse {
+        val token = authSession.idToken(forceAuthRefresh).getOrElse {
             return BackendResult.Failure(BackendFailure.Authentication(it))
+        }
+        val appCheckToken = appCheckSession.token(forceAppCheckRefresh).getOrElse {
+            return BackendResult.Failure(BackendFailure.AppCheck(it))
         }
         val headers = buildMap {
             put("Authorization", "Bearer $token")
+            if (appCheckToken != null) put(APP_CHECK_HEADER, appCheckToken)
             put("Accept", "application/json")
             if (body != null) put("Content-Type", "application/json")
         }
@@ -181,6 +210,17 @@ class HttpBackendClient(
     private fun BackendResult<*>.isExpiredAuthenticationFailure(): Boolean {
         val error = (this as? BackendResult.Failure)?.failure as? BackendFailure.Server ?: return false
         return error.error.httpStatus == 403 && error.error.code == "UNAUTHENTICATED"
+    }
+
+    private fun BackendResult<*>.requiresAppCheckRefresh(): Boolean {
+        val failure = (this as? BackendResult.Failure)?.failure ?: return false
+        if (failure is BackendFailure.AppCheck) return true
+        val error = (failure as? BackendFailure.Server)?.error ?: return false
+        return error.httpStatus == 403 && error.code == "APP_CHECK_FAILED"
+    }
+
+    private companion object {
+        const val APP_CHECK_HEADER = "X-Firebase-AppCheck"
     }
 }
 

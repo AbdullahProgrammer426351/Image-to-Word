@@ -117,6 +117,8 @@ dependencies {
 
     // Third-party: Firebase Auth
     implementation(libs.firebase.auth)
+    // Third-party: Firebase App Check with the production Play Integrity provider
+    implementation(libs.firebase.appcheck.playintegrity)
     // Third-party: Firebase Remote Config
     implementation(libs.firebase.config)
     // Third-party: Firebase Crashlytics
