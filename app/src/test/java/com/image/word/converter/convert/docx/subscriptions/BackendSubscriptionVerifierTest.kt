@@ -96,6 +96,40 @@ class BackendSubscriptionVerifierTest {
     }
 
     @Test
+    fun persistedVerification_survivesVerifierRecreation() = runTest {
+        val store = MemoryPendingPurchaseStore()
+        val firstClient = VerificationBackendClient(
+            ArrayDeque(listOf(BackendResult.Failure(BackendFailure.Network(IOException("offline"))))),
+        )
+        val firstVerifier = BackendSubscriptionVerifier(
+            backendClient = firstClient,
+            accountGateway = RecordingAccountGateway(),
+            pendingStore = store,
+            maxAutomaticRetries = 0,
+            retryDelay = {},
+        )
+        firstVerifier.process(listOf(purchased("imagetoword_1w", "restart-token")))
+
+        val restartedClient = VerificationBackendClient(
+            ArrayDeque(listOf(BackendResult.Success(account(available = 500)))),
+        )
+        val restartedGateway = RecordingAccountGateway()
+        val restartedVerifier = BackendSubscriptionVerifier(
+            backendClient = restartedClient,
+            accountGateway = restartedGateway,
+            pendingStore = store,
+            retryDelay = {},
+        )
+
+        val recovered = restartedVerifier.retryPersisted()
+
+        assertTrue(recovered.hasVerifiedPurchase)
+        assertEquals("restart-token", restartedClient.requests.single().purchaseToken)
+        assertEquals(500L, restartedGateway.accounts.single().credits.available)
+        assertTrue(store.all().isEmpty())
+    }
+
+    @Test
     fun pendingPurchase_isNotVerifiedOrActivated() = runTest {
         val fixture = fixture()
         val candidate = PlayPurchaseCandidate(
