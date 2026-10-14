@@ -27,6 +27,21 @@ Environment selection is compile-time and centralized in `app/build.gradle.kts` 
 
 There is no runtime fallback from an enabled V2 conversion to the legacy endpoint. Production V2 must be enabled only after the backend functions, configuration, rules, credentials, App Check policy, and deployment have been reviewed and intentionally deployed.
 
+### Play internal testing variant
+
+The `internal` release-like build type is the only Android variant with production V2 enabled. It keeps the real package `com.image.word.converter.convert.docx`, uses version code `9`, the production Firebase project, the deployed Functions URL, Firebase Auth, and the Play Integrity provider. Its variant-specific `app/src/internal/google-services.json` uses the operator-confirmed Firebase App ID allow-listed by the backend. Public `release` remains V2-disabled with an empty Functions URL, so selecting the normal release variant cannot silently enable V2.
+
+The repository does not contain a release/upload keystore. Build the internal AAB unsigned-by-repository and sign it through the normal Android Studio/Gradle Play App Signing upload-key workflow; never commit a keystore or signing password. The package is intentionally unchanged, so installing the internal build over an existing production install is an update and can replace that installed production app. Use a separate tester device or uninstall only with explicit approval; do not assume side-by-side installation.
+
+#### Internal-track handoff
+
+1. Confirm the backend production V2 gate, App Check monitor policy, Play product configuration, and rollback owner are approved. No Android command below performs a production request.
+2. Run `./gradlew testDebugUnitTest assembleInternal bundleInternal` and retain `app/build/outputs/bundle/internal/app-internal.aab`.
+3. In Play Console, open the existing application, create or select **Testing > Internal testing**, and add the intended license testers by Google account. Upload the AAB through the release workflow, complete the release notes, and use Play’s review/rollout controls. Do not upload the unsigned local AAB directly; select the configured upload key in Android Studio or the CI signing step so the resulting AAB is signed with the registered Play upload certificate. Play App Signing then signs the distributed APKs with the app-signing certificate.
+4. Copy the internal opt-in URL from Play Console. Each tester must accept the invitation/opt-in while signed into the listed Google account, install from Google Play, and confirm the package is `com.image.word.converter.convert.docx`, version code `9`, and the expected Firebase/App Check identity before any approved live test.
+5. A Play-installed internal build has the same package ID as the published app. Installing it on a device that already has the public app updates/replaces that installation and shares its app data, Billing ownership, and account session; it is not side-by-side. Use a separate test device/profile, or obtain explicit approval before replacing the existing installation. Uninstalling or clearing data can affect local state and must not be part of an unapproved test.
+6. License testers should first validate Auth/App Check and account bootstrap, then one approved conversion and weekly/monthly purchase/restore scenarios using the existing product IDs. Do not send emulator tokens or fake provider fixtures to the production functions, and stop immediately if App Check identity, backend access mode, or purchase verification is not authoritative.
+
 ## Authentication and startup account state
 
 `ImageToWordApplication` configures the debug Auth Emulator before account integration uses Firebase Auth. Debug integration uses a dedicated named Firebase app for `demo-converter-credit`; the default Firebase Auth singleton is also directed to the emulator as a safety measure. ID tokens are never logged.

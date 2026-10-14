@@ -72,6 +72,27 @@ android {
                 "proguard-rules.pro"
             )
         }
+        create("internal") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            buildConfigField("String", "BACKEND_ENVIRONMENT", "\"production-internal\"")
+            buildConfigField("boolean", "BACKEND_ACCOUNT_INTEGRATION_ENABLED", "true")
+            buildConfigField("String", "BACKEND_FIREBASE_PROJECT_ID", "\"converter-api-project\"")
+            buildConfigField(
+                "String",
+                "BACKEND_FUNCTIONS_BASE_URL",
+                "\"https://us-central1-converter-api-project.cloudfunctions.net/\"",
+            )
+            buildConfigField("String", "BACKEND_AUTH_EMULATOR_HOST", "\"\"")
+            buildConfigField("int", "BACKEND_AUTH_EMULATOR_PORT", "0")
+            buildConfigField("boolean", "ISOLATE_PRODUCTION_SERVICES", "false")
+        }
+    }
+
+    androidComponents {
+        onVariants(selector().withBuildType("internal")) { variant ->
+            variant.outputs.forEach { output -> output.versionCode.set(9) }
+        }
     }
 
     compileOptions {
@@ -98,6 +119,12 @@ if (physicalDeviceIntegrationTest) {
     tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
         enabled = false
     }
+}
+
+// Internal Play validation must not upload Crashlytics symbols from a local build.
+// Production release behavior remains unchanged and its normal release task stays enabled.
+tasks.matching { it.name == "uploadCrashlyticsMappingFileInternal" }.configureEach {
+    enabled = false
 }
 
 dependencies {

@@ -25,4 +25,18 @@ class BackendSubscriptionSafetyTest {
         assertTrue(buildScript.contains("BACKEND_ACCOUNT_INTEGRATION_ENABLED\", \"false"))
         assertTrue(buildScript.contains("BACKEND_FUNCTIONS_BASE_URL\", \"\\\"\\\""))
     }
+
+    @Test
+    fun internalConfiguration_isSeparateFromPublicReleaseAndUsesProductionV2Gate() {
+        val buildScript = File("build.gradle.kts").readText()
+
+        assertTrue(buildScript.contains("create(\"internal\")"))
+        assertTrue(buildScript.contains("BACKEND_ENVIRONMENT\", \"\\\"production-internal\\\""))
+        assertTrue(buildScript.contains("BACKEND_ACCOUNT_INTEGRATION_ENABLED\", \"true"))
+        assertTrue(buildScript.contains("https://us-central1-converter-api-project.cloudfunctions.net/"))
+        assertTrue(buildScript.contains("withBuildType(\"internal\")"))
+        assertTrue(File("src/internal/google-services.json").readText().contains(
+            "1:1080587695450:android:3dbc635eb260638e852f63",
+        ))
+    }
 }
