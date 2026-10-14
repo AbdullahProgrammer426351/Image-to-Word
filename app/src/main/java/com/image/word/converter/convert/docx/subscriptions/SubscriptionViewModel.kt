@@ -157,6 +157,8 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                     it.copy(
                         isSubscribed = entitlement.isSubscribed,
                         availableCredits = entitlement.availableCredits,
+                        conversionAccessMode = entitlement.conversionAccessMode,
+                        freeConversionAvailable = entitlement.freeConversionAvailable,
                         isEntitlementLoading = entitlement.isLoading,
                         isBackendTemporarilyUnavailable = entitlement.isTemporarilyUnavailable,
                     )

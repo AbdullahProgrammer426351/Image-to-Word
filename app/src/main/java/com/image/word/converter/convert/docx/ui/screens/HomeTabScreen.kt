@@ -77,7 +77,10 @@ fun HomeTabScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (conversionMode == ConversionBackendMode.V2) {
-            BackendCreditsBanner(accountState = backendAccountState)
+            BackendCreditsBanner(
+                accountState = backendAccountState,
+                onOpenSubscription = onOpenSubscription,
+            )
         } else {
             RemainingAttemptBanner(
                 attemptManager = attemptManager,

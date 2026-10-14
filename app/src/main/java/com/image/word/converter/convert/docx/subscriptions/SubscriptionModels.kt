@@ -1,5 +1,7 @@
 package com.image.word.converter.convert.docx.subscriptions
 
+import com.image.word.converter.convert.docx.backend.ConversionAccessMode
+
 data class SubscriptionProduct(
     val id: String,
     val title: String,
@@ -22,6 +24,8 @@ data class SubscriptionUiState(
     val purchaseSuccessful: Boolean = false,
     val restoreToastMessage: String? = null,
     val availableCredits: Long? = null,
+    val conversionAccessMode: ConversionAccessMode = ConversionAccessMode.NONE,
+    val freeConversionAvailable: Boolean = false,
     val isEntitlementLoading: Boolean = false,
     val isBackendTemporarilyUnavailable: Boolean = false,
 )

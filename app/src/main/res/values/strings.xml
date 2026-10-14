@@ -285,6 +285,10 @@
     <string name="word_processing_message">We’re turning your image(s) into an editable Word file. Please wait.</string>
     <string name="word_processing_failed_message">Please check your internet connection and try again.</string>
     <string name="credits_available">%1$d credits available</string>
+    <string name="one_free_conversion_available">One free conversion available</string>
+    <string name="no_free_conversions_remaining">No free conversions remaining</string>
+    <string name="temporary_unlimited_conversion_active">Temporary unlimited conversion access active</string>
+    <string name="no_conversion_entitlement_subscribe">No conversion entitlement available. Subscribe.</string>
     <string name="credits_loading">Loading credits…</string>
     <string name="credits_unavailable">Credits temporarily unavailable</string>
     <string name="conversion_needs_attention">Conversion needs attention</string>

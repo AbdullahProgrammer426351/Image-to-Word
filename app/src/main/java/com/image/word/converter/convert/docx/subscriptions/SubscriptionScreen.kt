@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.image.word.converter.convert.docx.R
+import com.image.word.converter.convert.docx.backend.ConversionAccessMode
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
@@ -163,7 +164,25 @@ fun SubscriptionScreen(
         ) {
             SubscriptionHeader(usesCreditSubscriptions = usesCreditSubscriptions)
 
-            uiState.availableCredits?.let { credits ->
+            if (uiState.conversionAccessMode == ConversionAccessMode.TEMPORARY_UNLIMITED) {
+                Text(
+                    text = stringResource(R.string.temporary_unlimited_conversion_active),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else if (uiState.conversionAccessMode == ConversionAccessMode.FREE &&
+                uiState.freeConversionAvailable
+            ) {
+                Text(
+                    text = stringResource(R.string.one_free_conversion_available),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else uiState.availableCredits?.let { credits ->
                 Text(
                     text = stringResource(R.string.credits_available, credits),
                     modifier = Modifier.fillMaxWidth(),

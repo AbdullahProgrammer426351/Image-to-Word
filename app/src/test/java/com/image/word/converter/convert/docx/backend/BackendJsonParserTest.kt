@@ -20,6 +20,8 @@ class BackendJsonParserTest {
         assertEquals("WEEKLY", account.subscription.plan)
         assertEquals("ACTIVE", account.subscription.status)
         assertEquals(true, account.subscription.autoRenewing)
+        assertEquals(ConversionAccessMode.CREDIT_BASED, account.conversionAccess.mode)
+        assertTrue(account.conversionAccess.canConvert)
     }
 
     @Test
@@ -46,6 +48,21 @@ class BackendJsonParserTest {
     }
 
     @Test
+    fun conversionAccess_parsesFreeAvailabilityAndUnlimitedWithoutCreditsInference() {
+        val free = BackendJsonParser.parseAccountEnvelope(
+            accountEnvelope(accessMode = "FREE", freeStatus = "AVAILABLE", freeAvailable = true),
+        ) as BackendResult.Success
+        assertEquals(ConversionAccessMode.FREE, free.value.conversionAccess.mode)
+        assertTrue(free.value.conversionAccess.freeConversion.available)
+
+        val unlimited = BackendJsonParser.parseAccountEnvelope(
+            accountEnvelope(accessMode = "TEMPORARY_UNLIMITED"),
+        ) as BackendResult.Success
+        assertEquals(ConversionAccessMode.TEMPORARY_UNLIMITED, unlimited.value.conversionAccess.mode)
+        assertTrue(unlimited.value.conversionAccess.canConvert)
+    }
+
+    @Test
     fun structuredBackendError_parsesStableCodeAndStatus() {
         val result = BackendJsonParser.parseErrorEnvelope(
             raw = """
@@ -68,6 +85,7 @@ class BackendJsonParserTest {
                   "success": true,
                   "result": {"file":"https://provider.example/result.docx"},
                   "conversionId": "conversion-1",
+                  "accessMode": "CREDIT_BASED",
                   "credits": {"charged":5,"available":90}
                 }
             """.trimIndent(),
@@ -78,6 +96,27 @@ class BackendJsonParserTest {
         assertEquals("conversion-1", result.value.conversionId)
         assertEquals(5L, result.value.credits.charged)
         assertEquals(90L, result.value.credits.available)
+        assertEquals(ConversionAccessMode.CREDIT_BASED, result.value.accessMode)
+    }
+
+    @Test
+    fun conversionSuccess_preservesFreeAndUnlimitedAccessModesWithZeroCharge() {
+        listOf("FREE", "TEMPORARY_UNLIMITED").forEach { mode ->
+            val result = BackendJsonParser.parseImageConversionEnvelope(
+                raw = """
+                    {
+                      "success": true,
+                      "result": "https://provider.example/$mode.docx",
+                      "conversionId": "conversion-$mode",
+                      "accessMode": "$mode",
+                      "credits": {"charged":0,"available":0}
+                    }
+                """.trimIndent(),
+                httpStatus = 200,
+            ) as BackendResult.Success
+            assertEquals(ConversionAccessMode.valueOf(mode), result.value.accessMode)
+            assertEquals(0L, result.value.credits.charged)
+        }
     }
 
     @Test
@@ -134,6 +173,9 @@ class BackendJsonParserTest {
                 }
             """.trimIndent(),
             available: Long = 95,
+            accessMode: String = "CREDIT_BASED",
+            freeStatus: String = "CONSUMED",
+            freeAvailable: Boolean = false,
         ): String = """
             {
               "user": {
@@ -148,6 +190,14 @@ class BackendJsonParserTest {
                 "nextExpiryAt": "2026-10-17T12:00:00.000Z"
               },
               "subscription": $subscription
+              ,"conversionAccess": {
+                "mode": "$accessMode",
+                "canConvert": ${accessMode != "NONE"},
+                "freeConversion": {
+                  "status": "$freeStatus",
+                  "available": $freeAvailable
+                }
+              }
             }
         """.trimIndent()
 
@@ -161,6 +211,14 @@ class BackendJsonParserTest {
                   "acknowledgementState": "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"
                 }
             """.trimIndent(),
-        ): String = """{"success":true,"account":${accountObject(subscription)}}"""
+            accessMode: String = "CREDIT_BASED",
+            freeStatus: String = "CONSUMED",
+            freeAvailable: Boolean = false,
+        ): String = """{"success":true,"account":${accountObject(
+            subscription = subscription,
+            accessMode = accessMode,
+            freeStatus = freeStatus,
+            freeAvailable = freeAvailable,
+        )}}"""
     }
 }

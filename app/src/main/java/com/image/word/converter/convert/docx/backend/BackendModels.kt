@@ -19,12 +19,36 @@ data class SubscriptionState(
     val periodEnd: String?,
     val autoRenewing: Boolean?,
     val acknowledgementState: String?,
+    val benefitMode: String? = null,
+)
+
+enum class ConversionAccessMode {
+    FREE,
+    TEMPORARY_UNLIMITED,
+    CREDIT_BASED,
+    NONE,
+}
+
+data class FreeConversionState(
+    val status: String,
+    val available: Boolean,
+)
+
+data class ConversionAccessState(
+    val mode: ConversionAccessMode,
+    val canConvert: Boolean,
+    val freeConversion: FreeConversionState,
 )
 
 data class AccountState(
     val user: BackendUser,
     val credits: CreditsState,
     val subscription: SubscriptionState,
+    val conversionAccess: ConversionAccessState = ConversionAccessState(
+        mode = ConversionAccessMode.NONE,
+        canConvert = false,
+        freeConversion = FreeConversionState(status = "UNKNOWN", available = false),
+    ),
 )
 
 data class BackendError(
@@ -51,6 +75,7 @@ data class ImageConversionResponse(
     val resultUrl: String,
     val conversionId: String,
     val credits: ConversionCredits,
+    val accessMode: ConversionAccessMode? = null,
 )
 
 data class SubscriptionVerificationRequest(

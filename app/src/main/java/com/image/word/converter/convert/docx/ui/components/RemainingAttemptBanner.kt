@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.backend.AccountRepositoryState
+import com.image.word.converter.convert.docx.backend.ConversionAccessMode
 
 @Composable
 fun RemainingAttemptBanner(
@@ -64,17 +65,30 @@ fun RemainingAttemptBanner(
 @Composable
 fun BackendCreditsBanner(
     accountState: AccountRepositoryState,
+    onOpenSubscription: () -> Unit,
 ) {
-    val credits = when (accountState) {
-        is AccountRepositoryState.Ready -> accountState.account.credits.available
-        is AccountRepositoryState.Loading -> accountState.previous?.credits?.available
-        is AccountRepositoryState.Degraded -> accountState.previous?.credits?.available
+    val account = when (accountState) {
+        is AccountRepositoryState.Ready -> accountState.account
+        is AccountRepositoryState.Loading -> accountState.previous
+        is AccountRepositoryState.Degraded -> accountState.previous
         AccountRepositoryState.Disabled -> null
     }
     val label = when {
-        credits != null -> stringResource(R.string.credits_available, credits)
-        accountState is AccountRepositoryState.Loading -> stringResource(R.string.credits_loading)
-        else -> stringResource(R.string.credits_unavailable)
+        account == null && accountState is AccountRepositoryState.Loading ->
+            stringResource(R.string.credits_loading)
+        account == null -> stringResource(R.string.credits_unavailable)
+        else -> when (account.conversionAccess.mode) {
+            ConversionAccessMode.FREE -> if (account.conversionAccess.freeConversion.available) {
+                stringResource(R.string.one_free_conversion_available)
+            } else {
+                stringResource(R.string.no_free_conversions_remaining)
+            }
+            ConversionAccessMode.TEMPORARY_UNLIMITED ->
+                stringResource(R.string.temporary_unlimited_conversion_active)
+            ConversionAccessMode.CREDIT_BASED ->
+                stringResource(R.string.credits_available, account.credits.available)
+            ConversionAccessMode.NONE -> stringResource(R.string.no_conversion_entitlement_subscribe)
+        }
     }
 
     Text(
@@ -82,6 +96,10 @@ fun BackendCreditsBanner(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Black)
+            .clickable(
+                enabled = account?.conversionAccess?.mode == ConversionAccessMode.NONE,
+                onClick = onOpenSubscription,
+            )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         style = MaterialTheme.typography.bodySmall,
         color = Color.White,

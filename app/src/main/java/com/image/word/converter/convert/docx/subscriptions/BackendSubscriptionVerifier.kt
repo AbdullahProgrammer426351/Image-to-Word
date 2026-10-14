@@ -6,6 +6,7 @@ import com.image.word.converter.convert.docx.backend.AccountState
 import com.image.word.converter.convert.docx.backend.BackendClient
 import com.image.word.converter.convert.docx.backend.BackendFailure
 import com.image.word.converter.convert.docx.backend.BackendResult
+import com.image.word.converter.convert.docx.backend.ConversionAccessMode
 import com.image.word.converter.convert.docx.backend.SubscriptionVerificationRequest
 import java.time.Instant
 import kotlinx.coroutines.delay
@@ -169,6 +170,8 @@ private fun BackendFailure.isRetryableSubscriptionFailure(): Boolean = when (thi
 data class BackendEntitlementSnapshot(
     val isSubscribed: Boolean,
     val availableCredits: Long?,
+    val conversionAccessMode: ConversionAccessMode,
+    val freeConversionAvailable: Boolean,
     val isLoading: Boolean,
     val isTemporarilyUnavailable: Boolean,
 )
@@ -187,6 +190,8 @@ object BackendEntitlementPolicy {
         return BackendEntitlementSnapshot(
             isSubscribed = account?.subscription?.isEntitledAt(now) == true,
             availableCredits = account?.credits?.available,
+            conversionAccessMode = account?.conversionAccess?.mode ?: ConversionAccessMode.NONE,
+            freeConversionAvailable = account?.conversionAccess?.freeConversion?.available == true,
             isLoading = state is AccountRepositoryState.Loading,
             isTemporarilyUnavailable = state is AccountRepositoryState.Degraded,
         )

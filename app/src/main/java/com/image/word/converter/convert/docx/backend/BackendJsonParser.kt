@@ -49,6 +49,10 @@ object BackendJsonParser {
                     charged = credits.getLong("charged"),
                     available = credits.getLong("available"),
                 ),
+                accessMode = root.nullableString("accessMode")?.let { value ->
+                    runCatching { ConversionAccessMode.valueOf(value) }
+                        .getOrElse { throw IllegalArgumentException("Unknown conversion access mode") }
+                },
             ),
         )
     }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
@@ -81,6 +85,11 @@ object BackendJsonParser {
         val user = json.getJSONObject("user")
         val credits = json.getJSONObject("credits")
         val subscription = json.getJSONObject("subscription")
+        val conversionAccess = json.getJSONObject("conversionAccess")
+        val freeConversion = conversionAccess.getJSONObject("freeConversion")
+        val mode = runCatching {
+            ConversionAccessMode.valueOf(conversionAccess.getString("mode"))
+        }.getOrElse { throw IllegalArgumentException("Unknown conversion access mode") }
         return AccountState(
             user = BackendUser(
                 id = user.getString("id"),
@@ -99,6 +108,15 @@ object BackendJsonParser {
                 periodEnd = subscription.nullableString("periodEnd"),
                 autoRenewing = subscription.nullableBoolean("autoRenewing"),
                 acknowledgementState = subscription.nullableString("acknowledgementState"),
+                benefitMode = subscription.nullableString("benefitMode"),
+            ),
+            conversionAccess = ConversionAccessState(
+                mode = mode,
+                canConvert = conversionAccess.getBoolean("canConvert"),
+                freeConversion = FreeConversionState(
+                    status = freeConversion.getString("status"),
+                    available = freeConversion.getBoolean("available"),
+                ),
             ),
         )
     }

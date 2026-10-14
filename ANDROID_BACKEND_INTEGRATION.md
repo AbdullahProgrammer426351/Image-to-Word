@@ -58,7 +58,7 @@ The enabled V2 flow calls `imageToWordV2` with an authenticated request containi
 
 Android JPEG-encodes each selected bitmap once, uses standard Base64 with padding and no whitespace, and retains both the encoded payload and UUID for the lifetime of that logical attempt. It does not send a user ID, wallet/application identifier, decoded size, price, charge, or balance.
 
-The backend-selected `IMAGE_TO_WORD_APP` / `image-to-word` wallet, pricing, reservations, charge, result, and balance are authoritative. Android never estimates, grants, deducts, or edits credits. The home interface displays `AccountRepository`'s available balance and refreshes account state after every conversion batch, including failures.
+The backend-selected `IMAGE_TO_WORD_APP` / `image-to-word` wallet, pricing, reservations, access mode, charge, result, and balance are authoritative. Android never estimates, grants, deducts, or edits credits. The account projection now includes the exact `conversionAccess` object (`mode`, `canConvert`, and `freeConversion.status/available`). The home interface renders FREE, TEMPORARY_UNLIMITED, CREDIT_BASED, or NONE from that projection and refreshes account state after every conversion batch, including failures.
 
 The conversion transport allows up to 120 seconds for the provider-backed request. A timeout is treated as ambiguous rather than a definitive conversion failure.
 
@@ -107,7 +107,7 @@ There are no proposed product IDs, local credit grants, or local grandfathering 
 
 The production-disabled legacy path is intentionally unchanged: a restored `PURCHASED` weekly/monthly item sets the local subscribed flag and Android acknowledges it. `queryPurchasesAsync(SUBS)` runs after initial Billing setup/reconnection, explicit Restore, and app resume; in V2 the same restored product/token is submitted to the backend instead of granting local entitlement.
 
-The current V2 projection is not yet capable of representing the confirmed transition rule that an existing subscriber is temporarily unlimited only until the next successful renewal. It exposes only a finite `credits.available` value and a subscription status/period, `BackendCreditsBanner` always renders a numeric balance when available, and conversion always calls the credit-backed `imageToWordV2`. The generic `isSubscribed` flag can drive premium/ad UI, but it does not identify temporary unlimited conversion access. No Android code has been added to guess that state.
+The finalized V2 projection exposes `conversionAccess.mode` and `freeConversion.available`. Android renders temporary unlimited access without claiming lifetime entitlement, renders the one-time free allowance without presenting artificial credits, and renders the authoritative numeric balance only for CREDIT_BASED. The generic `isSubscribed` flag continues to drive premium/ad UI; it does not grant conversion access or bypass the backend.
 
 After the backend response contract is finalized, Android needs one server-derived conversion-access model with at least these renderable states:
 
@@ -116,7 +116,7 @@ After the backend response contract is finalized, Android needs one server-deriv
 - metered subscriber credits using the authoritative balance;
 - loading or temporarily unavailable state that retains prior authority without inventing access.
 
-The smallest follow-up is to parse the finalized server fields into that model, use it in the home banner and subscription screen, and map backend conversion eligibility/errors to the same state. The backend must continue deciding conversion permission and charges. No free-use or unlimited gating can safely be implemented from the current fields alone, so those UI changes intentionally wait for the finalized contract.
+The Android model now consumes those finalized fields in the account parser, home banner, and subscription screen. Conversion remains server-authoritative: V2 does not submit an entitlement mode, locally deduct credits, or fall back to the legacy endpoint. The backend still decides permission, access mode, and charges.
 
 ### Restore and recovery
 
