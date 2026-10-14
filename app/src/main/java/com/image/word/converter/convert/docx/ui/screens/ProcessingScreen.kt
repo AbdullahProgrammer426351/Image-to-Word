@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,13 +37,13 @@ import com.image.word.converter.convert.docx.data.ImageToWordApi
 import com.image.word.converter.convert.docx.ui.components.LottieAssetView
 import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
-import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.NetworkMonitor
 import com.image.word.converter.convert.docx.util.decodeBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -50,8 +51,8 @@ fun ProcessingScreen(
     activity: Activity,
     sessionState: SessionState,
     mainViewModel: MainViewModel,
-    attemptManager: DailyAttemptManager,
     isSubscribed: Boolean,
+    onLimitReached: () -> Unit,
     onResetToHome: () -> Unit,
     onDone: () -> Unit,
 ) {
@@ -59,8 +60,23 @@ fun ProcessingScreen(
     val session by sessionState.uiState.collectAsState()
     val api = remember { ImageToWordApi() }
     var showNoInternet by remember { mutableStateOf(false) }
+    var initialDelayCompleted by rememberSaveable { mutableStateOf(false) }
+    var conversionStarted by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isSubscribed) {
+        if (conversionStarted) return@LaunchedEffect
+
+        if (!initialDelayCompleted) {
+            delay(PROCESSING_GATE_DELAY_MILLIS)
+            initialDelayCompleted = true
+        }
+
+        if (!isSubscribed) {
+            onLimitReached()
+            return@LaunchedEffect
+        }
+
+        conversionStarted = true
         if (!NetworkMonitor.isConnected(context)) {
             showNoInternet = true
             return@LaunchedEffect
@@ -110,9 +126,6 @@ fun ProcessingScreen(
 
         converted.forEach { mainViewModel.downloadAndUpdateItem(it) }
 
-        if (!isSubscribed) {
-            attemptManager.increase()
-        }
         sessionState.setConvertedItems(converted)
 
         InterstitialAdManager.shared.show(activity) {
@@ -167,3 +180,5 @@ fun ProcessingScreen(
         )
     }
 }
+
+private const val PROCESSING_GATE_DELAY_MILLIS = 1_500L

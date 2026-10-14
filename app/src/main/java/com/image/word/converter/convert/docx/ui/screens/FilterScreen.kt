@@ -37,10 +37,7 @@ import com.image.word.converter.convert.docx.util.decodeBitmap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 
-private data class FilterModel(
-    val name: String,
-    val isLocked: Boolean = false
-)
+private data class FilterModel(val name: String)
 
 @Composable
 fun FilterScreen(
@@ -48,7 +45,6 @@ fun FilterScreen(
     sessionState: SessionState,
     isSubscribed:Boolean,
     onBack: () -> Unit,
-    onOpenSubscription: () -> Unit
 ) {
     val context = LocalContext.current
     val state by sessionState.uiState.collectAsState()
@@ -63,13 +59,13 @@ fun FilterScreen(
         FilterModel(stringResource(R.string.none)),
         FilterModel(stringResource(R.string.high_saturation)),
         FilterModel(stringResource(R.string.low_saturation)),
-        FilterModel(stringResource(R.string.high_hue), true),
-        FilterModel(stringResource(R.string.blue_tint), true),
-        FilterModel(stringResource(R.string.light_dark), true),
-        FilterModel(stringResource(R.string.light_light), true),
-        FilterModel(stringResource(R.string.green_tint), true),
-        FilterModel(stringResource(R.string.sepia), true),
-        FilterModel(stringResource(R.string.vibrance), true)
+        FilterModel(stringResource(R.string.high_hue)),
+        FilterModel(stringResource(R.string.blue_tint)),
+        FilterModel(stringResource(R.string.light_dark)),
+        FilterModel(stringResource(R.string.light_light)),
+        FilterModel(stringResource(R.string.green_tint)),
+        FilterModel(stringResource(R.string.sepia)),
+        FilterModel(stringResource(R.string.vibrance))
     )
 
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -193,10 +189,6 @@ fun FilterScreen(
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.clickable {
-                                if (filter.isLocked && !isSubscribed) {
-                                    onOpenSubscription()
-                                    return@clickable
-                                }
                                 selectedIndex = index
                             }
                         ) {
@@ -222,12 +214,6 @@ fun FilterScreen(
                                     )
                                 }
 
-                                if (filter.isLocked && !isSubscribed) {
-                                    Text(
-                                        "🔒",
-                                        modifier = Modifier.align(Alignment.TopEnd)
-                                    )
-                                }
                             }
 
                             Text(

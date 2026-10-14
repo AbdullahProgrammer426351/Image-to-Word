@@ -98,32 +98,34 @@ fun WalkthroughScreen(isSubscribed: Boolean,onDone: () -> Unit) {
             }
         }
 
-        BannerAd(isSubscribed)
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-                .navigationBarsPadding()
-                .clip(RoundedCornerShape(15.dp))
-                .background(Brush.horizontalGradient(WordGradients.walkthroughButton))
-                .clickable {
-                    if (pagerState.currentPage == pages.lastIndex) {
-                        onDone()
-                    } else {
-                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+
+        Column(modifier = Modifier.navigationBarsPadding()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(Brush.horizontalGradient(WordGradients.walkthroughButton))
+                    .clickable {
+                        if (pagerState.currentPage == pages.lastIndex) {
+                            onDone()
+                        } else {
+                            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                        }
                     }
-                }
-                .padding(vertical = 16.dp)
-                .navigationBarsPadding(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.next),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-            )
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.next),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
+            }
+
+            BannerAd(isSubscribed)
         }
     }
 }

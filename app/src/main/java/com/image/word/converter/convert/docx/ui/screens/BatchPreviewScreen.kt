@@ -64,7 +64,6 @@ fun BatchPreviewScreen(
     onHighlighter: (Int) -> Unit,
     onSignature: (Int) -> Unit,
     onText: (Int) -> Unit,
-    onOpenSubscription: () -> Unit
 ) {
     BackHandler(onBack = onBack)
 
@@ -271,20 +270,14 @@ fun BatchPreviewScreen(
                     icon = "highlighter_icon_ex.svg",
                     label = stringResource(R.string.highlighter),
                     isSubscribed = isSubscribed,
-                    onClick = {
-                        if (!isSubscribed) onOpenSubscription() else onHighlighter(selectedIndex)
-                    },
-                    paid = true
+                    onClick = { onHighlighter(selectedIndex) },
                 )
 
                 EditActionButton(
                     icon = "signature_icon.png",
                     label = stringResource(R.string.signature),
                     isSubscribed = isSubscribed,
-                    onClick = {
-                        if (!isSubscribed) onOpenSubscription() else onSignature(selectedIndex)
-                    },
-                    paid = true
+                    onClick = { onSignature(selectedIndex) },
                 )
 
 //                EditActionButton(

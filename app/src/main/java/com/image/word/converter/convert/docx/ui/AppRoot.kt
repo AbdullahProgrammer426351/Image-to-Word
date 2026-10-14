@@ -61,6 +61,7 @@ fun AppRoot(activity: Activity) {
     val attemptManager = remember { DailyAttemptManager(activity) }
     val limitTrigger = remember { SubscriptionTriggerManager() }
     val showLimit by limitTrigger.showLimitDialog.collectAsState()
+    var conversionAwaitingSubscription by rememberSaveable { mutableStateOf(false) }
 
     if (ratingState) {
         RatingDialog(
@@ -78,7 +79,13 @@ fun AppRoot(activity: Activity) {
 
     AppNavigationHost(
         showLimitDialog = showLimit,
-        onDismissLimit = { limitTrigger.hideLimit() },
+        onDismissLimit = {
+            limitTrigger.hideLimit()
+            if (conversionAwaitingSubscription) {
+                conversionAwaitingSubscription = false
+                navController.popBackStack()
+            }
+        },
         onSubscribeFromLimit = {
             limitTrigger.hideLimit()
             navController.navigate(Routes.Subscription)
@@ -187,30 +194,14 @@ fun AppRoot(activity: Activity) {
                         }
                     },
                     onNext = {
-                        if (!attemptManager.canUse(subscriptionState.isSubscribed)) {
-                            limitTrigger.showLimit()
-                        } else {
-                            navController.navigate(Routes.Processing)
-                        }
+                        conversionAwaitingSubscription = !subscriptionState.isSubscribed
+                        navController.navigate(Routes.Processing)
                     },
                     onAdjust = { index -> navController.navigate(Routes.adjust(index)) },
                     onFilter = { index -> navController.navigate(Routes.filter(index)) },
-                    onHighlighter = { index ->
-                        if (!subscriptionState.isSubscribed) {
-                            navController.navigate(Routes.Subscription)
-                        } else {
-                            navController.navigate(Routes.highlighter(index))
-                        }
-                    },
-                    onSignature = { index ->
-                        if (!subscriptionState.isSubscribed) {
-                            navController.navigate(Routes.Subscription)
-                        } else {
-                            navController.navigate(Routes.signature(index))
-                        }
-                    },
+                    onHighlighter = { index -> navController.navigate(Routes.highlighter(index)) },
+                    onSignature = { index -> navController.navigate(Routes.signature(index)) },
                     onText = { index -> navController.navigate(Routes.textOverlay(index)) },
-                    onOpenSubscription = { navController.navigate(Routes.Subscription) },
                 )
             }
 
@@ -237,7 +228,6 @@ fun AppRoot(activity: Activity) {
                     sessionState = sessionState,
                     isSubscribed = subscriptionState.isSubscribed,
                     onBack = { navController.popBackStack() },
-                    onOpenSubscription = { navController.navigate(Routes.Subscription) },
                 )
             }
 
@@ -275,8 +265,8 @@ fun AppRoot(activity: Activity) {
                     activity = activity,
                     sessionState = sessionState,
                     mainViewModel = mainViewModel,
-                    attemptManager = attemptManager,
                     isSubscribed = subscriptionState.isSubscribed,
+                    onLimitReached = { limitTrigger.showLimit() },
                     onResetToHome = {
                         navController.navigate(Routes.main()) {
                             popUpTo(Routes.Main) { inclusive = true }
@@ -321,6 +311,17 @@ fun AppRoot(activity: Activity) {
             composable(Routes.Subscription) {
                 SubscriptionScreen(
                     onClose = {
+                        if (conversionAwaitingSubscription) {
+                            limitTrigger.hideLimit()
+                            if (subscriptionState.isSubscribed) {
+                                conversionAwaitingSubscription = false
+                                navController.popBackStack()
+                            } else {
+                                conversionAwaitingSubscription = false
+                                navController.popBackStack(Routes.EditPreview, inclusive = false)
+                            }
+                            return@SubscriptionScreen
+                        }
                         if (returnHomeAfterSubscription) {
                             returnHomeAfterSubscription = false
                             navController.navigate(Routes.main()) {
