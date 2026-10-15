@@ -50,14 +50,14 @@ fun LimitDialog(
                     )
                     Column(modifier = Modifier.padding(vertical = 10.dp)) {
                         Text(
-                            text = stringResource(R.string.upgrade_heading),
+                            text = stringResource(R.string.free_limit_reached),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            text = stringResource(R.string.upgrade_desc),
+                            text = stringResource(R.string.no_free_attempts_left_upgrade_to_premium_for_unlimited_access),
                             textAlign = TextAlign.Center,
                         )
                     }

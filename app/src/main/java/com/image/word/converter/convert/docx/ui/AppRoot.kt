@@ -265,6 +265,7 @@ fun AppRoot(activity: Activity) {
                     activity = activity,
                     sessionState = sessionState,
                     mainViewModel = mainViewModel,
+                    attemptManager = attemptManager,
                     isSubscribed = subscriptionState.isSubscribed,
                     onLimitReached = { limitTrigger.showLimit() },
                     onResetToHome = {

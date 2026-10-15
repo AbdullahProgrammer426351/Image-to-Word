@@ -37,6 +37,7 @@ import com.image.word.converter.convert.docx.data.ImageToWordApi
 import com.image.word.converter.convert.docx.ui.components.LottieAssetView
 import com.image.word.converter.convert.docx.ui.state.MainViewModel
 import com.image.word.converter.convert.docx.ui.state.SessionState
+import com.image.word.converter.convert.docx.util.DailyAttemptManager
 import com.image.word.converter.convert.docx.util.NetworkMonitor
 import com.image.word.converter.convert.docx.util.decodeBitmap
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +52,7 @@ fun ProcessingScreen(
     activity: Activity,
     sessionState: SessionState,
     mainViewModel: MainViewModel,
+    attemptManager: DailyAttemptManager,
     isSubscribed: Boolean,
     onLimitReached: () -> Unit,
     onResetToHome: () -> Unit,
@@ -71,7 +73,7 @@ fun ProcessingScreen(
             initialDelayCompleted = true
         }
 
-        if (!isSubscribed) {
+        if (attemptManager.remainingAttempts < 1 && !isSubscribed) {
             onLimitReached()
             return@LaunchedEffect
         }
@@ -122,6 +124,10 @@ fun ProcessingScreen(
         if (converted.isEmpty()) {
             showNoInternet = true
             return@LaunchedEffect
+        }
+
+        if (!isSubscribed) {
+            attemptManager.increase()
         }
 
         converted.forEach { mainViewModel.downloadAndUpdateItem(it) }

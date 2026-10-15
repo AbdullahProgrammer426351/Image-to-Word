@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
@@ -24,7 +25,7 @@ class ImageToWordApi {
             } ?: return@withContext null
 
             val token = user.getIdToken(false).await().token ?: return@withContext null
-            val url = URL("https://us-central1-converter-api-project.cloudfunctions.net/imageToWord")
+            val url = URL("https://us-central1-converter-api-project.cloudfunctions.net/imageToWordfree")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = 120_000
@@ -36,16 +37,23 @@ class ImageToWordApi {
 
             val payload = JSONObject().put("image", base64).toString()
             connection.outputStream.use { it.write(payload.toByteArray()) }
-            val body = runCatching {
-                val stream = if (connection.responseCode in 200..299) {
+            try {
+                val responseCode = connection.responseCode
+                val stream = if (responseCode in 200..299) {
                     connection.inputStream
                 } else {
                     connection.errorStream
                 }
-                stream?.bufferedReader()?.readText().orEmpty()
-            }.getOrDefault("")
+                val body = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
 
-            parseFileUrl(body)
+                if (responseCode !in 200..299) {
+                    return@withContext null
+                }
+
+                parseFileUrl(body)
+            } finally {
+                connection.disconnect()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -54,21 +62,43 @@ class ImageToWordApi {
 
     private fun parseFileUrl(raw: String): String? {
         if (raw.isBlank()) return null
-        runCatching {
+        return runCatching {
             val json = JSONObject(raw)
-            if (json.optBoolean("success")) {
-                val result = json.optJSONObject("result")
-                val link = result?.optString("file").orEmpty()
-                if (link.isNotBlank()) return link
+
+            // The Cloud Function wraps the upstream response in `result`. The new
+            // endpoint may return that result as either a URL string or a JSON object.
+            findFileUrl(json.opt("result")) ?: findFileUrl(json)
+        }.getOrNull()
+    }
+
+    private fun findFileUrl(value: Any?): String? = when (value) {
+        is String -> value.takeIf(::isHttpUrl)
+        is JSONObject -> {
+            FILE_URL_KEYS.firstNotNullOfOrNull { key ->
+                findFileUrl(value.opt(key))
+            } ?: value.keys().asSequence().firstNotNullOfOrNull { key ->
+                findFileUrl(value.opt(key))
             }
-            listOf("file", "url").forEach { key ->
-                val link = json.optString(key)
-                if (link.isNotBlank()) return link
-            }
-            val dataObj = json.optJSONObject("data")
-            val nested = dataObj?.optString("file").orEmpty()
-            if (nested.isNotBlank()) return nested
         }
-        return null
+        is JSONArray -> (0 until value.length()).firstNotNullOfOrNull { index ->
+            findFileUrl(value.opt(index))
+        }
+        else -> null
+    }
+
+    private fun isHttpUrl(value: String): Boolean =
+        value.startsWith("https://", ignoreCase = true) ||
+            value.startsWith("http://", ignoreCase = true)
+
+    private companion object {
+        val FILE_URL_KEYS = listOf(
+            "file",
+            "url",
+            "fileUrl",
+            "file_url",
+            "downloadUrl",
+            "download_url",
+            "data",
+        )
     }
 }
