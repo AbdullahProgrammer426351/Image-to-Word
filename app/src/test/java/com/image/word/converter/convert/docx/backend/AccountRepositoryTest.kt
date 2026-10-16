@@ -83,9 +83,52 @@ class AccountRepositoryTest {
         assertEquals(90L, ready.account.credits.available)
     }
 
+    @Test
+    fun concurrentRefreshes_areSerializedAndLeaveLatestAuthoritativeState() = runTest {
+        val client = CountingRefreshClient()
+        val repository = AccountRepository(
+            integrationEnabled = true,
+            authSession = FakeAuthSession(),
+            backendClient = client,
+        )
+
+        repository.initialize()
+        val first = launch { repository.refresh() }
+        val second = launch { repository.refresh() }
+        first.join()
+        second.join()
+
+        assertEquals(2, client.refreshCount)
+        assertEquals(2L, (repository.state.value as AccountRepositoryState.Ready).account.credits.available)
+    }
+
     private fun sampleAccount(available: Long = 95) = AccountState(
         user = BackendUser("backend-user", "Guest", null, "ANONYMOUS"),
         credits = CreditsState(available, 0, "2026-10-17T12:00:00.000Z"),
+        subscription = SubscriptionState(null, null, null, null, null),
+    )
+}
+
+private class CountingRefreshClient : BackendClient {
+    var refreshCount = 0
+
+    override suspend fun bootstrapUser(): BackendResult<AccountState> = BackendResult.Success(account(0))
+
+    override suspend fun getAccountState(): BackendResult<AccountState> {
+        refreshCount += 1
+        return BackendResult.Success(account(refreshCount.toLong()))
+    }
+
+    override suspend fun imageToWord(request: ImageConversionRequest): BackendResult<ImageConversionResponse> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun verifySubscriptionPurchase(
+        request: SubscriptionVerificationRequest,
+    ): BackendResult<AccountState> = BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    private fun account(available: Long) = AccountState(
+        user = BackendUser("backend-user", "Guest", null, "ANONYMOUS"),
+        credits = CreditsState(available, 0, null),
         subscription = SubscriptionState(null, null, null, null, null),
     )
 }

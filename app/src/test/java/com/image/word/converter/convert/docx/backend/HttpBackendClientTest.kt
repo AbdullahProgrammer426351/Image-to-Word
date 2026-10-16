@@ -1,6 +1,7 @@
 package com.image.word.converter.convert.docx.backend
 
 import org.json.JSONObject
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -163,6 +164,43 @@ class HttpBackendClientTest {
         assertTrue((result as BackendResult.Failure).failure is BackendFailure.AppCheck)
         assertEquals(listOf(false, true), appCheck.forceRefreshCalls)
         assertTrue(transport.requests.isEmpty())
+    }
+
+    @Test
+    fun interruptedTransport_returnsNetworkFailureWithoutLeakingRequestData() = runTest {
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            DisabledAppCheckSession,
+            ThrowingTransport(IOException("connection reset")),
+        )
+
+        val result = client.imageToWord(ImageConversionRequest("secret-image", "stable-key"))
+
+        assertTrue(result is BackendResult.Failure)
+        assertTrue((result as BackendResult.Failure).failure is BackendFailure.Network)
+    }
+
+    @Test
+    fun httpServerFailure_preservesStableErrorCode() = runTest {
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            DisabledAppCheckSession,
+            RecordingTransport(
+                BackendHttpResponse(
+                    503,
+                    """{"success":false,"error":{"code":"CONVERSION_DISABLED","message":"Temporarily unavailable"}}""",
+                ),
+            ),
+        )
+
+        val result = client.imageToWord(ImageConversionRequest("jpeg", "stable-key"))
+
+        assertTrue(result is BackendResult.Failure)
+        val error = ((result as BackendResult.Failure).failure as BackendFailure.Server).error
+        assertEquals("CONVERSION_DISABLED", error.code)
+        assertEquals(503, error.httpStatus)
     }
 
     @Test
@@ -342,4 +380,10 @@ private class QueueTransport(
         requests += request
         return responses.removeAt(0)
     }
+}
+
+private class ThrowingTransport(
+    private val error: IOException,
+) : BackendHttpTransport {
+    override suspend fun execute(request: BackendHttpRequest): BackendHttpResponse = throw error
 }

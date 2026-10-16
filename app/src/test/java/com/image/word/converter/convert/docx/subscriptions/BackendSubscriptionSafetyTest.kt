@@ -41,6 +41,18 @@ class BackendSubscriptionSafetyTest {
     }
 
     @Test
+    fun internalPackageCollisionIsExplicitlyGuardedBeforeTesting() {
+        val buildScript = File("build.gradle.kts").readText()
+        val internalBlock = buildScript.substringAfter("create(\"internal\")").substringBefore("dependencies {")
+        val notes = File("../V2_HARDENING_NOTES.md").readText()
+
+        assertTrue(buildScript.contains("applicationId = \"com.image.word.converter.convert.docx\""))
+        assertTrue(buildScript.contains("output.versionCode.set(9)"))
+        assertFalse(internalBlock.contains("applicationIdSuffix"))
+        assertTrue(notes.contains("shares the published package ID"))
+    }
+
+    @Test
     fun diagnosticsDoNotLogAccountBalancesOrPurchaseSecrets() {
         val source = File(
             "src/main/java/com/image/word/converter/convert/docx/ImageToWordApplication.kt",

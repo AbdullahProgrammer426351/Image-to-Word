@@ -76,6 +76,32 @@ class ImageConversionBatchRunnerTest {
     }
 
     @Test
+    fun multiImageBatch_preservesPartialSuccessAndFailureIndependently() = runTest {
+        val client = RecordingConversionClient(
+            ArrayDeque(
+                listOf(
+                    successfulConversion(),
+                    BackendResult.Failure(
+                        BackendFailure.Server(
+                            BackendError("FILE_TOO_LARGE", "Too large", 413),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val result = ImageConversionBatchRunner(client, retryDelay = {}).run(
+            listOf(
+                PreparedImageConversion(0, ImageConversionRequest("jpeg-a", "key-a")),
+                PreparedImageConversion(1, ImageConversionRequest("jpeg-b", "key-b")),
+            ),
+        )
+
+        assertEquals(1, result.successes.size)
+        assertEquals(1, result.failures.size)
+        assertEquals(setOf("key-a", "key-b"), client.requests.map { it.idempotencyKey }.toSet())
+    }
+
+    @Test
     fun successfulConversion_doesNotDeductCachedCreditsBeforeAuthoritativeRefresh() = runTest {
         val client = RecordingConversionClient(
             responses = ArrayDeque(listOf(successfulConversion())),
@@ -162,6 +188,22 @@ class ImageConversionBatchRunnerTest {
                 )),
             ),
         )
+        listOf(ConversionAccessMode.FREE, ConversionAccessMode.TEMPORARY_UNLIMITED).forEach { mode ->
+            assertEquals(
+                V2EntryState.ALLOWED,
+                ConversionAccessPolicy.v2EntryState(
+                    AccountRepositoryState.Ready(
+                        sampleAccount(0).copy(
+                            conversionAccess = ConversionAccessState(
+                                mode = mode,
+                                canConvert = true,
+                                freeConversion = FreeConversionState("AVAILABLE", mode == ConversionAccessMode.FREE),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
     }
 
     private fun successfulConversion(): BackendResult<ImageConversionResponse> =
