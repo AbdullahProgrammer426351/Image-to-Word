@@ -1,6 +1,9 @@
 package com.image.word.converter.convert.docx.backend
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.image.word.converter.convert.docx.BuildConfig
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -19,6 +22,7 @@ class BackendEmulatorIntegrationTest {
         assertEquals(BackendEnvironment.DEMO_PROJECT_ID, environment.firebaseProjectId)
 
         val repository = BackendAccountStore.repository
+        resetLocalAuthSessions()
         withTimeout(30_000) {
             repository.initialize()
         }
@@ -30,5 +34,10 @@ class BackendEmulatorIntegrationTest {
         )
         assertTrue(ready!!.account.user.id.isNotBlank())
         assertTrue(ready.account.credits.available >= 0)
+    }
+
+    private fun resetLocalAuthSessions() {
+        FirebaseApp.getApps(InstrumentationRegistry.getInstrumentation().targetContext)
+            .forEach { FirebaseAuth.getInstance(it).signOut() }
     }
 }

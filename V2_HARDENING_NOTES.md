@@ -2,6 +2,8 @@
 
 Implemented on `feature/backend-account-integration` without changing the published `main` branch.
 
+The published `main` branch now calls the separate legacy `imageToWordfree` function. This branch intentionally keeps its V2 path on `imageToWordV2`; the legacy endpoint change is not ported into V2.
+
 ## Completed
 
 - V2-enabled production environments now require the approved Firebase project, Android App ID, exact Functions base URL, HTTPS, no Auth emulator, and the `production-internal` environment name.
@@ -12,6 +14,8 @@ Implemented on `feature/backend-account-integration` without changing the publis
 - Production diagnostics no longer emit credit balances or subscription metadata; authentication/App Check/purchase tokens remain excluded.
 - Added focused environment, state-machine, parser, persistence, and diagnostic regression tests.
 - Added concurrent-refresh serialization, verifier-recreation recovery, interrupted transport/server-error handling, and multi-image partial-result tests.
+- Physical-device integration builds now remove stale generated Google Services resources when the local emulator configuration intentionally skips the Google Services task.
+- The instrumentation fixture asserts the active variant application ID and resets only local emulator Auth sessions before emulator tests.
 
 ## Remaining gaps
 
@@ -19,6 +23,7 @@ Implemented on `feature/backend-account-integration` without changing the publis
 - Compose/UI coverage for account banners and retry dialogs remains limited; state-machine coverage is currently unit-level.
 - Android process-death instrumentation and end-to-end concurrent purchase/account-refresh tests remain future work; verifier recreation is covered with a local fake store.
 - The internal production variant shares the published package ID; installing it updates the published app. Keep internal testing isolated operationally until a separate package strategy is approved.
+- The current backend emulator run is blocked by the backend repository's Functions worker crashing under `firebase-functions` v7 after reporting removed `functions.config()` usage. This is backend-side and was not modified here.
 
 ## Deferred by billing decision
 

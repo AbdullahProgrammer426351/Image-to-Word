@@ -1,6 +1,9 @@
 package com.image.word.converter.convert.docx.backend
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.image.word.converter.convert.docx.BuildConfig
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -19,6 +22,7 @@ class BackendConversionEmulatorIntegrationTest {
         assertEquals(BackendEnvironment.DEMO_PROJECT_ID, environment.firebaseProjectId)
 
         val repository = BackendAccountStore.repository
+        resetLocalAuthSessions()
         withTimeout(30_000) { repository.initialize() }
         val initialBalance = repository.readyAccount().credits.available
         val request = ImageConversionRequest(
@@ -58,6 +62,11 @@ class BackendConversionEmulatorIntegrationTest {
     private fun BackendResult<ImageConversionResponse>.requireSuccess(): ImageConversionResponse {
         if (this is BackendResult.Success) return value
         throw AssertionError("Expected successful conversion, got $this")
+    }
+
+    private fun resetLocalAuthSessions() {
+        FirebaseApp.getApps(InstrumentationRegistry.getInstrumentation().targetContext)
+            .forEach { FirebaseAuth.getInstance(it).signOut() }
     }
 
     private companion object {

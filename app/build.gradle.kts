@@ -134,6 +134,13 @@ if (physicalDeviceIntegrationTest) {
     tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
         enabled = false
     }
+    // A prior normal debug build may leave production google-services resources behind.
+    // Remove only that generated directory so the emulator resources below remain authoritative.
+    tasks.matching { it.name == "packageDebugResources" }.configureEach {
+        doFirst {
+            layout.buildDirectory.dir("generated/res/processDebugGoogleServices").get().asFile.deleteRecursively()
+        }
+    }
 }
 
 // Internal Play validation must not upload Crashlytics symbols from a local build.
