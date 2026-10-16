@@ -175,16 +175,28 @@ With the Firebase emulators running and an Android Emulator connected, run the e
 
 The instrumentation test performs a real anonymous Auth Emulator sign-in and calls `bootstrapUserV2`; it never substitutes a production or fake identity. Manual conversion validation should use a small JPEG and confirm a single Conversion record/charge, refreshed home balance, same-key reconciliation after ambiguity, and independent outcomes for a multi-image selection.
 
-For subscription integration, first seed a fake Google Play fixture in the Firestore emulator using the backend's test harness. Then run only the Billing emulator test with that fixture's non-production product/token pair:
+For physical-device integration, use the backend repository's local Firebase CLI 15.33.0 or newer and explicitly enable both fake boundaries. Never use a global Firebase CLI for this checkout. With the persistent emulator running, seed deterministic Android-only fixtures:
 
 ```shell
-./gradlew connectedDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.image.word.converter.convert.docx.backend.BackendBillingEmulatorIntegrationTest \
-  -Pandroid.testInstrumentationRunnerArguments.fakePlayProductId=imagetoword_1w \
-  -Pandroid.testInstrumentationRunnerArguments.fakePlayPurchaseToken=<seeded-fake-token>
+IMAGE_TO_WORD_V2_FAKE=true GOOGLE_PLAY_FAKE=true GCLOUD_PROJECT=demo-converter-credit \
+  npx --no-install firebase emulators:start --project demo-converter-credit \
+  --config firebase.json --only auth,firestore,functions,pubsub
+
+GCLOUD_PROJECT=demo-converter-credit FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
+  npm --prefix functions run seed:android-integration
 ```
 
-This validates fake Billing input through Firebase Auth, `verifySubscriptionPurchaseV2`, backend acknowledgement simulation, account acceptance, and `getAccountStateV2`. It is not evidence of real Google Play verification.
+After applying ADB reverse mappings for 9099, 8080, 5001, and 8085, run the complete device suite from the Android repository:
+
+```shell
+./gradlew :app:connectedDebugAndroidTest -PphysicalDeviceIntegrationTest=true \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayWeeklyPurchaseToken=android-integration-weekly-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayMonthlyPurchaseToken=android-integration-monthly-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayRecoveryPurchaseToken=android-integration-recovery-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayConversionPurchaseToken=android-integration-conversion-v1
+```
+
+This validates fake Billing input through Firebase Auth, `verifySubscriptionPurchaseV2`, backend acknowledgement simulation, duplicate verification, private-store recovery, authoritative account refresh, free conversion, and paid conversion idempotency. It is not evidence of real Google Play verification.
 
 Before production rollout, a Play license tester must validate actual weekly and monthly ProductDetails/offers, purchase and pending flows, restore after reinstall/account continuity, cancellation/grace/expiry behavior, backend service-account access, server acknowledgement within Google's deadline, duplicate callbacks, upgrade/linked-token behavior, and recovery from a deliberately interrupted verification. Those tests require a deployed non-production backend connected to the real Play Developer API; real tokens must never be sent to the emulator fake.
 
