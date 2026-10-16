@@ -25,6 +25,13 @@ The published `main` branch now calls the separate legacy `imageToWordfree` func
 - The internal production variant shares the published package ID; installing it updates the published app. Keep internal testing isolated operationally until a separate package strategy is approved.
 - The current backend emulator run is blocked by the backend repository's Functions worker crashing under `firebase-functions` v7 after reporting removed `functions.config()` usage. This is backend-side and was not modified here.
 
+## Physical-device integration run (2026-10-16)
+
+- Device `34255100230004F` was detected with both the published package and the separate `.integrationtest` package present. The production package was not uninstalled, cleared, or replaced.
+- Auth, Firestore, Functions, and Pub/Sub emulators were started with demo project `demo-converter-credit`; ADB reverse mappings were restored for ports 9099, 8080, 5001, and 8085. The documented emulator credit settings were seeded, and Functions reported outbound network stubbing.
+- The connected suite executed five tests: two passed, the fake-Play test was skipped because no Android fake fixture arguments were provided, and Auth/bootstrap plus V2 conversion/idempotency timed out. Emulator logs show the worker is killed on the request path after the `firebase-functions` v7 `functions.config()` removal warning. This remains a backend blocker for the Android end-to-end run; no Android workaround or backend edit was made.
+- Android unit tests and Debug/Internal/Release Kotlin compilation passed. The integration APK built and installed successfully as `com.image.word.converter.convert.docx.integrationtest` (versionCode 8); the published package remained `com.image.word.converter.convert.docx`.
+
 ## Deferred by billing decision
 
 No payment-source abstraction, one-time product, product-ID, entitlement, or existing-subscriber policy changes were made. Any redesign of purchase restoration or entitlement mapping must wait for the subscription versus one-time credit decision.
