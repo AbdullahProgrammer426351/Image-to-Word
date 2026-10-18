@@ -104,4 +104,7 @@ enum class BackendFunction(val path: String) {
     GET_ACCOUNT_STATE("getAccountStateV2"),
     IMAGE_TO_WORD("imageToWordV2"),
     VERIFY_SUBSCRIPTION_PURCHASE("verifySubscriptionPurchaseV2"),
+    GET_CREDIT_PRODUCT_CATALOG("getCreditProductCatalogV2"),
+    VERIFY_CREDIT_PURCHASE("verifyCreditPurchaseV2"),
+    RECOVER_CREDIT_PURCHASE("recoverCreditPurchaseV2"),
 }

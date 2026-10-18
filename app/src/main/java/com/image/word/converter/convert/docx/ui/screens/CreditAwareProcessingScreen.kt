@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ads.InterstitialAdManager
+import com.image.word.converter.convert.docx.ads.AdsGate
 import com.image.word.converter.convert.docx.backend.BackendAccountStore
 import com.image.word.converter.convert.docx.backend.BackendClientStore
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
@@ -111,6 +113,10 @@ private fun V2ProcessingScreen(
     onResetToHome: () -> Unit,
     onDone: () -> Unit,
 ) {
+    DisposableEffect(Unit) {
+        AdsGate.beginCriticalOperation()
+        onDispose { AdsGate.endCriticalOperation() }
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val session by sessionState.uiState.collectAsState()

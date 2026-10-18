@@ -81,9 +81,25 @@ class MainActivity : ComponentActivity() {
             val themeViewModel: ThemeViewModel = viewModel()
             val uiState by subscriptionViewModel.uiState.collectAsState()
             val themeMode by themeViewModel.themeMode.collectAsState()
+            val usesBackendAuthority = BackendEnvironment.current().accountIntegrationEnabled
 
             SideEffect {
-                AdsGate.isSubscribedProvider = { uiState.isSubscribed }
+                AdsGate.isAdFreeProvider = {
+                    if (usesBackendAuthority) uiState.isAdFree else uiState.isSubscribed
+                }
+                AdsGate.isCriticalOperationActive = {
+                    uiState.isPurchasing || AdsGate.hasActiveCriticalOperation()
+                }
+            }
+
+            LaunchedEffect(usesBackendAuthority, uiState.isAdFree) {
+                if (usesBackendAuthority && uiState.isAdFree) {
+                    InterstitialAdManager.shared.discard()
+                    InterstitialAdManager.frequencyShared.discard()
+                    AppOpenAdManager.shared.discard()
+                    AppOpenAdManager.frequencyShared.discard()
+                    FrequencyAppOpenAdManager.shared.discard()
+                }
             }
 
             LaunchedEffect(Unit) {

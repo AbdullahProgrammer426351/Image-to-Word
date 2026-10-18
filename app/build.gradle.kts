@@ -149,6 +149,23 @@ tasks.matching { it.name == "uploadCrashlyticsMappingFileInternal" }.configureEa
     enabled = false
 }
 
+val checkInternalPlayVersionCode by tasks.registering {
+    group = "verification"
+    description = "Fails before packaging an internal Play build whose version code cannot update production."
+    doLast {
+        val configuredInternalVersionCode = 9
+        val publishedVersionCode = 11
+        check(configuredInternalVersionCode > publishedVersionCode) {
+            "Internal Play build versionCode $configuredInternalVersionCode must be greater than " +
+                "published versionCode $publishedVersionCode before upload."
+        }
+    }
+}
+
+tasks.matching { it.name in setOf("bundleInternal", "packageInternal") }.configureEach {
+    dependsOn(checkInternalPlayVersionCode)
+}
+
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

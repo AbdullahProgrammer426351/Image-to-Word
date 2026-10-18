@@ -40,6 +40,24 @@ The published `main` branch now calls the separate legacy `imageToWordfree` func
 - Corrected the instrumentation expectation that predated the lifetime-free policy. The test now proves the first successful conversion is free, then verifies a separate fake weekly purchase before asserting the 5-credit minimum and no duplicate charge.
 - Full operating-system kill/relaunch orchestration remains outside this suite. Device instrumentation exercises the real private preference store and verifier recreation; JVM regression tests continue to cover process recreation, concurrent refresh, interrupted transport, partial batches, and redaction.
 
-## Deferred by billing decision
+## One-time credit purchase milestone (2026-10-18)
 
-No payment-source abstraction, one-time product, product-ID, entitlement, or existing-subscriber policy changes were made. Any redesign of purchase restoration or entitlement mapping must wait for the subscription versus one-time credit decision.
+- Adopted backend contract `V2_ONE_TIME_PURCHASE_CONTRACT.md` from backend commit `8a1906e`. New-customer offers are fetched from `getCreditProductCatalogV2`, queried from Play as `ProductType.INAPP`, verified through `verifyCreditPurchaseV2`, and restored through token-only `recoverCreditPurchaseV2`.
+- Production product IDs, allocations, validity periods, and prices are not embedded in Android. The backend supplies enabled IDs/benefits; Google Play supplies localized price/title. The emulator-only `test_pack_100` and `test_pack_500` values are test fixtures.
+- Android never consumes, acknowledges, or grants consumable credits. It persists only unresolved product/token pairs, retries the same token, accepts the authoritative returned account, and removes tokens after terminal or successful resolution.
+- Legacy `imagetoword_1w` and `imagetoword_1m` remain queried as `SUBS` only for existing-subscriber verification/restoration. They are not displayed as V2 new-customer offers.
+- Account rendering now supports two/one/zero free conversions, aggregate purchased credits, the next server-provided expiry, and backend ad eligibility. A positive valid purchased balance remains ad-free even if it cannot fund the next conversion.
+- Degraded-state ad-free continuity is bounded to 15 minutes and additionally refuses a server-provided expired credit timestamp. A fresh backend state remains authoritative.
+- Anonymous identities are blocked from starting a credit purchase until a recoverable Firebase provider is configured and linked. This prevents offering purchases that an anonymous reinstall cannot recover; no provider is invented or enabled by this milestone.
+- The internal Play package guard now fails packaging while its unchanged versionCode `9` is not greater than the published versionCode `11`. Compilation remains available; choose an approved greater code only when preparing the controlled upload.
+
+### Backend mismatch discovered
+
+Backend commit `8a1906e` currently serializes `ads` at the account root although the frozen contract places it at `conversionAccess.ads`; Android temporarily accepts both while preferring the contract shape. The same commit references an undefined `successfulConversions` identifier while building account state. The backend must correct and regression-test these issues before connected end-to-end Android validation can be considered complete.
+
+### Validation for this milestone
+
+- Android unit tests and Debug/Internal/Release Kotlin compilation pass, including the new catalog, request-shape, persistence, retry, account-recovery, ad-policy, and redaction coverage.
+- The internal packaging guard correctly rejects versionCode `9` because the published versionCode is `11`; compilation remains available and no version was changed.
+- A device-safe instrumentation smoke test passed on the connected physical device under the separate `.integrationtest` application ID. The production package remained installed and unchanged.
+- The expanded Firebase/one-time-purchase device suite cannot truthfully run through bootstrap until the backend fixes the undefined free-conversion counter and adds the documented fake consumable fixtures. A local emulator startup reproduced `bootstrapUserV2` returning HTTP 500, so this is recorded as a backend blocker rather than an Android success.

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ads.BannerAd
+import com.image.word.converter.convert.docx.ads.AdsGate
 import com.image.word.converter.convert.docx.model.ConvertedItem
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.ChildTopBar
@@ -139,8 +140,13 @@ fun ResultScreen(
                     ResultAction("ic_eye.svg", stringResource(R.string.preview)) { previewItem(item) }
                     ResultAction("ic_share_ex.svg", stringResource(R.string.share)) {
                         scope.launch {
-                            if (!WordFileHelper.shareWord(context, item)) {
-                                Toast.makeText(context, R.string.word_share_failed, Toast.LENGTH_SHORT).show()
+                            AdsGate.beginCriticalOperation()
+                            try {
+                                if (!WordFileHelper.shareWord(context, item)) {
+                                    Toast.makeText(context, R.string.word_share_failed, Toast.LENGTH_SHORT).show()
+                                }
+                            } finally {
+                                AdsGate.endCriticalOperation()
                             }
                         }
                     }
@@ -200,11 +206,17 @@ fun ResultScreen(
                     val first = items.firstOrNull() ?: return@GradientButton
                     exporting = true
                     scope.launch {
-                        val ok = WordFileHelper.exportWord(context, first)
-                        exporting = false
-                        if (!ok) {
-                            Toast.makeText(context, R.string.word_export_failed, Toast.LENGTH_SHORT)
-                                .show()
+                        AdsGate.beginCriticalOperation()
+                        try {
+                            val ok = WordFileHelper.exportWord(context, first)
+                            exporting = false
+                            if (!ok) {
+                                Toast.makeText(context, R.string.word_export_failed, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        } finally {
+                            exporting = false
+                            AdsGate.endCriticalOperation()
                         }
                     }
                 },

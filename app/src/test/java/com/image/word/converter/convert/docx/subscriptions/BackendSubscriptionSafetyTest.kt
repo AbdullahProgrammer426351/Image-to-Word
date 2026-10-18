@@ -64,4 +64,45 @@ class BackendSubscriptionSafetyTest {
         assertFalse(source.contains("idToken"))
         assertFalse(source.contains("appCheckToken"))
     }
+
+    @Test
+    fun oneTimeCreditFlow_usesInAppCatalogAndNeverConsumesOrGrantsLocally() {
+        val viewModel = File(
+            "src/main/java/com/image/word/converter/convert/docx/subscriptions/SubscriptionViewModel.kt",
+        ).readText()
+        val verifier = File(
+            "src/main/java/com/image/word/converter/convert/docx/subscriptions/CreditPurchaseVerifier.kt",
+        ).readText()
+
+        assertTrue(viewModel.contains("BillingClient.ProductType.INAPP"))
+        assertTrue(viewModel.contains("getCreditProductCatalog"))
+        assertFalse(viewModel.contains("consumeAsync"))
+        assertFalse(verifier.contains("consumePurchase"))
+        assertFalse(verifier.contains("acknowledgePurchase"))
+        assertTrue(verifier.contains("accountGateway.accept"))
+    }
+
+    @Test
+    fun purchaseRestoreAndBackgroundVerification_suppressAds() {
+        val viewModel = File(
+            "src/main/java/com/image/word/converter/convert/docx/subscriptions/SubscriptionViewModel.kt",
+        ).readText()
+        val retryService = File(
+            "src/main/java/com/image/word/converter/convert/docx/subscriptions/SubscriptionVerificationRetryService.kt",
+        ).readText()
+
+        assertTrue(viewModel.contains("withAdsSuppressed { queryActivePurchases(fromRestoreAction = true) }"))
+        assertTrue(viewModel.contains("private suspend fun <T> withAdsSuppressed"))
+        assertTrue(retryService.contains("AdsGate.beginCriticalOperation()"))
+        assertTrue(retryService.contains("AdsGate.endCriticalOperation()"))
+    }
+
+    @Test
+    fun internalPlayPackaging_reportsPublishedVersionCollision() {
+        val buildScript = File("build.gradle.kts").readText()
+
+        assertTrue(buildScript.contains("checkInternalPlayVersionCode"))
+        assertTrue(buildScript.contains("publishedVersionCode = 11"))
+        assertTrue(buildScript.contains("dependsOn(checkInternalPlayVersionCode)"))
+    }
 }

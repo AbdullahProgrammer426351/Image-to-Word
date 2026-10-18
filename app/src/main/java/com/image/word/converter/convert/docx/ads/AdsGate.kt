@@ -1,7 +1,22 @@
 package com.image.word.converter.convert.docx.ads
 
 object AdsGate {
-    var isSubscribedProvider: () -> Boolean = { false }
+    var isAdFreeProvider: () -> Boolean = { false }
+    var isCriticalOperationActive: () -> Boolean = { false }
+    private var activeCriticalOperations: Int = 0
+
+    @Synchronized
+    fun beginCriticalOperation() {
+        activeCriticalOperations += 1
+    }
+
+    @Synchronized
+    fun endCriticalOperation() {
+        activeCriticalOperations = (activeCriticalOperations - 1).coerceAtLeast(0)
+    }
+
+    @Synchronized
+    fun hasActiveCriticalOperation(): Boolean = activeCriticalOperations > 0
     var isPersonalizedAdsAllowed: () -> Boolean = { true }
     var canRequestAds: Boolean = true
     var canShowResumeAppOpen: Boolean = false

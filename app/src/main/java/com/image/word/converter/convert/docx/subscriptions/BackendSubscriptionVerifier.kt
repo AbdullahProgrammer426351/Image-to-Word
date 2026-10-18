@@ -9,6 +9,7 @@ import com.image.word.converter.convert.docx.backend.BackendResult
 import com.image.word.converter.convert.docx.backend.ConversionAccessMode
 import com.image.word.converter.convert.docx.backend.SubscriptionVerificationRequest
 import java.time.Instant
+import java.time.Duration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -172,6 +173,10 @@ data class BackendEntitlementSnapshot(
     val availableCredits: Long?,
     val conversionAccessMode: ConversionAccessMode,
     val freeConversionAvailable: Boolean,
+    val freeConversionsRemaining: Int,
+    val nextCreditExpiryAt: String?,
+    val isAdFree: Boolean,
+    val areAdsEligible: Boolean,
     val isLoading: Boolean,
     val isTemporarilyUnavailable: Boolean,
 )
@@ -180,6 +185,7 @@ object BackendEntitlementPolicy {
     fun from(
         state: AccountRepositoryState,
         now: Instant = Instant.now(),
+        lastAuthoritativeAdCheckAt: Instant? = null,
     ): BackendEntitlementSnapshot {
         val account = when (state) {
             is AccountRepositoryState.Ready -> state.account
@@ -187,15 +193,38 @@ object BackendEntitlementPolicy {
             is AccountRepositoryState.Degraded -> state.previous
             AccountRepositoryState.Disabled -> null
         }
+        val hasFreshCachedAdFree = account?.conversionAccess?.ads?.adFree == true &&
+            lastAuthoritativeAdCheckAt != null &&
+            !lastAuthoritativeAdCheckAt.isAfter(now) &&
+            Duration.between(lastAuthoritativeAdCheckAt, now) <= AD_FREE_CACHE_TTL &&
+            account.credits.nextExpiryAt?.let { expiry ->
+                runCatching { Instant.parse(expiry).isAfter(now) }.getOrDefault(false)
+            } != false
+        val adFree = when (state) {
+            is AccountRepositoryState.Ready -> account?.conversionAccess?.ads?.adFree == true
+            is AccountRepositoryState.Loading,
+            is AccountRepositoryState.Degraded,
+            -> hasFreshCachedAdFree
+            AccountRepositoryState.Disabled -> false
+        }
         return BackendEntitlementSnapshot(
             isSubscribed = account?.subscription?.isEntitledAt(now) == true,
             availableCredits = account?.credits?.available,
             conversionAccessMode = account?.conversionAccess?.mode ?: ConversionAccessMode.NONE,
             freeConversionAvailable = account?.conversionAccess?.freeConversion?.available == true,
+            freeConversionsRemaining = account?.conversionAccess?.freeConversion?.remaining ?: 0,
+            nextCreditExpiryAt = account?.credits?.nextExpiryAt,
+            isAdFree = adFree,
+            areAdsEligible = if (adFree) false else when (state) {
+                is AccountRepositoryState.Ready -> account?.conversionAccess?.ads?.eligible != false
+                else -> true
+            },
             isLoading = state is AccountRepositoryState.Loading,
             isTemporarilyUnavailable = state is AccountRepositoryState.Degraded,
         )
     }
+
+    private val AD_FREE_CACHE_TTL: Duration = Duration.ofMinutes(15)
 
     private fun com.image.word.converter.convert.docx.backend.SubscriptionState.isEntitledAt(
         now: Instant,

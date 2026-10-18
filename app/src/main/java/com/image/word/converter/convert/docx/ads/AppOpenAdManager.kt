@@ -17,7 +17,7 @@ class AppOpenAdManager private constructor(
         if (adUnitId.isBlank()) return
         if (!AdsGate.canRequestAds) return
         if (!enabledProvider()) return
-        if (AdsGate.isSubscribedProvider()) return
+        if (AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive()) return
         if (appOpenAd != null) return
 
         val request = AdRequestHelper.createRequest(AdsGate.isPersonalizedAdsAllowed())
@@ -38,7 +38,7 @@ class AppOpenAdManager private constructor(
     }
 
     fun showIfAvailable(activity: Activity, onClose: (() -> Unit)? = null) {
-        if (AdsGate.isSubscribedProvider()) {
+        if (AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive()) {
             onClose?.invoke()
             return
         }
@@ -78,6 +78,10 @@ class AppOpenAdManager private constructor(
             }
         }
         ad.show(activity)
+    }
+
+    fun discard() {
+        appOpenAd = null
     }
 
     companion object {

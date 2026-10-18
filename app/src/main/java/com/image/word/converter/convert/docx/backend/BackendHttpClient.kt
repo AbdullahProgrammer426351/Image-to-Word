@@ -63,6 +63,16 @@ interface BackendClient {
     suspend fun verifySubscriptionPurchase(
         request: SubscriptionVerificationRequest,
     ): BackendResult<AccountState>
+    suspend fun getCreditProductCatalog(): BackendResult<List<CreditProduct>> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+    suspend fun verifyCreditPurchase(
+        request: CreditPurchaseVerificationRequest,
+    ): BackendResult<CreditPurchaseVerificationResponse> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+    suspend fun recoverCreditPurchase(
+        purchaseToken: String,
+    ): BackendResult<CreditPurchaseVerificationResponse> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }
 
 class HttpBackendClient(
@@ -112,6 +122,50 @@ class HttpBackendClient(
             body = body,
         ) { response ->
             BackendJsonParser.parseSubscriptionVerificationEnvelope(
+                response.body,
+                response.statusCode,
+            )
+        }
+    }
+
+    override suspend fun getCreditProductCatalog(): BackendResult<List<CreditProduct>> =
+        executeAuthenticated(
+            function = BackendFunction.GET_CREDIT_PRODUCT_CATALOG,
+            method = "GET",
+            body = null,
+        ) { response ->
+            BackendJsonParser.parseCreditProductCatalogEnvelope(response.body, response.statusCode)
+        }
+
+    override suspend fun verifyCreditPurchase(
+        request: CreditPurchaseVerificationRequest,
+    ): BackendResult<CreditPurchaseVerificationResponse> {
+        val body = org.json.JSONObject()
+            .put("productId", request.productId)
+            .put("purchaseToken", request.purchaseToken)
+            .toString()
+        return executeAuthenticated(
+            function = BackendFunction.VERIFY_CREDIT_PURCHASE,
+            method = "POST",
+            body = body,
+        ) { response ->
+            BackendJsonParser.parseCreditPurchaseVerificationEnvelope(
+                response.body,
+                response.statusCode,
+            )
+        }
+    }
+
+    override suspend fun recoverCreditPurchase(
+        purchaseToken: String,
+    ): BackendResult<CreditPurchaseVerificationResponse> {
+        val body = org.json.JSONObject().put("purchaseToken", purchaseToken).toString()
+        return executeAuthenticated(
+            function = BackendFunction.RECOVER_CREDIT_PURCHASE,
+            method = "POST",
+            body = body,
+        ) { response ->
+            BackendJsonParser.parseCreditPurchaseVerificationEnvelope(
                 response.body,
                 response.statusCode,
             )
@@ -239,5 +293,18 @@ class DisabledBackendClient : BackendClient {
     override suspend fun verifySubscriptionPurchase(
         request: SubscriptionVerificationRequest,
     ): BackendResult<AccountState> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun getCreditProductCatalog(): BackendResult<List<CreditProduct>> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun verifyCreditPurchase(
+        request: CreditPurchaseVerificationRequest,
+    ): BackendResult<CreditPurchaseVerificationResponse> =
+        BackendResult.Failure(BackendFailure.IntegrationDisabled)
+
+    override suspend fun recoverCreditPurchase(
+        purchaseToken: String,
+    ): BackendResult<CreditPurchaseVerificationResponse> =
         BackendResult.Failure(BackendFailure.IntegrationDisabled)
 }

@@ -278,6 +278,90 @@ class HttpBackendClientTest {
     }
 
     @Test
+    fun creditCatalog_usesAuthenticatedGetAndSendsNoClientConfiguration() = runTest {
+        val transport = RecordingTransport(
+            BackendHttpResponse(
+                200,
+                """{"success":true,"products":[{"productId":"test_pack_100","productType":"INAPP","credits":100,"expiryDays":30}]}""",
+            ),
+        )
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            SuccessfulAppCheckSession(),
+            transport,
+        )
+
+        assertTrue(client.getCreditProductCatalog() is BackendResult.Success)
+        val request = transport.requests.single()
+        assertEquals("GET", request.method)
+        assertEquals(
+            "http://10.0.2.2:5001/demo-converter-credit/us-central1/getCreditProductCatalogV2",
+            request.url,
+        )
+        assertEquals(null, request.body)
+    }
+
+    @Test
+    fun creditVerification_sendsOnlyCatalogProductAndTokenWithoutLoggingSecrets() = runTest {
+        val transport = RecordingTransport(
+            BackendHttpResponse(
+                200,
+                """{"success":true,"purchase":{"productId":"test_pack_100","status":"CONSUMED","credits":100},"account":${BackendJsonParserTest.accountObject(available = 100)}}""",
+            ),
+        )
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            SuccessfulAppCheckSession(),
+            transport,
+        )
+
+        val result = client.verifyCreditPurchase(
+            CreditPurchaseVerificationRequest("test_pack_100", "private-consumable-token"),
+        )
+
+        assertTrue(result is BackendResult.Success)
+        val request = transport.requests.single()
+        assertEquals(
+            "http://10.0.2.2:5001/demo-converter-credit/us-central1/verifyCreditPurchaseV2",
+            request.url,
+        )
+        val body = JSONObject(request.body!!)
+        assertEquals(setOf("productId", "purchaseToken"), body.keys().asSequence().toSet())
+        assertFalse(request.body.orEmpty().contains("userId"))
+        assertFalse(request.body.orEmpty().contains("credits"))
+        assertFalse(request.body.orEmpty().contains("expiry"))
+        assertFalse(request.toString().contains("private-consumable-token"))
+    }
+
+    @Test
+    fun creditRecovery_sendsOnlyTokenToTokenOnlyRecoveryEndpoint() = runTest {
+        val transport = RecordingTransport(
+            BackendHttpResponse(
+                200,
+                """{"success":true,"purchase":{"productId":"test_pack_100","status":"CONSUMED","credits":100},"account":${BackendJsonParserTest.accountObject(available = 100)}}""",
+            ),
+        )
+        val client = HttpBackendClient(
+            emulatorEnvironment(),
+            SuccessfulAuthSession(),
+            SuccessfulAppCheckSession(),
+            transport,
+        )
+
+        assertTrue(client.recoverCreditPurchase("recovery-token") is BackendResult.Success)
+        val request = transport.requests.single()
+        assertEquals(
+            "http://10.0.2.2:5001/demo-converter-credit/us-central1/recoverCreditPurchaseV2",
+            request.url,
+        )
+        val body = JSONObject(request.body!!)
+        assertEquals(setOf("purchaseToken"), body.keys().asSequence().toSet())
+        assertFalse(request.toString().contains("recovery-token"))
+    }
+
+    @Test
     fun disabledProductionV2_neverAcquiresTokensOrSendsRequest() = runTest {
         val auth = SuccessfulAuthSession()
         val appCheck = SuccessfulAppCheckSession()

@@ -17,7 +17,7 @@ class FrequencyAppOpenAdManager private constructor() {
         if (adUnitId.isBlank()) return
         if (!AdsGate.canRequestAds) return
         if (!AdsGate.isFrequencyAppOpenEnabled) return
-        if (AdsGate.isSubscribedProvider()) return
+        if (AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive()) return
 
         val request = AdRequestHelper.createRequest(AdsGate.isPersonalizedAdsAllowed())
         AppOpenAd.load(
@@ -40,7 +40,7 @@ class FrequencyAppOpenAdManager private constructor() {
     fun showIfAvailable(activity: Activity) {
         if (!AdsGate.canRequestAds) return
         if (!AdsGate.isFrequencyAppOpenEnabled) return
-        if (AdsGate.isSubscribedProvider()) return
+        if (AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive()) return
         if (isShowingAd) return
         if (appOpenAd == null || !isAdAvailable()) {
             load(activity)
@@ -66,6 +66,11 @@ class FrequencyAppOpenAdManager private constructor() {
     private fun isAdAvailable(): Boolean {
         val elapsed = System.currentTimeMillis() - loadTime
         return elapsed < TimeUnit.HOURS.toMillis(1)
+    }
+
+    fun discard() {
+        appOpenAd = null
+        loadTime = 0L
     }
 
     companion object {

@@ -55,7 +55,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.image.word.converter.convert.docx.R
@@ -66,6 +65,10 @@ import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
 import com.image.word.converter.convert.docx.ui.theme.WordGradients
 import com.image.word.converter.convert.docx.ui.theme.WordGrayTextSub
 import com.image.word.converter.convert.docx.ui.theme.wordPlanBorderUnselected
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
 fun SubscriptionScreen(
@@ -79,7 +82,7 @@ fun SubscriptionScreen(
     val activity = context as? Activity
     var showAlert by remember { mutableStateOf(false) }
     var alertMessage by remember { mutableStateOf("") }
-    val usesCreditSubscriptions = remember {
+    val usesCreditPurchases = remember {
         BackendEnvironment.current().accountIntegrationEnabled
     }
 
@@ -100,14 +103,18 @@ fun SubscriptionScreen(
     }
 
     val premiumItems = listOf(
-        if (usesCreditSubscriptions) {
-            R.string.sub_feature_subscription_credits
+        if (usesCreditPurchases) {
+            R.string.sub_feature_one_time_credits
         } else {
             R.string.sub_feature_unlimited_scanning
         },
         R.string.sub_feature_high_accuracy,
         R.string.sub_feature_fast_smooth,
-        R.string.sub_feature_ads_free,
+        if (usesCreditPurchases) {
+            R.string.sub_feature_ad_free_while_credits
+        } else {
+            R.string.sub_feature_ads_free
+        },
     )
 
     Column(
@@ -163,7 +170,7 @@ fun SubscriptionScreen(
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            SubscriptionHeader(usesCreditSubscriptions = usesCreditSubscriptions)
+            SubscriptionHeader(usesCreditSubscriptions = usesCreditPurchases)
 
             if (uiState.conversionAccessMode == ConversionAccessMode.TEMPORARY_UNLIMITED) {
                 Text(
@@ -173,22 +180,35 @@ fun SubscriptionScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else if (uiState.conversionAccessMode == ConversionAccessMode.FREE &&
-                uiState.freeConversionAvailable
-            ) {
+            } else if (usesCreditPurchases) {
                 Text(
-                    text = stringResource(R.string.one_free_conversion_available),
+                    text = stringResource(
+                        R.string.free_conversions_remaining_count,
+                        uiState.freeConversionsRemaining,
+                    ),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else uiState.availableCredits?.let { credits ->
+            }
+            uiState.availableCredits?.let { credits ->
                 Text(
                     text = stringResource(R.string.credits_available, credits),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (usesCreditPurchases && uiState.availableCredits != null) {
+                Text(
+                    text = uiState.nextCreditExpiryAt?.let { expiry ->
+                        stringResource(R.string.next_credit_expiry, formatServerTimestamp(expiry))
+                    } ?: stringResource(R.string.no_valid_credit_expiry),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -224,7 +244,49 @@ fun SubscriptionScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             } else {
-                uiState.products.forEach { product ->
+                if (usesCreditPurchases) uiState.creditProducts.forEach { product ->
+                    val selected = uiState.selectedCreditProductId == product.id
+                    val borderBrush = if (selected) {
+                        Brush.horizontalGradient(WordGradients.subscribeButton)
+                    } else {
+                        val color = wordPlanBorderUnselected()
+                        Brush.horizontalGradient(listOf(color, color))
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 5.dp)
+                            .border(4.dp, borderBrush, RoundedCornerShape(16.dp))
+                            .background(
+                                if (selected) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(16.dp),
+                            )
+                            .clickable { viewModel.selectProduct(product.id) }
+                            .padding(16.dp),
+                    ) {
+                        Column {
+                            Text(
+                                text = product.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                text = product.priceFormatted,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.credit_pack_benefit,
+                                    product.credits,
+                                    product.expiryDays,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                } else uiState.products.forEach { product ->
                     val selected = uiState.selectedProductId == product.id
                     val borderBrush = if (selected) {
                         Brush.horizontalGradient(WordGradients.subscribeButton)
@@ -258,13 +320,6 @@ fun SubscriptionScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                if (usesCreditSubscriptions) {
-                                    Text(
-                                        text = stringResource(creditBenefitText(product.id)),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
                             }
                             Text(
                                 text = product.weeklyEquivalentText,
@@ -280,30 +335,46 @@ fun SubscriptionScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
                         .background(Brush.horizontalGradient(WordGradients.subscribeButton))
-                        .clickable(enabled = activity != null) {
+                        .clickable(
+                            enabled = activity != null && if (usesCreditPurchases) {
+                                uiState.selectedCreditProductId != null
+                            } else {
+                                uiState.selectedProductId != null
+                            },
+                        ) {
                             activity?.let { viewModel.purchase(it) }
                         }
                         .padding(vertical = 15.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = stringResource(R.string.subscribe),
+                        text = stringResource(
+                            if (usesCreditPurchases) R.string.buy_credits else R.string.subscribe,
+                        ),
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
 
-                Text(
-                    text = stringResource(R.string.auto_renewal_cancel_anytime),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = WordGrayTextSub,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                if (!usesCreditPurchases) {
+                    Text(
+                        text = stringResource(R.string.auto_renewal_cancel_anytime),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = WordGrayTextSub,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
 
                 Text(
-                    text = stringResource(R.string.subscription_legal_text_ios),
+                    text = stringResource(
+                        if (usesCreditPurchases) {
+                            R.string.credit_purchase_legal_text
+                        } else {
+                            R.string.subscription_legal_text_ios
+                        },
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = WordGrayTextSub,
                     textAlign = TextAlign.Center,
@@ -374,12 +445,10 @@ fun SubscriptionScreen(
     }
 }
 
-@StringRes
-private fun creditBenefitText(productId: String): Int = when (productId) {
-    SubscriptionViewModel.PRODUCT_WEEKLY -> R.string.weekly_credit_benefit
-    SubscriptionViewModel.PRODUCT_MONTHLY -> R.string.monthly_credit_benefit
-    else -> R.string.sub_feature_subscription_credits
-}
+private fun formatServerTimestamp(value: String): String = runCatching {
+    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+        .format(Instant.parse(value).atZone(ZoneId.systemDefault()))
+}.getOrDefault(value)
 
 @Composable
 private fun SubscriptionHeader(usesCreditSubscriptions: Boolean) {
@@ -411,7 +480,7 @@ private fun SubscriptionHeader(usesCreditSubscriptions: Boolean) {
         Text(
             text = stringResource(
                 if (usesCreditSubscriptions) {
-                    R.string.subscription_desc_credits
+                    R.string.credit_shop_description
                 } else {
                     R.string.subscription_desc_ios
                 },

@@ -39,7 +39,9 @@ class InterstitialAdManager(private val adType: AdType) {
         }
 
     fun load(activity: Activity) {
-        if (adUnitId.isBlank() || !AdsGate.canRequestAds || !isAdEnabled || AdsGate.isSubscribedProvider()) {
+        if (adUnitId.isBlank() || !AdsGate.canRequestAds || !isAdEnabled ||
+            AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive()
+        ) {
             completePendingShowWithoutAd("Ad loading is not allowed")
             return
         }
@@ -83,8 +85,8 @@ class InterstitialAdManager(private val adType: AdType) {
     ) {
         val completeOnce = onceOnMain(onClose)
         when {
-            AdsGate.isSubscribedProvider() -> {
-                Log.d(TAG, "User is subscribed, skipping ad")
+            AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive() -> {
+                Log.d(TAG, "Ad presentation is currently suppressed")
                 completeOnce()
             }
             !AdsGate.canRequestAds -> {
@@ -119,7 +121,8 @@ class InterstitialAdManager(private val adType: AdType) {
         val ad = interstitialAd
         if (
             activity == null || activity.isFinishing || activity.isDestroyed ||
-            ad == null || AdsGate.isSubscribedProvider() || !AdsGate.canRequestAds || !isAdEnabled
+            ad == null || AdsGate.isAdFreeProvider() || AdsGate.isCriticalOperationActive() ||
+                !AdsGate.canRequestAds || !isAdEnabled
         ) {
             completePendingShowWithoutAd("Pending ad can no longer be presented")
             return
@@ -188,6 +191,12 @@ class InterstitialAdManager(private val adType: AdType) {
     private fun clearPendingShow() {
         cancelPendingShowTimeout()
         pendingShow = null
+    }
+
+    fun discard() {
+        interstitialAd = null
+        isLoadingAd = false
+        completePendingShowWithoutAd("Ad entitlement became inactive")
     }
 
     private fun cancelPendingShowTimeout() {

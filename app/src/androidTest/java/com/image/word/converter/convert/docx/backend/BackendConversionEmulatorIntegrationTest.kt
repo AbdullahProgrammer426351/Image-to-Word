@@ -26,6 +26,7 @@ class BackendConversionEmulatorIntegrationTest {
         withTimeout(30_000) { repository.initialize() }
         val initialAccount = repository.readyAccount()
         assertEquals(ConversionAccessMode.FREE, initialAccount.conversionAccess.mode)
+        assertEquals(2, initialAccount.conversionAccess.freeConversion.remaining)
         val freeRequest = ImageConversionRequest(
             image = TINY_JPEG_BASE64,
             idempotencyKey = FREE_IDEMPOTENCY_KEY,
@@ -41,7 +42,8 @@ class BackendConversionEmulatorIntegrationTest {
 
         withTimeout(30_000) { repository.refresh() }
         assertEquals(initialAccount.credits.available, repository.readyAccount().credits.available)
-        assertEquals(ConversionAccessMode.NONE, repository.readyAccount().conversionAccess.mode)
+        assertEquals(ConversionAccessMode.FREE, repository.readyAccount().conversionAccess.mode)
+        assertEquals(1, repository.readyAccount().conversionAccess.freeConversion.remaining)
 
         val repeatedFree = withTimeout(120_000) {
             BackendClientStore.client.imageToWord(freeRequest).requireSuccess()
@@ -50,17 +52,29 @@ class BackendConversionEmulatorIntegrationTest {
         assertEquals(0L, repeatedFree.credits.charged)
         assertEquals(initialAccount.credits.available, repeatedFree.credits.available)
 
+        val secondFreeRequest = ImageConversionRequest(
+            image = TINY_JPEG_BASE64,
+            idempotencyKey = SECOND_FREE_IDEMPOTENCY_KEY,
+        )
+        val secondFree = withTimeout(120_000) {
+            BackendClientStore.client.imageToWord(secondFreeRequest).requireSuccess()
+        }
+        assertEquals(0L, secondFree.credits.charged)
+        withTimeout(30_000) { repository.refresh() }
+        assertEquals(0, repository.readyAccount().conversionAccess.freeConversion.remaining)
+        assertEquals(ConversionAccessMode.NONE, repository.readyAccount().conversionAccess.mode)
+
         val purchaseToken = InstrumentationRegistry.getArguments()
-            .getString("fakePlayConversionPurchaseToken")
+            .getString("fakePlayCreditPurchaseToken")
         assertTrue("Missing fake conversion-credit fixture", !purchaseToken.isNullOrBlank())
         val purchaseAccount = withTimeout(60_000) {
-            BackendClientStore.client.verifySubscriptionPurchase(
-                SubscriptionVerificationRequest("imagetoword_1w", purchaseToken!!),
-            ).requireAccountSuccess()
+            BackendClientStore.client.verifyCreditPurchase(
+                CreditPurchaseVerificationRequest("test_pack_100", purchaseToken!!),
+            ).requirePurchaseSuccess().account
         }
         repository.acceptAuthoritativeAccount(purchaseAccount)
         withTimeout(30_000) { repository.refresh() }
-        assertEquals(500L, repository.readyAccount().credits.available)
+        assertEquals(100L, repository.readyAccount().credits.available)
         assertEquals(ConversionAccessMode.CREDIT_BASED, repository.readyAccount().conversionAccess.mode)
 
         val chargedRequest = ImageConversionRequest(
@@ -71,7 +85,7 @@ class BackendConversionEmulatorIntegrationTest {
             BackendClientStore.client.imageToWord(chargedRequest).requireSuccess()
         }
         assertEquals(MINIMUM_CHARGE, charged.credits.charged)
-        assertEquals(500L - MINIMUM_CHARGE, charged.credits.available)
+        assertEquals(100L - MINIMUM_CHARGE, charged.credits.available)
 
         val repeatedCharged = withTimeout(120_000) {
             BackendClientStore.client.imageToWord(chargedRequest).requireSuccess()
@@ -81,7 +95,7 @@ class BackendConversionEmulatorIntegrationTest {
         assertEquals(charged.credits.available, repeatedCharged.credits.available)
 
         withTimeout(30_000) { repository.refresh() }
-        assertEquals(500L - MINIMUM_CHARGE, repository.readyAccount().credits.available)
+        assertEquals(100L - MINIMUM_CHARGE, repository.readyAccount().credits.available)
     }
 
     private fun AccountRepository.readyAccount(): AccountState {
@@ -100,6 +114,12 @@ class BackendConversionEmulatorIntegrationTest {
         throw AssertionError("Expected successful purchase verification, got $this")
     }
 
+    private fun BackendResult<CreditPurchaseVerificationResponse>.requirePurchaseSuccess():
+        CreditPurchaseVerificationResponse {
+        if (this is BackendResult.Success) return value
+        throw AssertionError("Expected successful credit purchase verification, got $this")
+    }
+
     private fun resetLocalAuthSessions() {
         FirebaseApp.getApps(InstrumentationRegistry.getInstrumentation().targetContext)
             .forEach { FirebaseAuth.getInstance(it).signOut() }
@@ -108,6 +128,7 @@ class BackendConversionEmulatorIntegrationTest {
     private companion object {
         const val MINIMUM_CHARGE = 5L
         const val FREE_IDEMPOTENCY_KEY = "android-physical-device-free-conversion-v1"
+        const val SECOND_FREE_IDEMPOTENCY_KEY = "android-physical-device-free-conversion-v2"
         const val CREDIT_IDEMPOTENCY_KEY = "android-physical-device-credit-conversion-v1"
         const val TINY_JPEG_BASE64 =
             "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EB//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EB//2Q=="

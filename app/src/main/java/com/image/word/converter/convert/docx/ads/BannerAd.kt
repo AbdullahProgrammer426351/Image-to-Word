@@ -21,7 +21,9 @@ fun BannerAd(isSubscribed: Boolean, modifier: Modifier = Modifier) {
     val activity = context as? Activity
     val adUnitID = AdsId.bannerId
 
-    if (activity == null || adUnitID.isBlank() || isSubscribed || !AdsGate.isBannerEnabled || !AdsGate.canRequestAds)  {
+    if (activity == null || adUnitID.isBlank() || isSubscribed || AdsGate.isAdFreeProvider() ||
+        AdsGate.isCriticalOperationActive() || !AdsGate.isBannerEnabled || !AdsGate.canRequestAds
+    ) {
         return 
     }
 

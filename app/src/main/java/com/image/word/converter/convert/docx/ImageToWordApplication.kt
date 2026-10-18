@@ -11,6 +11,8 @@ import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderF
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.image.word.converter.convert.docx.ads.AdsGate
 import com.image.word.converter.convert.docx.backend.AccountRepository
+import com.image.word.converter.convert.docx.backend.AccountIdentitySnapshot
+import com.image.word.converter.convert.docx.backend.AccountIdentityStore
 import com.image.word.converter.convert.docx.backend.AccountRepositoryState
 import com.image.word.converter.convert.docx.backend.AppCheckEnvironmentPolicy
 import com.image.word.converter.convert.docx.backend.AppCheckProviderMode
@@ -40,6 +42,17 @@ class ImageToWordApplication : Application() {
         isolateProductionServicesIfNeeded(environment)
 
         val firebaseAuth = createBackendFirebaseAuth(environment)
+        AccountIdentityStore.snapshotProvider = {
+            val user = firebaseAuth.currentUser
+            AccountIdentitySnapshot(
+                hasUser = user != null,
+                isAnonymous = user?.isAnonymous != false,
+                providerIds = user?.providerData.orEmpty()
+                    .mapNotNull { it.providerId.takeIf(String::isNotBlank) }
+                    .filterNot { it == "firebase" }
+                    .toSet(),
+            )
+        }
         val authSession = FirebaseAnonymousAuthSession(firebaseAuth)
         val backendClient = if (environment.accountIntegrationEnabled) {
             HttpBackendClient(

@@ -22,6 +22,7 @@ class BackendJsonParserTest {
         assertEquals(true, account.subscription.autoRenewing)
         assertEquals(ConversionAccessMode.CREDIT_BASED, account.conversionAccess.mode)
         assertTrue(account.conversionAccess.canConvert)
+        assertTrue(account.conversionAccess.ads.adFree)
     }
 
     @Test
@@ -175,6 +176,45 @@ class BackendJsonParserTest {
         assertEquals(1_295L, result.value.credits.available)
     }
 
+    @Test
+    fun oneTimeCatalog_parsesOnlyValidServerConfiguredInAppProducts() {
+        val result = BackendJsonParser.parseCreditProductCatalogEnvelope(
+            """{"success":true,"products":[{"productId":"test_pack_100","productType":"INAPP","credits":100,"expiryDays":30}]}""",
+            200,
+        ) as BackendResult.Success
+
+        assertEquals(listOf(CreditProduct("test_pack_100", "INAPP", 100, 30)), result.value)
+
+        val invalid = BackendJsonParser.parseCreditProductCatalogEnvelope(
+            """{"success":true,"products":[{"productId":"bad","productType":"SUBS","credits":100,"expiryDays":30}]}""",
+            200,
+        ) as BackendResult.Failure
+        assertTrue(invalid.failure is BackendFailure.InvalidResponse)
+    }
+
+    @Test
+    fun oneTimeVerification_parsesReceiptAndAuthoritativeAccount() {
+        val result = BackendJsonParser.parseCreditPurchaseVerificationEnvelope(
+            """{"success":true,"purchase":{"productId":"test_pack_100","status":"CONSUMED","credits":100},"account":${accountObject(available = 100)}}""",
+            200,
+        ) as BackendResult.Success
+
+        assertEquals("test_pack_100", result.value.purchase.productId)
+        assertEquals("CONSUMED", result.value.purchase.status)
+        assertEquals(100L, result.value.account.credits.available)
+    }
+
+    @Test
+    fun accountParser_temporarilyAcceptsInitialBackendRootAdsMismatch() {
+        val raw = accountEnvelope().replace(
+            """,\n                \"ads\": {\n                  \"adFree\": true,\n                  \"eligible\": false\n                }\n              }""",
+            """\n              },\n              \"ads\": {\"adFree\":true,\"eligible\":false}""",
+        )
+
+        val result = BackendJsonParser.parseAccountEnvelope(raw) as BackendResult.Success
+        assertTrue(result.value.conversionAccess.ads.adFree)
+    }
+
     companion object {
         fun accountObject(
             subscription: String = """
@@ -209,7 +249,13 @@ class BackendJsonParserTest {
                 "canConvert": ${accessMode != "NONE"},
                 "freeConversion": {
                   "status": "$freeStatus",
-                  "available": $freeAvailable
+                  "available": $freeAvailable,
+                  "successfulConversions": ${if (freeAvailable) 0 else 2},
+                  "remaining": ${if (freeAvailable) 2 else 0}
+                },
+                "ads": {
+                  "adFree": ${available > 0},
+                  "eligible": ${available <= 0}
                 }
               }
             }

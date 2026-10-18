@@ -171,6 +171,7 @@
     <string name="failed_to_load_subscriptions">Failed to load subscriptions: %1$s</string>
     <string name="purchase_successful">Purchase successful!</string>
     <string name="str_no_subscription_found_to_restore">No previous subscriptions found.</string>
+    <string name="str_no_purchase_found_to_restore">No outstanding purchase or legacy subscription was found. Consumed credit purchases are restored through your signed-in app account.</string>
     <string name="processing_purchase">Processing Purchase…</string>
     <string name="subscription_offer_unavailable">A single verified offer is not available for this plan.</string>
     <string name="subscription_purchase_pending">Your purchase is pending in Google Play and is not active yet.</string>
@@ -179,6 +180,14 @@
     <string name="subscription_verification_failed">The backend could not verify this purchase. No subscription or credits were granted locally.</string>
     <string name="subscription_not_active">Google Play verification completed, but the backend reports that this subscription is not currently active.</string>
     <string name="subscription_ownership_conflict">This purchase belongs to a different backend account.</string>
+    <string name="credit_catalog_unavailable">Credit packs are temporarily unavailable. No purchase can be started.</string>
+    <string name="credit_catalog_play_mismatch">The available credit packs could not be matched to Google Play offers.</string>
+    <string name="failed_to_load_credit_products">Failed to load Google Play credit offers: %1$s</string>
+    <string name="credit_purchase_pending">Your payment is pending in Google Play. Credits will appear only after payment and server verification complete.</string>
+    <string name="credit_purchase_verified">Purchase verified. Your account balance has been refreshed.</string>
+    <string name="credit_purchase_verification_retrying">Server verification or Google Play consumption is temporarily unavailable. The purchase was saved and will be retried with the same token.</string>
+    <string name="credit_purchase_verification_failed">The server could not verify this purchase. Android did not grant any credits.</string>
+    <string name="credit_purchase_recoverable_account_required">Sign in with a recoverable account before buying credits. A sign-in provider must be configured for this build; your anonymous account and its history will not be replaced automatically.</string>
     <string name="please_wait_purchase">Please wait while we complete your transaction.</string>
 
     <string name="failed_generic">Something went wrong. Please try again.</string>
@@ -277,9 +286,15 @@
     <string name="subscription_desc_credits">A recurring conversion subscription with credits for Image-to-Word conversions, premium editing tools, and an ad-free experience. Credits are used based on image size; each conversion costs at least 5 credits.</string>
     <string name="sub_feature_unlimited_scanning">Unlimited Scanning</string>
     <string name="sub_feature_subscription_credits">Recurring conversion credits; usage varies by image size</string>
+    <string name="sub_feature_one_time_credits">One-time conversion credit packs; no auto-renewal</string>
     <string name="sub_feature_high_accuracy">High-Accuracy Word Output</string>
     <string name="sub_feature_fast_smooth">Fast &amp; Smooth</string>
     <string name="sub_feature_ads_free">Ads-Free</string>
+    <string name="sub_feature_ad_free_while_credits">Ad-free while valid purchased credits remain</string>
+    <string name="credit_shop_description">Buy one-time credit packs for Image-to-Word conversions. Credits expire according to the selected pack and usage varies by image size.</string>
+    <string name="buy_credits">Buy credits</string>
+    <string name="credit_pack_benefit">%1$d conversion credits; valid for %2$d days after server verification</string>
+    <string name="credit_purchase_legal_text">This is a one-time consumable purchase, not a subscription. Credits are granted only after server verification, expire as shown for the selected pack, and are used according to image size. You can buy the same pack again after Google Play consumption completes.</string>
     <string name="subscription_legal_text_ios">Your subscription renews automatically unless canceled at least 24 hours before the current period ends. Manage or cancel it in your Google Play account settings. Weekly subscriptions provide 500 credits valid for 8 days; monthly subscriptions provide 1,200 credits valid for 35 days. Credits are used according to image size, with a minimum of 5 credits per conversion. Tap Restore Purchase if you already subscribed.</string>
     <string name="converting_images">Converting images…</string>
     <string name="word_processing_message">We’re turning your image(s) into an editable Word file. Please wait.</string>
@@ -288,11 +303,14 @@
     <string name="weekly_credit_benefit">500 conversion credits; valid for 8 days</string>
     <string name="monthly_credit_benefit">1,200 conversion credits; valid for 35 days</string>
     <string name="one_free_conversion_available">One free conversion available</string>
+    <string name="free_conversions_remaining_count">%1$d lifetime free conversions remaining</string>
     <string name="no_free_conversions_remaining">No free conversions remaining</string>
     <string name="temporary_unlimited_conversion_active">Temporary unlimited conversion access active</string>
     <string name="no_conversion_entitlement_subscribe">No conversion entitlement available. Subscribe.</string>
     <string name="credits_loading">Loading credits…</string>
     <string name="credits_unavailable">Credits temporarily unavailable</string>
+    <string name="next_credit_expiry">Next credit expiry: %1$s</string>
+    <string name="no_valid_credit_expiry">No valid purchased-credit expiry is currently reported.</string>
     <string name="account_state_retry_message">We could not confirm your conversion access. Check your connection and try again.</string>
     <string name="conversion_needs_attention">Conversion needs attention</string>
     <string name="retry">Retry</string>

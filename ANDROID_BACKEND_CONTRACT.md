@@ -1,6 +1,6 @@
 # Android Backend Contract (V2)
 
-Status: frozen for Android implementation. The four HTTP functions use production-capable Gen 2 exports but remain undeployed; demo execution is still strictly guarded to `demo-converter-credit`, and production requires explicit backend configuration. The original production `imageToWord` function is unchanged.
+Status: the original account/conversion/subscription contract remains historical reference. One-time purchases, two-free-conversion fields, and ad entitlement are governed by backend `V2_ONE_TIME_PURCHASE_CONTRACT.md` at commit `8a1906e`. The added endpoints are `getCreditProductCatalogV2`, `verifyCreditPurchaseV2`, and `recoverCreditPurchaseV2`; production product values remain unconfigured.
 
 ## 1. Architecture and source of truth
 

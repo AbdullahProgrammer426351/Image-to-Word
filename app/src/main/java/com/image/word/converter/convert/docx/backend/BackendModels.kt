@@ -32,12 +32,20 @@ enum class ConversionAccessMode {
 data class FreeConversionState(
     val status: String,
     val available: Boolean,
+    val successfulConversions: Int = 0,
+    val remaining: Int = if (available) 1 else 0,
+)
+
+data class AdEntitlementState(
+    val adFree: Boolean,
+    val eligible: Boolean,
 )
 
 data class ConversionAccessState(
     val mode: ConversionAccessMode,
     val canConvert: Boolean,
     val freeConversion: FreeConversionState,
+    val ads: AdEntitlementState = AdEntitlementState(adFree = false, eligible = true),
 )
 
 data class AccountState(
@@ -81,6 +89,29 @@ data class ImageConversionResponse(
 data class SubscriptionVerificationRequest(
     val productId: String,
     val purchaseToken: String,
+)
+
+data class CreditProduct(
+    val productId: String,
+    val productType: String,
+    val credits: Long,
+    val expiryDays: Int,
+)
+
+data class CreditPurchaseVerificationRequest(
+    val productId: String,
+    val purchaseToken: String,
+)
+
+data class CreditPurchaseReceipt(
+    val productId: String,
+    val status: String,
+    val credits: Long,
+)
+
+data class CreditPurchaseVerificationResponse(
+    val purchase: CreditPurchaseReceipt,
+    val account: AccountState,
 )
 
 sealed interface BackendResult<out T> {

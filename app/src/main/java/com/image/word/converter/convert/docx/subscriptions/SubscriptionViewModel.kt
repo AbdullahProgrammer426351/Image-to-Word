@@ -25,10 +25,15 @@ import com.image.word.converter.convert.docx.backend.BackendAccountStore
 import com.image.word.converter.convert.docx.backend.BackendClientStore
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
 import com.image.word.converter.convert.docx.backend.BackendFailure
+import com.image.word.converter.convert.docx.backend.AccountIdentityStore
+import com.image.word.converter.convert.docx.backend.AccountRecoveryPolicy
+import com.image.word.converter.convert.docx.backend.PurchaseRecoveryReadiness
+import com.image.word.converter.convert.docx.ads.AdsGate
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Currency
+import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -42,13 +47,25 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
     private val _uiState = MutableStateFlow(SubscriptionUiState())
     val uiState: StateFlow<SubscriptionUiState> = _uiState
 
-    private val productIds = listOf(PRODUCT_WEEKLY, PRODUCT_MONTHLY)
+    private val legacySubscriptionIds = listOf(PRODUCT_WEEKLY, PRODUCT_MONTHLY)
     private val pendingStore = PrivatePendingPurchaseStore(app)
+    private val pendingCreditStore = PrivatePendingCreditPurchaseStore(app)
+    private val creditCatalogById = linkedMapOf<String, com.image.word.converter.convert.docx.backend.CreditProduct>()
     private val backendVerifier = if (usesBackendAuthority) {
         BackendSubscriptionVerifier(
             backendClient = BackendClientStore.client,
             accountGateway = RepositoryAccountGateway(BackendAccountStore.repository),
             pendingStore = pendingStore,
+        )
+    } else {
+        null
+    }
+    private val creditPurchaseVerifier = if (usesBackendAuthority) {
+        CreditPurchaseVerifier(
+            backendClient = BackendClientStore.client,
+            accountGateway = RepositoryAccountGateway(BackendAccountStore.repository),
+            pendingStore = pendingCreditStore,
+            enabledProductIds = { creditCatalogById.keys },
         )
     } else {
         null
@@ -67,6 +84,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
     private val productDetailsById = mutableMapOf<String, ProductDetails>()
     private var billingReady = false
     private var resumeQueryRequested = false
+    private var lastAuthoritativeAdCheckAt: Instant? = null
 
     init {
         if (usesBackendAuthority) observeAuthoritativeAccount()
@@ -74,24 +92,46 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
     }
 
     fun selectProduct(productId: String) {
-        if (productId in productIds) {
+        if (productId in legacySubscriptionIds) {
             _uiState.update { it.copy(selectedProductId = productId) }
+        } else if (productId in creditCatalogById) {
+            _uiState.update { it.copy(selectedCreditProductId = productId) }
         }
     }
 
     fun purchase(activity: Activity) {
-        val selectedId = _uiState.value.selectedProductId ?: return
+        val selectedId = if (usesBackendAuthority) {
+            _uiState.value.selectedCreditProductId
+        } else {
+            _uiState.value.selectedProductId
+        } ?: return
         purchaseByProductId(activity, selectedId)
     }
 
     fun purchaseByProductId(activity: Activity, productId: String) {
-        val product = _uiState.value.products.singleOrNull { it.id == productId }
-            ?: return showAlert(R.string.subscription_offer_unavailable)
+        val isCreditProduct = productId in creditCatalogById
+        if (isCreditProduct && AccountRecoveryPolicy.readiness(
+                AccountIdentityStore.snapshotProvider(),
+            ) != PurchaseRecoveryReadiness.RECOVERABLE
+        ) {
+            return showAlert(R.string.credit_purchase_recoverable_account_required)
+        }
+        val isKnownProduct = if (isCreditProduct) {
+            _uiState.value.creditProducts.any { it.id == productId }
+        } else {
+            _uiState.value.products.any { it.id == productId }
+        }
+        if (!isKnownProduct) return showAlert(R.string.subscription_offer_unavailable)
         val productDetails = productDetailsById[productId]
             ?: return showAlert(R.string.subscription_offer_unavailable)
         val params = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(productDetails)
-            .setOfferToken(product.offerToken)
+            .apply {
+                if (!isCreditProduct) {
+                    val offerToken = _uiState.value.products.single { it.id == productId }.offerToken
+                    setOfferToken(offerToken)
+                }
+            }
             .build()
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(params))
@@ -112,7 +152,9 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
     }
 
     fun restorePurchases() {
-        viewModelScope.launch { queryActivePurchases(fromRestoreAction = true) }
+        viewModelScope.launch {
+            withAdsSuppressed { queryActivePurchases(fromRestoreAction = true) }
+        }
     }
 
     fun onAppResume() {
@@ -146,19 +188,36 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             }
             return
         }
-        viewModelScope.launch { handlePurchases(purchases) }
+        viewModelScope.launch {
+            if (usesBackendAuthority) {
+                handleCreditPurchases(purchases)
+                handlePurchases(purchases)
+            } else {
+                handlePurchases(purchases)
+            }
+        }
     }
 
     private fun observeAuthoritativeAccount() {
         viewModelScope.launch {
             BackendAccountStore.repository.state.collectLatest { repositoryState ->
-                val entitlement = BackendEntitlementPolicy.from(repositoryState)
+                if (repositoryState is com.image.word.converter.convert.docx.backend.AccountRepositoryState.Ready) {
+                    lastAuthoritativeAdCheckAt = Instant.now()
+                }
+                val entitlement = BackendEntitlementPolicy.from(
+                    repositoryState,
+                    lastAuthoritativeAdCheckAt = lastAuthoritativeAdCheckAt,
+                )
                 _uiState.update {
                     it.copy(
                         isSubscribed = entitlement.isSubscribed,
                         availableCredits = entitlement.availableCredits,
                         conversionAccessMode = entitlement.conversionAccessMode,
                         freeConversionAvailable = entitlement.freeConversionAvailable,
+                        freeConversionsRemaining = entitlement.freeConversionsRemaining,
+                        nextCreditExpiryAt = entitlement.nextCreditExpiryAt,
+                        isAdFree = entitlement.isAdFree,
+                        areAdsEligible = entitlement.areAdsEligible,
                         isEntitlementLoading = entitlement.isLoading,
                         isBackendTemporarilyUnavailable = entitlement.isTemporarilyUnavailable,
                     )
@@ -174,7 +233,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                     if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                         billingReady = true
                         viewModelScope.launch {
-                            fetchProducts()
+                            if (usesBackendAuthority) fetchCreditProducts() else fetchProducts()
                             recoverThenQuery()
                             if (resumeQueryRequested) {
                                 resumeQueryRequested = false
@@ -202,15 +261,98 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
     }
 
     private suspend fun recoverThenQuery() {
-        if (usesBackendAuthority && canSubmitRealPlayTokensToBackend()) {
-            backendVerifier?.retryPersisted()?.let(::applyVerificationResult)
+        withAdsSuppressed {
+            if (usesBackendAuthority && canSubmitRealPlayTokensToBackend()) {
+                backendVerifier?.retryPersisted()?.let(::applyVerificationResult)
+                creditPurchaseVerifier?.retryPersisted()?.let(::applyCreditVerificationResult)
+            }
+            queryActivePurchases()
         }
-        queryActivePurchases()
+    }
+
+    private suspend fun <T> withAdsSuppressed(block: suspend () -> T): T {
+        AdsGate.beginCriticalOperation()
+        return try {
+            block()
+        } finally {
+            AdsGate.endCriticalOperation()
+        }
+    }
+
+    private suspend fun fetchCreditProducts() {
+        _uiState.update { it.copy(isLoading = true) }
+        when (val catalogResult = BackendClientStore.client.getCreditProductCatalog()) {
+            is com.image.word.converter.convert.docx.backend.BackendResult.Failure -> {
+                creditCatalogById.clear()
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        creditProducts = emptyList(),
+                        selectedCreditProductId = null,
+                        alertMessage = app.getString(R.string.credit_catalog_unavailable),
+                    )
+                }
+            }
+            is com.image.word.converter.convert.docx.backend.BackendResult.Success -> {
+                creditCatalogById.clear()
+                catalogResult.value.forEach { creditCatalogById[it.productId] = it }
+                if (creditCatalogById.isEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            creditProducts = emptyList(),
+                            selectedCreditProductId = null,
+                            alertMessage = app.getString(R.string.credit_catalog_unavailable),
+                        )
+                    }
+                    return
+                }
+                val products = creditCatalogById.keys.map { productId ->
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(productId)
+                        .setProductType(BillingClient.ProductType.INAPP)
+                        .build()
+                }
+                val result = billingClient.queryProductDetails(
+                    QueryProductDetailsParams.newBuilder().setProductList(products).build(),
+                )
+                if (result.billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            alertMessage = app.getString(
+                                R.string.failed_to_load_credit_products,
+                                result.billingResult.debugMessage,
+                            ),
+                        )
+                    }
+                    return
+                }
+                productDetailsById.keys.removeAll(creditCatalogById.keys)
+                val mapped = result.productDetailsList.orEmpty().mapNotNull { details ->
+                    mapToCreditProduct(details)?.also { productDetailsById[details.productId] = details }
+                }.sortedBy { creditCatalogById.keys.indexOf(it.id) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        creditProducts = mapped,
+                        selectedCreditProductId = it.selectedCreditProductId
+                            ?.takeIf { id -> mapped.any { product -> product.id == id } }
+                            ?: mapped.firstOrNull()?.id,
+                        alertMessage = if (mapped.isEmpty()) {
+                            app.getString(R.string.credit_catalog_play_mismatch)
+                        } else {
+                            it.alertMessage
+                        },
+                    )
+                }
+            }
+        }
     }
 
     private suspend fun fetchProducts() {
         _uiState.update { it.copy(isLoading = true) }
-        val products = productIds.map { productId ->
+        val products = legacySubscriptionIds.map { productId ->
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(productId)
                 .setProductType(BillingClient.ProductType.SUBS)
@@ -238,7 +380,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                 productDetailsById[details.productId] = details
             }
         }
-        val productOrder = productIds.withIndex().associate { it.value to it.index }
+        val productOrder = legacySubscriptionIds.withIndex().associate { it.value to it.index }
         val sorted = mapped.sortedBy { productOrder[it.id] ?: Int.MAX_VALUE }
         val defaultId = sorted.firstOrNull { it.id == PRODUCT_MONTHLY }?.id
             ?: sorted.firstOrNull()?.id
@@ -262,16 +404,42 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             if (fromRestoreAction) showAlert(R.string.subscription_offer_unavailable)
             return
         }
-        val purchasesResult = billingClient.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build(),
-        )
-        if (purchasesResult.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-            handlePurchases(purchasesResult.purchasesList, fromRestoreAction)
-            if (usesBackendAuthority) BackendAccountStore.repository.refresh()
+        if (usesBackendAuthority) {
+            val creditPurchases = billingClient.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder()
+                    .setProductType(BillingClient.ProductType.INAPP)
+                    .build(),
+            )
+            val subscriptions = billingClient.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder()
+                    .setProductType(BillingClient.ProductType.SUBS)
+                    .build(),
+            )
+            if (creditPurchases.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                handleCreditPurchases(creditPurchases.purchasesList, recoverByToken = true)
+            }
+            if (subscriptions.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                handlePurchases(subscriptions.purchasesList)
+            }
+            if (fromRestoreAction && creditPurchases.purchasesList.isEmpty() &&
+                subscriptions.purchasesList.isEmpty()
+            ) {
+                _uiState.update {
+                    it.copy(restoreToastMessage = app.getString(R.string.str_no_purchase_found_to_restore))
+                }
+            }
+            BackendAccountStore.repository.refresh()
         } else {
-            _uiState.update { it.copy(isPurchasing = false) }
+            val subscriptions = billingClient.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder()
+                    .setProductType(BillingClient.ProductType.SUBS)
+                    .build(),
+            )
+            if (subscriptions.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                handlePurchases(subscriptions.purchasesList, fromRestoreAction)
+            } else {
+                _uiState.update { it.copy(isPurchasing = false) }
+            }
         }
     }
 
@@ -284,7 +452,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             return
         }
 
-        val candidates = purchases.mapNotNull(::toCandidate)
+        val candidates = purchases.mapNotNull { toCandidate(it, legacySubscriptionIds.toSet()) }
         if (candidates.any { it.state == PlayPurchaseState.PENDING }) {
             _uiState.update {
                 it.copy(
@@ -307,7 +475,9 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
                 SubscriptionVerificationRetryScheduler.schedule(app)
                 backendVerifier?.process(purchased)?.let { batch ->
                     applyVerificationResult(batch)
-                    if (!batch.hasRetryableFailure && pendingStore.all().isEmpty()) {
+                    if (!batch.hasRetryableFailure && pendingStore.all().isEmpty() &&
+                        pendingCreditStore.all().isEmpty()
+                    ) {
                         SubscriptionVerificationRetryScheduler.cancel(app)
                     }
                 }
@@ -326,6 +496,52 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         }
     }
 
+    private suspend fun handleCreditPurchases(
+        purchases: List<Purchase>,
+        recoverByToken: Boolean = false,
+    ) {
+        val candidates = purchases.mapNotNull { toCandidate(it, creditCatalogById.keys) }
+        if (candidates.any { it.state == PlayPurchaseState.PENDING }) {
+            _uiState.update {
+                it.copy(
+                    isPurchasing = false,
+                    alertMessage = app.getString(R.string.credit_purchase_pending),
+                )
+            }
+        }
+        val purchased = candidates.filter { it.state == PlayPurchaseState.PURCHASED }
+        if (purchased.isEmpty()) {
+            if (candidates.none { it.state == PlayPurchaseState.PENDING }) {
+                _uiState.update { it.copy(isPurchasing = false) }
+            }
+            return
+        }
+        if (!canSubmitRealPlayTokensToBackend()) {
+            _uiState.update {
+                it.copy(
+                    isPurchasing = false,
+                    alertMessage = app.getString(R.string.subscription_emulator_purchase_blocked),
+                )
+            }
+            return
+        }
+        _uiState.update { it.copy(isPurchasing = true, alertMessage = null) }
+        SubscriptionVerificationRetryScheduler.schedule(app)
+        val verification = if (recoverByToken) {
+            creditPurchaseVerifier?.recover(purchased)
+        } else {
+            creditPurchaseVerifier?.process(purchased)
+        }
+        verification?.let { batch ->
+            applyCreditVerificationResult(batch)
+            if (!batch.hasRetryableFailure && pendingCreditStore.all().isEmpty() &&
+                pendingStore.all().isEmpty()
+            ) {
+                SubscriptionVerificationRetryScheduler.cancel(app)
+            }
+        }
+    }
+
     private suspend fun handleLegacyPurchases(
         purchases: List<Purchase>,
         fromRestoreAction: Boolean,
@@ -333,7 +549,7 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         var hasActive = false
         purchases.distinctBy { it.purchaseToken }.forEach { purchase ->
             if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-                purchase.products.any { it in productIds }
+                purchase.products.any { it in legacySubscriptionIds }
             ) {
                 hasActive = true
                 if (!purchase.isAcknowledged) {
@@ -360,8 +576,11 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         }
     }
 
-    private fun toCandidate(purchase: Purchase): PlayPurchaseCandidate? {
-        val supportedProducts = purchase.products.filter { it in productIds }.distinct()
+    private fun toCandidate(
+        purchase: Purchase,
+        supportedProductIds: Set<String>,
+    ): PlayPurchaseCandidate? {
+        val supportedProducts = purchase.products.filter { it in supportedProductIds }.distinct()
         if (supportedProducts.size != 1) return null
         val state = when (purchase.purchaseState) {
             Purchase.PurchaseState.PURCHASED -> PlayPurchaseState.PURCHASED
@@ -411,11 +630,36 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
         }
     }
 
+    private fun applyCreditVerificationResult(batch: CreditPurchaseVerificationBatch) {
+        if (batch.hasRetryableFailure) SubscriptionVerificationRetryScheduler.schedule(app)
+        val rejected = batch.outcomes
+            .filterIsInstance<CreditPurchaseVerificationOutcome.Rejected>()
+            .firstOrNull()
+        val message = when {
+            batch.hasVerifiedPurchase -> app.getString(R.string.credit_purchase_verified)
+            batch.hasRetryableFailure -> app.getString(R.string.credit_purchase_verification_retrying)
+            batch.hasPendingPurchase -> app.getString(R.string.credit_purchase_pending)
+            rejected?.failure is BackendFailure.Authentication ->
+                app.getString(R.string.authentication_failed_message)
+            (rejected?.failure as? BackendFailure.Server)?.error?.code ==
+                "PURCHASE_TOKEN_OWNERSHIP_CONFLICT" ->
+                app.getString(R.string.subscription_ownership_conflict)
+            else -> app.getString(R.string.credit_purchase_verification_failed)
+        }
+        _uiState.update {
+            it.copy(
+                isPurchasing = false,
+                purchaseSuccessful = batch.hasVerifiedPurchase,
+                alertMessage = message,
+            )
+        }
+    }
+
     private fun canSubmitRealPlayTokensToBackend(): Boolean =
         usesBackendAuthority && !environment.isEmulator
 
     private fun mapToSubscriptionProduct(details: ProductDetails): SubscriptionProduct? {
-        if (details.productId !in productIds) return null
+        if (details.productId !in legacySubscriptionIds) return null
         val offers = details.subscriptionOfferDetails.orEmpty().map { offer ->
             PlaySubscriptionOffer(
                 offerToken = offer.offerToken,
@@ -445,6 +689,20 @@ class SubscriptionViewModel(val app: Application) : AndroidViewModel(app), Purch
             weeklyEquivalentText = weeklyEquivalent(price, formatter, phase.billingPeriod),
             priceAmountMicros = phase.priceAmountMicros,
             priceCurrencyCode = phase.priceCurrencyCode,
+        )
+    }
+
+    private fun mapToCreditProduct(details: ProductDetails): CreditProductOffer? {
+        val catalog = creditCatalogById[details.productId] ?: return null
+        val offer = details.oneTimePurchaseOfferDetails ?: return null
+        return CreditProductOffer(
+            id = details.productId,
+            title = details.title,
+            priceFormatted = offer.formattedPrice,
+            priceAmountMicros = offer.priceAmountMicros,
+            priceCurrencyCode = offer.priceCurrencyCode,
+            credits = catalog.credits,
+            expiryDays = catalog.expiryDays,
         )
     }
 

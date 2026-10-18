@@ -79,7 +79,10 @@ fun BackendCreditsBanner(
         account == null -> stringResource(R.string.credits_unavailable)
         else -> when (account.conversionAccess.mode) {
             ConversionAccessMode.FREE -> if (account.conversionAccess.freeConversion.available) {
-                stringResource(R.string.one_free_conversion_available)
+                stringResource(
+                    R.string.free_conversions_remaining_count,
+                    account.conversionAccess.freeConversion.remaining,
+                )
             } else {
                 stringResource(R.string.no_free_conversions_remaining)
             }

@@ -29,7 +29,7 @@ There is no runtime fallback from an enabled V2 conversion to the legacy endpoin
 
 ### Play internal testing variant
 
-The `internal` release-like build type is the only Android variant with production V2 enabled. It keeps the real package `com.image.word.converter.convert.docx`, uses version code `9`, the production Firebase project, the deployed Functions URL, Firebase Auth, and the Play Integrity provider. Its variant-specific `app/src/internal/google-services.json` uses the operator-confirmed Firebase App ID allow-listed by the backend. Public `release` remains V2-disabled with an empty Functions URL, so selecting the normal release variant cannot silently enable V2.
+The `internal` release-like build type is the only Android variant with production V2 enabled. It keeps the real package `com.image.word.converter.convert.docx`, currently retains version code `9`, the production Firebase project, the deployed Functions URL, Firebase Auth, and the Play Integrity provider. Published production is versionCode `11`, so `bundleInternal`/`packageInternal` now fail with an explicit collision message until an approved value greater than `11` is selected. Public `release` remains V2-disabled with an empty Functions URL, so selecting the normal release variant cannot silently enable V2.
 
 The repository does not contain a release/upload keystore. Build the internal AAB unsigned-by-repository and sign it through the normal Android Studio/Gradle Play App Signing upload-key workflow; never commit a keystore or signing password. The package is intentionally unchanged, so installing the internal build over an existing production install is an update and can replace that installed production app. Use a separate tester device or uninstall only with explicit approval; do not assume side-by-side installation.
 
@@ -40,7 +40,7 @@ The repository does not contain a release/upload keystore. Build the internal AA
 3. In Play Console, open the existing application, create or select **Testing > Internal testing**, and add the intended license testers by Google account. Upload the AAB through the release workflow, complete the release notes, and use Play’s review/rollout controls. Do not upload the unsigned local AAB directly; select the configured upload key in Android Studio or the CI signing step so the resulting AAB is signed with the registered Play upload certificate. Play App Signing then signs the distributed APKs with the app-signing certificate.
 4. Copy the internal opt-in URL from Play Console. Each tester must accept the invitation/opt-in while signed into the listed Google account, install from Google Play, and confirm the package is `com.image.word.converter.convert.docx`, version code `9`, and the expected Firebase/App Check identity before any approved live test.
 5. A Play-installed internal build has the same package ID as the published app. Installing it on a device that already has the public app updates/replaces that installation and shares its app data, Billing ownership, and account session; it is not side-by-side. Use a separate test device/profile, or obtain explicit approval before replacing the existing installation. Uninstalling or clearing data can affect local state and must not be part of an unapproved test.
-6. License testers should first validate Auth/App Check and account bootstrap, then one approved conversion and weekly/monthly purchase/restore scenarios using the existing product IDs. Do not send emulator tokens or fake provider fixtures to the production functions, and stop immediately if App Check identity, backend access mode, or purchase verification is not authoritative.
+6. License testers should first validate Auth/App Check and account bootstrap, then the two-free-conversion policy, approved consumable products, and legacy weekly/monthly restoration. Do not send emulator tokens or fake provider fixtures to the production functions, and stop immediately if App Check identity, backend access mode, or purchase verification is not authoritative.
 
 ## Authentication and startup account state
 
@@ -73,7 +73,7 @@ The enabled V2 flow calls `imageToWordV2` with an authenticated request containi
 
 Android JPEG-encodes each selected bitmap once, uses standard Base64 with padding and no whitespace, and retains both the encoded payload and UUID for the lifetime of that logical attempt. It does not send a user ID, wallet/application identifier, decoded size, price, charge, or balance.
 
-The backend-selected `IMAGE_TO_WORD_APP` / `image-to-word` wallet, pricing, reservations, access mode, charge, result, and balance are authoritative. Android never estimates, grants, deducts, or edits credits. The account projection now includes the exact `conversionAccess` object (`mode`, `canConvert`, and `freeConversion.status/available`). The home interface renders FREE, TEMPORARY_UNLIMITED, CREDIT_BASED, or NONE from that projection and refreshes account state after every conversion batch, including failures.
+The backend-selected `IMAGE_TO_WORD_APP` / `image-to-word` wallet, pricing, reservations, access mode, charge, result, and balance are authoritative. Android never estimates, grants, deducts, or edits credits. The account projection includes `conversionAccess.mode`, `canConvert`, `freeConversion.successfulConversions/remaining/available`, and `conversionAccess.ads`. The home interface renders FREE, TEMPORARY_UNLIMITED, CREDIT_BASED, or NONE from that projection and refreshes account state after every conversion batch, including failures.
 
 The conversion transport allows up to 120 seconds for the provider-backed request. A timeout is treated as ambiguous rather than a definitive conversion failure.
 
@@ -98,14 +98,27 @@ Terminal validation, credit, disabled, and provider-failure responses are not au
 
 The result parser accepts the contract's direct result URL and current provider object URL shapes. Successful responses retain the conversion ID, actual charged credits, and returned available balance; `AccountRepository.refresh()` remains the shared home-state reconciliation point.
 
-## Backend-verified Google Play subscriptions
+## Backend-verified Google Play one-time credit packs
 
-Billing Library 9.1.0 queries only `imagetoword_1w` and `imagetoword_1m`. A V2-enabled purchase follows this sequence:
+The adopted Android-facing contract is backend `V2_ONE_TIME_PURCHASE_CONTRACT.md` at commit `8a1906e`. V2 new-customer offers follow this flow:
+
+1. Authenticated Android requests the enabled catalog from `getCreditProductCatalogV2`.
+2. Only returned `productType: INAPP` IDs are queried with Google Play Billing `ProductType.INAPP`.
+3. The UI combines Play's localized title/price with the backend's credits and validity days. It does not embed production products or prices.
+4. A completed token is persisted privately and submitted with its catalog product ID to `verifyCreditPurchaseV2`. Restore/reinstall uses token-only `recoverCreditPurchaseV2` for outstanding INAPP purchases.
+5. The backend verifies package/product/state, grants an expiring bucket idempotently, and owns Play consumption. Android does not consume, acknowledge, or grant credits.
+6. Android accepts and refreshes the returned account projection. Temporary verification/consumption failures retain the same token for bounded and scheduled retry; ownership/invalid-purchase failures are terminal.
+
+The same consumable product can be bought again only after Play reports a new purchase token. Duplicate callbacks for one token collapse locally and remain backend-idempotent. Already-consumed purchases are not expected from `queryPurchasesAsync(INAPP)`; their credits recover from the same authenticated backend identity, not from a client-maintained receipt list.
+
+## Backend-verified legacy Google Play subscriptions
+
+Billing Library 9.1.0 continues to query `imagetoword_1w` and `imagetoword_1m` only for existing-subscriber restoration. These IDs are never offered to new V2 customers. A restored legacy purchase follows this sequence:
 
 1. Google Play returns a `PURCHASED` subscription with its actual product ID and purchase token.
 2. Android persists that exact pair in app-private storage before verification.
 3. The authenticated backend client sends exactly `productId` and `purchaseToken` to `verifySubscriptionPurchaseV2`.
-4. The backend verifies Play ownership/state, grants any eligible period credits idempotently, and owns acknowledgement.
+4. The backend verifies Play ownership/state, preserves the applicable legacy entitlement, and owns acknowledgement.
 5. Android accepts the returned account projection and immediately refreshes `getAccountStateV2`.
 6. Subscription UI, premium indicators, ads, and credits read the authoritative account repository.
 
@@ -113,22 +126,22 @@ Play `PURCHASED` by itself never sets `isSubscribed` and never adds credits. `PE
 
 ### Subscription-transition compatibility audit
 
-The existing and future credit subscriptions reuse the same Play products:
+The existing legacy subscriptions retain these Play products:
 
 - Weekly: `imagetoword_1w`
 - Monthly: `imagetoword_1m`
 
-There are no proposed product IDs, local credit grants, or local grandfathering heuristics in Android. In V2, a `PURCHASED` callback is converted to a product/token candidate and passed to backend verification; only the returned account projection can activate subscription UI. Android does not infer an existing subscriber from app version, install date, purchase age, or local Billing state.
+They are not reused for new-customer credit packs. There are no local credit grants or local grandfathering heuristics in Android. In V2, a legacy `PURCHASED` callback is converted to a product/token candidate and passed to backend verification; only the returned account projection can activate legacy entitlement. Android does not infer an existing subscriber from app version, install date, purchase age, or local Billing state.
 
 The production-disabled legacy path is intentionally unchanged: a restored `PURCHASED` weekly/monthly item sets the local subscribed flag and Android acknowledges it. `queryPurchasesAsync(SUBS)` runs after initial Billing setup/reconnection, explicit Restore, and app resume; in V2 the same restored product/token is submitted to the backend instead of granting local entitlement.
 
-The finalized V2 projection exposes `conversionAccess.mode` and `freeConversion.available`. Android renders temporary unlimited access without claiming lifetime entitlement, renders the one-time free allowance without presenting artificial credits, and renders the authoritative numeric balance only for CREDIT_BASED. The generic `isSubscribed` flag continues to drive premium/ad UI; it does not grant conversion access or bypass the backend.
+The finalized V2 projection exposes `conversionAccess.mode`, the two-use `freeConversion` counters, and `conversionAccess.ads`. Android renders temporary unlimited access without claiming lifetime entitlement, renders the remaining free uses without presenting artificial credits, and renders the authoritative numeric balance only for CREDIT_BASED. In V2, ad suppression is driven by the backend ad entitlement rather than the legacy local subscription flag; neither can grant conversion access or bypass the backend.
 
-After the backend response contract is finalized, Android needs one server-derived conversion-access model with at least these renderable states:
+Android uses one server-derived conversion-access model with these renderable states:
 
-- free conversion available (one) or already used (zero), without presenting the free use as a credit balance;
+- two, one, or zero free conversions remaining, without presenting free uses as a credit balance;
 - temporary grandfathered unlimited access, with a non-lifetime unlimited label and no client-side deduction;
-- metered subscriber credits using the authoritative balance;
+- metered purchased credits using the authoritative balance and server timestamps;
 - loading or temporarily unavailable state that retains prior authority without inventing access.
 
 The Android model now consumes those finalized fields in the account parser, home banner, and subscription screen. Conversion remains server-authoritative: V2 does not submit an entitlement mode, locally deduct credits, or fall back to the legacy endpoint. The backend still decides permission, access mode, and charges.
@@ -143,7 +156,7 @@ The recovery path is designed around Google's acknowledgement deadline: the back
 
 ### Product and offer selection
 
-Android displays Google Play's formatted recurring price and billing period. It selects only an eligible offer whose recurring paid phase matches the selected product (`P1W` for weekly, `P1M` for monthly). Android does not invent or hardcode base-plan IDs. If zero or multiple returned offers match, that product is unavailable rather than silently purchasing the first offer. No yearly product is queried or displayed.
+For new customers, Android queries only backend-catalogued `INAPP` products and displays Google Play's localized one-time price/title alongside backend-provided credit and validity benefits. It does not invent product IDs, prices, allocations, validity, or subscription base plans. The old recurring-offer selector remains relevant only to the V2-disabled legacy UI; legacy weekly/monthly products are queried for restoration, not offered in the V2 shop.
 
 ### Release and emulator safety
 
@@ -157,7 +170,7 @@ Debug uses the Firebase emulator and its fake Google Play verifier. The interact
 
 From the backend repository, start the emulators for `demo-converter-credit` with at least Auth on `9099`, Functions on `5001`, and all server-side emulators required by the backend implementation. Then install and launch the Android debug variant on an Android Emulator.
 
-In Logcat, filter for `BACKEND_ACCOUNT`. A successful bootstrap reports the emulator environment, resolved backend user, available credits, and subscription status without logging tokens.
+In Logcat, filter for `BACKEND_ACCOUNT`. Diagnostics report lifecycle outcomes and sanitized error categories; they do not print authentication/App Check/purchase tokens, account identifiers, balances, or subscription metadata.
 
 Run local unit tests and debug compilation with:
 
@@ -193,12 +206,17 @@ After applying ADB reverse mappings for 9099, 8080, 5001, and 8085, run the comp
   -Pandroid.testInstrumentationRunnerArguments.fakePlayWeeklyPurchaseToken=android-integration-weekly-v1 \
   -Pandroid.testInstrumentationRunnerArguments.fakePlayMonthlyPurchaseToken=android-integration-monthly-v1 \
   -Pandroid.testInstrumentationRunnerArguments.fakePlayRecoveryPurchaseToken=android-integration-recovery-v1 \
-  -Pandroid.testInstrumentationRunnerArguments.fakePlayConversionPurchaseToken=android-integration-conversion-v1
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayCreditPurchaseToken=android-credit-conversion-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayCredit100Token=android-credit-100-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayCredit100RepeatToken=android-credit-100-repeat-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayCredit500Token=android-credit-500-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayCreditRecoveryToken=android-credit-recovery-v1 \
+  -Pandroid.testInstrumentationRunnerArguments.fakePlayCreditConsumptionRetryToken=android-credit-consume-retry-v1
 ```
 
-This validates fake Billing input through Firebase Auth, `verifySubscriptionPurchaseV2`, backend acknowledgement simulation, duplicate verification, private-store recovery, authoritative account refresh, free conversion, and paid conversion idempotency. It is not evidence of real Google Play verification.
+The backend fixture seeder must contain these emulator-only one-time product tokens before this command can pass. This validates fake Billing input through Firebase Auth, catalog/verification/recovery endpoints, backend consumption simulation, duplicate verification, private-store recovery, authoritative account refresh, two free conversions, and paid conversion idempotency. It is not evidence of real Google Play verification.
 
-Before production rollout, a Play license tester must validate actual weekly and monthly ProductDetails/offers, purchase and pending flows, restore after reinstall/account continuity, cancellation/grace/expiry behavior, backend service-account access, server acknowledgement within Google's deadline, duplicate callbacks, upgrade/linked-token behavior, and recovery from a deliberately interrupted verification. Those tests require a deployed non-production backend connected to the real Play Developer API; real tokens must never be sent to the emulator fake.
+Before production rollout, a Play license tester must validate every approved consumable ProductDetails entry, purchase/pending/cancel/repeat flows, backend consumption, duplicate callbacks, and interrupted-verification recovery. The same test plan must separately validate legacy weekly/monthly restoration, cancellation/grace/expiry behavior, and backend acknowledgement. Reinstall/device-replacement recovery requires the approved recoverable Firebase identity flow. These tests require a controlled deployed backend connected to the real Play Developer API; real tokens must never be sent to the emulator fake.
 
 ## Implemented client components
 
@@ -213,8 +231,9 @@ The backend layer is under `app/src/main/java/com/image/word/converter/convert/d
 - `AccountRepository`: centralized authoritative account state and refresh behavior
 - `ImageConversionBatchRunner`: bounded per-image execution and same-key retry policy
 - `BackendSubscriptionVerifier`: persistent same-token backend verification and authoritative account refresh
+- `CreditPurchaseVerifier`: catalog-allowlisted consumable verification/recovery with same-token persistence and no client consumption
 - `PrivatePendingPurchaseStore`: app-private recovery state excluded from backup
 - `SubscriptionVerificationRetryService`: network-constrained persistent recovery for an enabled non-emulator rollout
-- `SubscriptionOfferPolicy`: unambiguous Play-metadata-based weekly/monthly offer selection
+- `SubscriptionOfferPolicy`: preserved legacy recurring-offer selection for the V2-disabled release path
 
 Android does not access Firestore directly. The backend owns subscription verification, credit allocation, reconciliation, and acknowledgement.

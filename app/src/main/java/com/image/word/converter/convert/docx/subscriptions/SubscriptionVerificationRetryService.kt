@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import com.image.word.converter.convert.docx.ads.AdsGate
 import com.image.word.converter.convert.docx.backend.BackendAccountStore
 import com.image.word.converter.convert.docx.backend.BackendClientStore
 import com.image.word.converter.convert.docx.backend.BackendEnvironment
@@ -24,14 +25,34 @@ class SubscriptionVerificationRetryService : JobService() {
         val environment = BackendEnvironment.current()
         if (!environment.accountIntegrationEnabled || environment.isEmulator) return false
         runningJob = scope.launch {
-            val shouldRetry = runCatching {
-                val verifier = BackendSubscriptionVerifier(
-                    backendClient = BackendClientStore.client,
-                    accountGateway = RepositoryAccountGateway(BackendAccountStore.repository),
-                    pendingStore = PrivatePendingPurchaseStore(applicationContext),
-                )
-                verifier.retryPersisted().hasRetryableFailure
-            }.getOrDefault(true)
+            AdsGate.beginCriticalOperation()
+            val shouldRetry = try {
+                runCatching {
+                    val verifier = BackendSubscriptionVerifier(
+                        backendClient = BackendClientStore.client,
+                        accountGateway = RepositoryAccountGateway(BackendAccountStore.repository),
+                        pendingStore = PrivatePendingPurchaseStore(applicationContext),
+                    )
+                    val subscriptionRetry = verifier.retryPersisted().hasRetryableFailure
+                    val catalog = when (val result = BackendClientStore.client.getCreditProductCatalog()) {
+                        is com.image.word.converter.convert.docx.backend.BackendResult.Success -> result.value
+                        is com.image.word.converter.convert.docx.backend.BackendResult.Failure -> emptyList()
+                    }
+                    val creditRetry = if (catalog.isEmpty()) {
+                        PrivatePendingCreditPurchaseStore(applicationContext).all().isNotEmpty()
+                    } else {
+                        CreditPurchaseVerifier(
+                            backendClient = BackendClientStore.client,
+                            accountGateway = RepositoryAccountGateway(BackendAccountStore.repository),
+                            pendingStore = PrivatePendingCreditPurchaseStore(applicationContext),
+                            enabledProductIds = { catalog.mapTo(linkedSetOf()) { it.productId } },
+                        ).retryPersisted().hasRetryableFailure
+                    }
+                    subscriptionRetry || creditRetry
+                }.getOrDefault(true)
+            } finally {
+                AdsGate.endCriticalOperation()
+            }
             jobFinished(params, shouldRetry)
         }
         return true

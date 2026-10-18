@@ -68,6 +68,51 @@ object BackendJsonParser {
         BackendResult.Success(parseAccount(root.getJSONObject("account")))
     }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
 
+    fun parseCreditProductCatalogEnvelope(
+        raw: String,
+        httpStatus: Int,
+    ): BackendResult<List<CreditProduct>> = runCatching {
+        val root = JSONObject(raw)
+        if (!root.optBoolean("success", false)) return parseErrorEnvelope(raw, httpStatus)
+        val products = root.getJSONArray("products")
+        val parsed = buildList {
+            for (index in 0 until products.length()) {
+                val item = products.getJSONObject(index)
+                val productType = item.getString("productType")
+                val productId = item.getString("productId")
+                val credits = item.getLong("credits")
+                val expiryDays = item.getInt("expiryDays")
+                require(productType == "INAPP" && productId.isNotBlank() && credits > 0 && expiryDays > 0) {
+                    "Invalid credit product"
+                }
+                add(CreditProduct(productId, productType, credits, expiryDays))
+            }
+        }
+        require(parsed.map { it.productId }.distinct().size == parsed.size) {
+            "Duplicate credit product"
+        }
+        BackendResult.Success(parsed)
+    }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
+
+    fun parseCreditPurchaseVerificationEnvelope(
+        raw: String,
+        httpStatus: Int,
+    ): BackendResult<CreditPurchaseVerificationResponse> = runCatching {
+        val root = JSONObject(raw)
+        if (!root.optBoolean("success", false)) return parseErrorEnvelope(raw, httpStatus)
+        val purchase = root.getJSONObject("purchase")
+        BackendResult.Success(
+            CreditPurchaseVerificationResponse(
+                purchase = CreditPurchaseReceipt(
+                    productId = purchase.getString("productId"),
+                    status = purchase.getString("status"),
+                    credits = purchase.getLong("credits"),
+                ),
+                account = parseAccount(root.getJSONObject("account")),
+            ),
+        )
+    }.getOrElse { BackendResult.Failure(BackendFailure.InvalidResponse(it)) }
+
     private fun parseError(root: JSONObject, httpStatus: Int): BackendResult.Failure {
         val error = root.getJSONObject("error")
         return BackendResult.Failure(
@@ -87,6 +132,9 @@ object BackendJsonParser {
         val subscription = json.getJSONObject("subscription")
         val conversionAccess = json.getJSONObject("conversionAccess")
         val freeConversion = conversionAccess.getJSONObject("freeConversion")
+        // Prefer the frozen contract location. The root fallback is temporary compatibility
+        // for the first local backend implementation and must be removed once it is aligned.
+        val ads = conversionAccess.optJSONObject("ads") ?: json.getJSONObject("ads")
         val mode = runCatching {
             ConversionAccessMode.valueOf(conversionAccess.getString("mode"))
         }.getOrElse { throw IllegalArgumentException("Unknown conversion access mode") }
@@ -116,6 +164,12 @@ object BackendJsonParser {
                 freeConversion = FreeConversionState(
                     status = freeConversion.getString("status"),
                     available = freeConversion.getBoolean("available"),
+                    successfulConversions = freeConversion.getInt("successfulConversions"),
+                    remaining = freeConversion.getInt("remaining"),
+                ),
+                ads = AdEntitlementState(
+                    adFree = ads.getBoolean("adFree"),
+                    eligible = ads.getBoolean("eligible"),
                 ),
             ),
         )
