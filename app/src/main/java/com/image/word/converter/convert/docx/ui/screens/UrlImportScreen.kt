@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.BannerAd
+import com.espressotech.monetization.ads.BannerAd
 import com.image.word.converter.convert.docx.ui.components.ChildTopBar
 import com.image.word.converter.convert.docx.ui.components.FullWidthActionButton
 import kotlinx.coroutines.CoroutineScope
@@ -128,6 +128,6 @@ fun UrlImportScreen(
             )
         }
 
-        BannerAd(isSubscribed = isSubscribed, modifier = Modifier.navigationBarsPadding())
+        BannerAd(modifier = Modifier.navigationBarsPadding())
     }
 }

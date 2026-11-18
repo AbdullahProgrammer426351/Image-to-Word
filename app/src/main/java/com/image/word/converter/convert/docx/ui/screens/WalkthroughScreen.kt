@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.BannerAd
+import com.espressotech.monetization.ads.BannerAd
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
 import com.image.word.converter.convert.docx.ui.theme.WordGradients
@@ -39,7 +39,7 @@ import com.image.word.converter.convert.docx.ui.theme.WordPrimary
 import kotlinx.coroutines.launch
 
 @Composable
-fun WalkthroughScreen(isSubscribed: Boolean,onDone: () -> Unit) {
+fun WalkthroughScreen(onDone: () -> Unit) {
     val pages = listOf(
         WalkPage("w1.png", R.string.walk_title_1, R.string.walk_subtitle_1),
         WalkPage("w2.png", R.string.walk_title_2, R.string.walk_subtitle_2),
@@ -125,7 +125,7 @@ fun WalkthroughScreen(isSubscribed: Boolean,onDone: () -> Unit) {
                 )
             }
 
-            BannerAd(isSubscribed)
+            BannerAd()
         }
     }
 }

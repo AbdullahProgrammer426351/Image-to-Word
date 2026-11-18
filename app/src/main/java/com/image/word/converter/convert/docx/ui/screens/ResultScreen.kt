@@ -38,7 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.BannerAd
+import com.espressotech.monetization.ads.BannerAd
 import com.image.word.converter.convert.docx.model.ConvertedItem
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.ChildTopBar
@@ -210,7 +210,7 @@ fun ResultScreen(
                 },
             )
 
-            BannerAd(isSubscribed = isSubscribed)
+            BannerAd()
         }
     }
 }

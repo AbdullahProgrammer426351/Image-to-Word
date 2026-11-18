@@ -32,7 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.InterstitialAdManager
+import com.espressotech.monetization.ads.InterstitialAdManager
 import com.image.word.converter.convert.docx.data.ImageToWordApi
 import com.image.word.converter.convert.docx.ui.components.LottieAssetView
 import com.image.word.converter.convert.docx.ui.state.MainViewModel

@@ -57,6 +57,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.espressotech.monetization.subscriptions.SubscriptionViewModel
+import com.espressotech.monetization.subscriptions.rememberSubscriptionCheckoutLauncher
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.theme.LightSurfaceVariant
@@ -72,6 +74,7 @@ fun SubscriptionScreen(
     BackHandler(onBack = onClose)
 
     val uiState by viewModel.uiState.collectAsState()
+    val launchCheckout = rememberSubscriptionCheckoutLauncher(viewModel)
     val context = LocalContext.current
     val activity = context as? Activity
     var showAlert by remember { mutableStateOf(false) }
@@ -227,7 +230,7 @@ fun SubscriptionScreen(
                         .clip(RoundedCornerShape(20.dp))
                         .background(Brush.horizontalGradient(WordGradients.subscribeButton))
                         .clickable(enabled = activity != null) {
-                            activity?.let { viewModel.purchase(it) }
+                            activity?.let { viewModel.purchase(it, launchCheckout) }
                         }
                         .padding(vertical = 15.dp),
                     contentAlignment = Alignment.Center,

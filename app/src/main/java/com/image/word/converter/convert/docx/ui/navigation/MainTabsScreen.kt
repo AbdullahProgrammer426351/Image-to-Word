@@ -33,8 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.BannerAd
-import com.image.word.converter.convert.docx.ads.InterstitialAdManager
+import com.espressotech.monetization.ads.BannerAd
+import com.espressotech.monetization.ads.InterstitialAdManager
 import com.image.word.converter.convert.docx.model.ConvertedItem
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.HoldOnDialog
@@ -146,7 +146,7 @@ fun MainTabsScreen(
         },
         bottomBar = {
             Column {
-                BannerAd(isSubscribed = isSubscribed)
+                BannerAd()
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

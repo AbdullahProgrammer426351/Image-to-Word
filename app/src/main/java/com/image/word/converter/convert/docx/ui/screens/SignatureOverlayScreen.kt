@@ -68,7 +68,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.scale
 import coil.compose.AsyncImage
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.BannerAd
+import com.espressotech.monetization.ads.BannerAd
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.ChildTopBar
 import com.image.word.converter.convert.docx.ui.components.RgbColorPickerDialog
@@ -175,7 +175,7 @@ fun SignatureOverlayScreen(
             }
         }
 
-        BannerAd(isSubscribed = isSubscribed)
+        BannerAd()
     }
 
     if (showPad) {

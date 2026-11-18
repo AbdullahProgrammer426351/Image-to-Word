@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <queries>
+        <package android:name="com.huawei.appmarket" />
+    </queries>
+    <application
+        android:allowBackup="true"
+        tools:replace="android:allowBackup">
+        <meta-data
+            android:name="com.huawei.hms.client.appid"
+            android:value="appid=119827511" />
+    </application>
+</manifest>

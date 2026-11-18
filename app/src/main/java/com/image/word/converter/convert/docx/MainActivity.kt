@@ -4,67 +4,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.view.WindowCompat
-import com.google.firebase.auth.FirebaseAuth
-import com.image.word.converter.convert.docx.ads.AdsGate
-import com.image.word.converter.convert.docx.ads.AdsInitializer
-import com.image.word.converter.convert.docx.ads.AdsRemoteConfig
-import com.image.word.converter.convert.docx.ads.AppOpenAdManager
-import com.image.word.converter.convert.docx.ads.ConsentManager
-import com.image.word.converter.convert.docx.ads.FrequencyAppOpenAdManager
-import com.image.word.converter.convert.docx.ads.InterstitialAdManager
-import com.image.word.converter.convert.docx.subscriptions.SubscriptionViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.espressotech.monetization.Monetization
+import com.espressotech.monetization.ads.AdsGate
+import com.espressotech.monetization.ads.AdsInitializer
+import com.espressotech.monetization.ads.AdsRemoteConfig
+import com.espressotech.monetization.ads.AppOpenAdManager
+import com.espressotech.monetization.ads.ConsentManager
+import com.espressotech.monetization.ads.FrequencyAppOpenAdManager
+import com.espressotech.monetization.ads.InterstitialAdManager
+import com.espressotech.monetization.subscriptions.SubscriptionViewModel
+import com.espressotech.monetization.subscriptions.rememberSubscriptionCheckoutLauncher
+import com.image.word.converter.convert.docx.monetization.AppMonetizationConfig
 import com.image.word.converter.convert.docx.ui.AppRoot
-import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.state.ThemeMode
 import com.image.word.converter.convert.docx.ui.state.ThemeViewModel
-import com.image.word.converter.convert.docx.ui.theme.DarkSurfaceVariant
 import com.image.word.converter.convert.docx.ui.theme.ImageToWordTheme
 
 class MainActivity : ComponentActivity() {
@@ -72,6 +31,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Monetization.initialize(this, AppMonetizationConfig.create(this))
         enableEdgeToEdge()
 
         setContent {
@@ -79,12 +39,23 @@ class MainActivity : ComponentActivity() {
             val themeViewModel: ThemeViewModel = viewModel()
             val uiState by subscriptionViewModel.uiState.collectAsState()
             val themeMode by themeViewModel.themeMode.collectAsState()
+            val launchStoreResolution = rememberSubscriptionCheckoutLauncher(subscriptionViewModel)
 
             SideEffect {
-                AdsGate.isSubscribedProvider = { uiState.isSubscribed }
+                // Until the active store answers the entitlement query, suppress ads as if
+                // the user were subscribed. This avoids showing ads to existing subscribers.
+                AdsGate.isSubscribedProvider = {
+                    !uiState.isAdEligible
+                }
             }
 
             LaunchedEffect(Unit) {
+                subscriptionViewModel.onHostReady(this@MainActivity, launchStoreResolution)
+            }
+
+            LaunchedEffect(uiState.isEntitlementResolved) {
+                if (!uiState.isEntitlementResolved) return@LaunchedEffect
+                if (Monetization.config.bypassSubscriptionAndAds) return@LaunchedEffect
                 AdsRemoteConfig.initialize(this@MainActivity) {
                     ConsentManager.shared.requestConsent(this@MainActivity) {
                         AdsInitializer.initialize(this@MainActivity)
@@ -110,8 +81,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
 
     override fun onResume() {
         super.onResume()

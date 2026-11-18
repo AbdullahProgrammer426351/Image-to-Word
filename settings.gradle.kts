@@ -19,10 +19,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://developer.huawei.com/repo/")
         maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "Image_to_Word"
 include(":app")
- 
+include(":monetization")

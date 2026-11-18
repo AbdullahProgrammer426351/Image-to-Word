@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.espressotech.monetization.store.StoreLinks
+import com.image.word.converter.convert.docx.BuildConfig
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
 import com.image.word.converter.convert.docx.ui.components.PremiumBanner
@@ -56,13 +58,13 @@ fun SettingsTabScreen(
                 icon = "ic_rate_us_s.svg",
                 title = stringResource(R.string.rate_us),
                 subtitle = stringResource(R.string.love_our_app_give_us_5_stars),
-                onClick = { AppLinks.rateApp(context) },
+                onClick = { StoreLinks.openListing(context) },
             )
             SettingsItem(
                 icon = "ic_share_us_s.svg",
                 title = stringResource(R.string.share_the_app),
                 subtitle = stringResource(R.string.invite_friends_to_try_the_app),
-                onClick = { AppLinks.shareApp(context) },
+                onClick = { StoreLinks.shareApp(context) },
             )
             SettingsItem(
                 icon = "ic_feed_back_s.svg",
@@ -70,12 +72,14 @@ fun SettingsTabScreen(
                 subtitle = stringResource(R.string.we_value_your_suggestions_and_ideas),
                 onClick = { AppLinks.sendFeedback(context) },
             )
-            SettingsItem(
-                icon = "ic_more_app_s.svg",
-                title = stringResource(R.string.more_from_us),
-                subtitle = stringResource(R.string.discover_other_apps_by_us),
-                onClick = { AppLinks.openDeveloperPage(context) },
-            )
+            if (BuildConfig.SHOW_MORE_APPS) {
+                SettingsItem(
+                    icon = "ic_more_app_s.svg",
+                    title = stringResource(R.string.more_from_us),
+                    subtitle = stringResource(R.string.discover_other_apps_by_us),
+                    onClick = { StoreLinks.openDeveloperPage(context) },
+                )
+            }
             SettingsItem(
                 icon = "ic_privacy_s.svg",
                 title = stringResource(R.string.privacy_policy),

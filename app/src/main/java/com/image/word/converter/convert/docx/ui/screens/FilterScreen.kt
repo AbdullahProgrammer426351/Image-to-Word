@@ -30,7 +30,7 @@ import com.image.word.converter.convert.docx.ui.theme.appWhite
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.core.graphics.scale
-import com.image.word.converter.convert.docx.ads.BannerAd
+import com.espressotech.monetization.ads.BannerAd
 import com.image.word.converter.convert.docx.util.BitmapUtils
 import com.image.word.converter.convert.docx.util.bitmapToCacheUri
 import com.image.word.converter.convert.docx.util.decodeBitmap
@@ -227,7 +227,7 @@ fun FilterScreen(
 
                     Spacer(modifier = Modifier.width(20.dp))
                 }
-                BannerAd(isSubscribed)
+                BannerAd()
         }
     }
 

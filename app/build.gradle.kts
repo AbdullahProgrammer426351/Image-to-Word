@@ -13,10 +13,23 @@ android {
         applicationId = "com.image.word.converter.convert.docx"
         minSdk = 24
         targetSdk = 37
-        versionCode = 11
-        versionName = "2.0"
+        versionCode = 1
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    flavorDimensions += "store"
+
+    productFlavors {
+        create("google") {
+            dimension = "store"
+            buildConfigField("boolean", "SHOW_MORE_APPS", "true")
+        }
+        create("huawei") {
+            dimension = "store"
+            buildConfigField("boolean", "SHOW_MORE_APPS", "false")
+        }
     }
 
     buildTypes {
@@ -45,6 +58,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -83,12 +97,8 @@ dependencies {
     implementation(libs.coil.compose)
     // Third-party: Coil SVG decoder support
     implementation(libs.coil.svg)
-    // Third-party: Google Mobile Ads SDK
-    implementation(libs.google.play.services.ads)
-    // Third-party: Google Play Billing SDK
-    implementation(libs.google.play.billing.ktx)
-    // Third-party: Google UMP consent SDK
-    implementation(libs.google.ump)
+    // Ads, subscriptions and store updates
+    implementation(project(":monetization"))
     // Third-party: Airbnb Lottie animations
     implementation(libs.lottie.compose)
     // Third-party: Google ML Kit Text Recognition

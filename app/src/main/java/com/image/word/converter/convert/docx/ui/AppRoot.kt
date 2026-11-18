@@ -18,10 +18,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.image.word.converter.convert.docx.ads.AppOpenAdManager
-import com.image.word.converter.convert.docx.ads.InterstitialAdManager
+import com.espressotech.monetization.ads.AppOpenAdManager
+import com.espressotech.monetization.ads.InterstitialAdManager
 import com.image.word.converter.convert.docx.subscriptions.SubscriptionScreen
-import com.image.word.converter.convert.docx.subscriptions.SubscriptionViewModel
+import com.espressotech.monetization.subscriptions.SubscriptionViewModel
+import com.espressotech.monetization.store.StoreLinks
 import com.image.word.converter.convert.docx.ui.components.AppNavigationHost
 import com.image.word.converter.convert.docx.ui.navigation.MainTabsScreen
 import com.image.word.converter.convert.docx.ui.navigation.Routes
@@ -72,7 +73,7 @@ fun AppRoot(activity: Activity) {
             },
             onHighRating = {
                 ratingViewModel.onRated()
-                AppLinks.rateApp(activity)
+                StoreLinks.openListing(activity)
             }
         )
     }
@@ -111,7 +112,7 @@ fun AppRoot(activity: Activity) {
                         }
                         val prefs = activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
                         if (prefs.getBoolean("seen_walkthrough", false)) {
-                            InterstitialAdManager.shared.show(activity, proceed)
+                            InterstitialAdManager.shared.show(activity, onClose = proceed)
                         } else {
                             proceed()
                         }
@@ -122,14 +123,12 @@ fun AppRoot(activity: Activity) {
             composable(Routes.Walkthrough) {
                 var exitFlowStarted by rememberSaveable { mutableStateOf(false) }
                 WalkthroughScreen(
-                    isSubscribed = subscriptionState.isSubscribed,
                     onDone = {
                         if (exitFlowStarted) return@WalkthroughScreen
                         exitFlowStarted = true
 
                         activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
                             .edit { putBoolean("seen_walkthrough", true) }
-
                         InterstitialAdManager.shared.show(activity) {
                             navController.safeNavigate(Routes.main(autoSub = true)) {
                                 popUpTo(Routes.Walkthrough) { inclusive = true }

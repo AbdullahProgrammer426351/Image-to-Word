@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.image.word.converter.convert.docx.R
-import com.image.word.converter.convert.docx.ads.BannerAd
+import com.espressotech.monetization.ads.BannerAd
 import com.image.word.converter.convert.docx.ui.components.BottomActionButton
 import com.image.word.converter.convert.docx.ui.components.IosTopBar
 import com.image.word.converter.convert.docx.ui.state.SessionState
@@ -107,6 +107,6 @@ fun CapturePreviewScreen(
             }
         }
 
-        BannerAd(isSubscribed = isSubscribed)
+        BannerAd()
     }
 }

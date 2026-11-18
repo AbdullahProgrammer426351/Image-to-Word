@@ -292,9 +292,7 @@ fun BatchPreviewScreen(
 //                )
             }
 
-            com.image.word.converter.convert.docx.ads.BannerAd(
-                isSubscribed = isSubscribed
-            )
+            com.espressotech.monetization.ads.BannerAd()
 
             Spacer(
                 modifier = Modifier
