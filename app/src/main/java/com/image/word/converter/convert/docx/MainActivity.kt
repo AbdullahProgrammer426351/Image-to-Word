@@ -11,13 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.espressotech.monetization.Monetization
+import com.espressotech.monetization.MarketAccessPolicy
 import com.espressotech.monetization.ads.AdsGate
 import com.espressotech.monetization.ads.AdsInitializer
 import com.espressotech.monetization.ads.AdsRemoteConfig
-import com.espressotech.monetization.ads.AppOpenAdManager
 import com.espressotech.monetization.ads.ConsentManager
 import com.espressotech.monetization.ads.FrequencyAppOpenAdManager
-import com.espressotech.monetization.ads.InterstitialAdManager
 import com.espressotech.monetization.subscriptions.SubscriptionViewModel
 import com.espressotech.monetization.subscriptions.rememberSubscriptionCheckoutLauncher
 import com.image.word.converter.convert.docx.monetization.AppMonetizationConfig
@@ -32,6 +31,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Monetization.initialize(this, AppMonetizationConfig.create(this))
+        MarketAccessPolicy.initialize(this)
         enableEdgeToEdge()
 
         setContent {
@@ -59,9 +59,6 @@ class MainActivity : ComponentActivity() {
                 AdsRemoteConfig.initialize(this@MainActivity) {
                     ConsentManager.shared.requestConsent(this@MainActivity) {
                         AdsInitializer.initialize(this@MainActivity)
-                        InterstitialAdManager.shared.load(this@MainActivity)
-                        InterstitialAdManager.frequencyShared.load(this@MainActivity)
-                        AppOpenAdManager.shared.loadIfNeeded(this@MainActivity)
                         AdsGate.canShowResumeAppOpen = true
                     }
                 }

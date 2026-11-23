@@ -18,6 +18,8 @@ coroutinesPlayServices = "1.11.0"
 coil = "2.7.0"
 lottie = "6.7.1"
 playServicesAds = "25.4.0"
+metaMediation = "6.22.0.1"
+yandexAds = "8.6.0"
 billing = "9.1.0"
 ucropVersion = "2.2.8"
 ump = "4.0.0"
@@ -73,6 +75,8 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 # Third-party: Google Mobile Ads SDK
 google-play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+google-meta-mediation = { group = "com.google.ads.mediation", name = "facebook", version.ref = "metaMediation" }
+yandex-mobile-ads = { group = "com.yandex.android", name = "mobileads", version.ref = "yandexAds" }
 # Third-party: Google Play Billing SDK
 google-play-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 # Third-party: Google User Messaging Platform (consent SDK)

@@ -19,6 +19,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://ads.maven.yandex.net/")
+            content {
+                includeGroup("com.yandex.android")
+                includeGroupAndSubgroups("com.yandex.ads")
+            }
+        }
         maven("https://developer.huawei.com/repo/")
         maven { url = uri("https://jitpack.io") }
     }

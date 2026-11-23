@@ -1,6 +1,12 @@
 package com.espressotech.monetization.ads
 
 object AdsGate {
+    enum class AdProvider { GOOGLE_MEDIATION, YANDEX, STORE }
+
+    var provider: AdProvider = AdProvider.STORE
+        internal set
+    var isSdkReady: Boolean = false
+        internal set
     var isSubscribedProvider: () -> Boolean = { false }
     var isPersonalizedAdsAllowed: () -> Boolean = { true }
     var canRequestAds: Boolean = true

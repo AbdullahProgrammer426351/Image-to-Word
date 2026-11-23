@@ -17,6 +17,18 @@ object AdsId {
         private set
     var frequencyAppOpenId: String = ""
         private set
+    var yandexBannerId: String = ""
+        private set
+    var yandexNativeId: String = ""
+        private set
+    var yandexInterstitialId: String = ""
+        private set
+    var yandexFrequencyInterstitialId: String = ""
+        private set
+    var yandexAppOpenId: String = ""
+        private set
+    var yandexFrequencyAppOpenId: String = ""
+        private set
 
     fun applyIds(useTestAds: Boolean) {
         val production = Monetization.config.adUnitIds
@@ -36,6 +48,23 @@ object AdsId {
             splashId = production.splash
             appOpenId = production.appOpen
             frequencyAppOpenId = production.frequencyAppOpen
+        }
+
+        val yandex = Monetization.config.yandexAdUnitIds
+        if (useTestAds || Monetization.config.isDebug) {
+            yandexBannerId = "demo-banner-yandex"
+            yandexNativeId = "demo-native-app-yandex"
+            yandexInterstitialId = "demo-interstitial-yandex"
+            yandexFrequencyInterstitialId = "demo-interstitial-yandex"
+            yandexAppOpenId = "demo-appopenad-yandex"
+            yandexFrequencyAppOpenId = "demo-appopenad-yandex"
+        } else {
+            yandexBannerId = yandex?.banner.orEmpty()
+            yandexNativeId = yandex?.native.orEmpty()
+            yandexInterstitialId = yandex?.interstitial.orEmpty()
+            yandexFrequencyInterstitialId = yandex?.frequencyInterstitial.orEmpty()
+            yandexAppOpenId = yandex?.appOpen.orEmpty()
+            yandexFrequencyAppOpenId = yandex?.frequencyAppOpen.orEmpty()
         }
     }
 }

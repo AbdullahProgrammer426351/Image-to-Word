@@ -3,6 +3,7 @@ package com.image.word.converter.convert.docx.monetization
 import android.content.Context
 import com.espressotech.monetization.config.AdUnitIds
 import com.espressotech.monetization.config.MonetizationConfig
+import com.espressotech.monetization.config.YandexAdUnitIds
 import com.image.word.converter.convert.docx.BuildConfig
 import com.image.word.converter.convert.docx.R
 
@@ -21,12 +22,22 @@ object AppMonetizationConfig {
             frequencyAppOpen = "ca-app-pub-8218090797316916/6667830799",
             splash = "",
         ),
+        yandexAdUnitIds = YandexAdUnitIds(
+            banner = "R-M-20301544-1",
+            native = "R-M-20301544-2",
+            interstitial = "R-M-20301544-3",
+            frequencyInterstitial = "R-M-20301544-6",
+            appOpen = "R-M-20301544-4",
+            frequencyAppOpen = "R-M-20301544-5",
+        ),
         weekLabel = context.getString(R.string.week),
         noSubscriptionFoundMessage = context.getString(R.string.str_no_subscription_found_to_restore),
         productLabels = mapOf(
             PRODUCT_WEEKLY to context.getString(R.string.weekly),
             PRODUCT_MONTHLY to context.getString(R.string.monthly),
         ),
+        bypassSubscriptionAndAds = false,
+        russianMarketUsesAdsInsteadOfSubscription = true,
     )
 
     private const val PRODUCT_WEEKLY = "imagetoword_1w"

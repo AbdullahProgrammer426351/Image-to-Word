@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.espressotech.monetization.Monetization
+import com.espressotech.monetization.MarketAccessPolicy
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,7 +48,9 @@ class SubscriptionViewModel(app: Application) : AndroidViewModel(app) {
 }
 
 private fun SubscriptionUiState.withAccessOverride(): SubscriptionUiState {
-    if (!Monetization.config.bypassSubscriptionAndAds) return this
+    if (!Monetization.config.bypassSubscriptionAndAds) {
+        return copy(isSubscribed = MarketAccessPolicy.hasPremiumAccess(isSubscribed))
+    }
 
     return copy(
         isSubscribed = true,

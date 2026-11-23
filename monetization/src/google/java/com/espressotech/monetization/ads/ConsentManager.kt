@@ -30,30 +30,36 @@ class ConsentManager private constructor() {
             params,
             {
                 if (consentInformation.canRequestAds()) {
-                    applyConsentState(consentInformation, fallbackToAdsAllowed = false)
+                    applyConsentState(activity, consentInformation, fallbackToAdsAllowed = false)
                     onComplete()
                     return@requestConsentInfoUpdate
                 }
 
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) {
-                    applyConsentState(consentInformation, fallbackToAdsAllowed = false)
+                    applyConsentState(activity, consentInformation, fallbackToAdsAllowed = false)
                     onComplete()
                 }
             },
             {
-                applyConsentState(consentInformation, fallbackToAdsAllowed = true)
+                applyConsentState(activity, consentInformation, fallbackToAdsAllowed = false)
                 onComplete()
             },
         )
     }
 
     private fun applyConsentState(
+        activity: Activity,
         consentInformation: ConsentInformation,
         fallbackToAdsAllowed: Boolean,
     ) {
         val canRequestAds = consentInformation.canRequestAds() || fallbackToAdsAllowed
         AdsGate.canRequestAds = canRequestAds
-        AdsGate.isPersonalizedAdsAllowed = { canRequestAds }
+        val allowsPersonalizedAds = AdPersonalizationResolver.allowsPersonalizedAds(
+            context = activity,
+            consentStatus = consentInformation.consentStatus,
+            canRequestAds = canRequestAds,
+        )
+        AdsGate.isPersonalizedAdsAllowed = { allowsPersonalizedAds }
     }
 
     companion object {

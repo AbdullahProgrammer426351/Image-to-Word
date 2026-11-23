@@ -1,7 +1,6 @@
 package com.espressotech.monetization.ads
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -11,29 +10,56 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.yandex.mobile.ads.banner.BannerAdSize
+import com.yandex.mobile.ads.banner.BannerAdView
+import com.yandex.mobile.ads.common.AdRequest as YandexAdRequest
+import kotlin.math.roundToInt
 
+/** Provider-neutral banner used by all existing Compose screens. */
 @Composable
 fun BannerAd(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val activity = context as? Activity
-    val adUnitID = AdsId.bannerId
+    val activity = LocalContext.current as? Activity ?: return
+    if (AdsGate.isSubscribedProvider() || !AdsGate.isBannerEnabled ||
+        !AdsGate.canRequestAds || !AdsGate.isSdkReady
+    ) return
 
-    if (activity == null || adUnitID.isBlank() || AdsGate.isSubscribedProvider() || !AdsGate.isBannerEnabled || !AdsGate.canRequestAds)  {
-        Log.d("AppTAG", "returning from banner ad due to")
-        Log.d("AppTAG", "activity == null(${activity == null}) || adUnitID.isBlank()(${adUnitID.isBlank()}) || AdsGate.isSubscribedProvider()(${AdsGate.isSubscribedProvider()}) || !AdsGate.isBannerEnabled(${!AdsGate.isBannerEnabled}) || !AdsGate.canRequestAds(${!AdsGate.canRequestAds})")
-        return }
+    if (AdsGate.provider == AdsGate.AdProvider.YANDEX) {
+        YandexBanner(activity, modifier)
+    } else {
+        GoogleBanner(activity, modifier)
+    }
+}
 
+@Composable
+private fun GoogleBanner(activity: Activity, modifier: Modifier) {
+    val adUnitId = AdsId.bannerId
+    if (adUnitId.isBlank()) return
     val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, 360)
-
     AndroidView(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp),
+        modifier = modifier.fillMaxWidth().height(50.dp),
         factory = {
             AdView(it).apply {
                 setAdSize(adSize)
-                adUnitId = adUnitID
+                this.adUnitId = adUnitId
                 loadAd(AdRequestHelper.createRequest(AdsGate.isPersonalizedAdsAllowed()))
+            }
+        },
+        onRelease = { it.destroy() },
+    )
+}
+
+@Composable
+private fun YandexBanner(activity: Activity, modifier: Modifier) {
+    val adUnitId = AdsId.yandexBannerId
+    if (adUnitId.isBlank()) return
+    val widthDp = (activity.resources.displayMetrics.widthPixels /
+        activity.resources.displayMetrics.density).roundToInt()
+    AndroidView(
+        modifier = modifier.fillMaxWidth().height(50.dp),
+        factory = {
+            BannerAdView(it).apply {
+                setAdSize(BannerAdSize.sticky(activity, widthDp))
+                loadAd(YandexAdRequest.Builder(adUnitId).build())
             }
         },
         onRelease = { it.destroy() },

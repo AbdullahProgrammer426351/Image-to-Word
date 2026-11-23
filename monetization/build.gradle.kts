@@ -48,6 +48,8 @@ dependencies {
 
     "googleImplementation"(libs.google.play.billing.ktx)
     "googleImplementation"(libs.google.play.services.ads)
+    "googleImplementation"(libs.google.meta.mediation)
+    "googleImplementation"(libs.yandex.mobile.ads)
     "googleImplementation"(libs.google.ump)
 
     "huaweiImplementation"(libs.huawei.iap)
@@ -55,4 +57,6 @@ dependencies {
     "huaweiImplementation"(libs.huawei.base)
     "huaweiImplementation"(libs.huawei.hmscoreinstaller)
     "huaweiImplementation"(libs.huawei.ads)
+
+    testImplementation(libs.junit)
 }
