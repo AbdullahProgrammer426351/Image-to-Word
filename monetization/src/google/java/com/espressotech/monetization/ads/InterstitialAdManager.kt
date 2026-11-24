@@ -114,68 +114,81 @@ class InterstitialAdManager(private val adType: AdType) {
         onCompleted: (() -> Unit)? = null,
         onClose: (() -> Unit)? = null,
     ) {
-        var didClose = false
-        val closeOnce = {
-            if (!didClose) {
-                didClose = true
+        var didContinue = false
+        val continueOnce = {
+            if (!didContinue) {
+                didContinue = true
                 onClose?.invoke()
+                onCompleted?.invoke()
             }
         }
         if (AdsGate.isSubscribedProvider() || !AdsGate.canRequestAds || !AdsGate.isSdkReady ||
-            !isAdEnabled || isShowingAd
+            !isAdEnabled || isShowingAd || AdsGate.isFullScreenAdShowing
         ) {
-            closeOnce()
+            continueOnce()
             return
         }
-        if (AdsGate.provider == AdsGate.AdProvider.YANDEX) showYandex(activity, closeOnce, onCompleted)
-        else showGoogle(activity, closeOnce, onCompleted)
+        if (AdsGate.provider == AdsGate.AdProvider.YANDEX) showYandex(activity, continueOnce)
+        else showGoogle(activity, continueOnce)
     }
 
-    private fun showGoogle(activity: Activity, closeOnce: () -> Unit, onCompleted: (() -> Unit)?) {
+    private fun showGoogle(activity: Activity, continueOnce: () -> Unit) {
         val ad = googleAd ?: run {
             load(activity)
-            closeOnce()
+            continueOnce()
             return
         }
         markShowing(true)
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() = finishShow(activity, closeOnce, onCompleted)
-            override fun onAdFailedToShowFullScreenContent(adError: AdError) = finishShow(activity, closeOnce, null)
+            override fun onAdDismissedFullScreenContent() = finishShow(activity, continueOnce)
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) = finishShow(activity, continueOnce)
         }
-        runCatching { ad.show(activity) }.onFailure { finishShow(activity, closeOnce, null) }
+        runCatching { ad.show(activity) }.onFailure { finishShow(activity, continueOnce) }
     }
 
-    private fun showYandex(activity: Activity, closeOnce: () -> Unit, onCompleted: (() -> Unit)?) {
+    private fun showYandex(activity: Activity, continueOnce: () -> Unit) {
         val ad = yandexAd ?: run {
             load(activity)
-            closeOnce()
+            continueOnce()
             return
         }
         markShowing(true)
         ad.setAdEventListener(object : InterstitialAdEventListener {
             override fun onAdShown() = Unit
             override fun onAdFailedToShow(adError: com.yandex.mobile.ads.common.AdError) =
-                finishShow(activity, closeOnce, null)
-            override fun onAdDismissed() = finishShow(activity, closeOnce, onCompleted)
+                finishShow(activity, continueOnce)
+            override fun onAdDismissed() = finishShow(activity, continueOnce)
             override fun onAdClicked() = Unit
             override fun onAdImpression(impressionData: ImpressionData?) = Unit
         })
-        runCatching { ad.show(activity) }.onFailure { finishShow(activity, closeOnce, null) }
+        runCatching { ad.show(activity) }.onFailure { finishShow(activity, continueOnce) }
     }
 
-    private fun finishShow(activity: Activity, closeOnce: () -> Unit, onCompleted: (() -> Unit)?) {
+    private fun finishShow(activity: Activity, continueOnce: () -> Unit) {
+        if (!isShowingAd) return
         googleAd = null
         yandexAd?.setAdEventListener(null)
         yandexAd = null
         markShowing(false)
-        closeOnce()
-        onCompleted?.invoke()
+        continueOnce()
         load(activity)
     }
 
     private fun markShowing(showing: Boolean) {
         isShowingAd = showing
         AdsGate.isFullScreenAdShowing = showing
+    }
+
+    fun invalidateCachedAd() {
+        if (isShowingAd) return
+        googleAd = null
+        yandexAd?.setAdEventListener(null)
+        yandexAd = null
+        yandexLoader = null
+        isLoadingAd = false
+        val callbacks = pendingLoadCallbacks.toList()
+        pendingLoadCallbacks.clear()
+        callbacks.forEach { it.second() }
     }
 
     companion object {

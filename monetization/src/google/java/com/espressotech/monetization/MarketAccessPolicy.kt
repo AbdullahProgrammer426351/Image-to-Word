@@ -12,9 +12,14 @@ import java.util.TimeZone
  * perform their own locale or provider checks.
  */
 object MarketAccessPolicy {
+    const val DEBUG_PROVIDER_OVERRIDE_EXTRA = "ads_provider_override"
+
     private var initialized = false
 
-    fun initialize(@Suppress("UNUSED_PARAMETER") context: Context) {
+    fun initialize(
+        @Suppress("UNUSED_PARAMETER") context: Context,
+        debugProviderOverride: String? = null,
+    ) {
         if (initialized) return
         initialized = true
 
@@ -22,10 +27,23 @@ object MarketAccessPolicy {
         val regionMatch = locale.country.equals("RU", ignoreCase = true)
         val timezone = TimeZone.getDefault().id
         val timezoneMatch = AdRegionDetector.isRussianMarket("", timezone)
+        val automaticUseYandex = AdRegionDetector.isRussianMarket(locale.country, timezone)
+        val appliedOverride = if (Monetization.config.isDebug) {
+            when (debugProviderOverride?.lowercase(Locale.ROOT)) {
+                "yandex" -> AdsGate.AdProvider.YANDEX
+                "google", "admob" -> AdsGate.AdProvider.GOOGLE_MEDIATION
+                else -> null
+            }
+        } else {
+            null
+        }
         val useYandex = Monetization.config.yandexAdUnitIds != null &&
-            AdRegionDetector.isRussianMarket(locale.country, timezone)
+            (appliedOverride == AdsGate.AdProvider.YANDEX ||
+                appliedOverride == null && automaticUseYandex)
 
-        AdsGate.provider = if (useYandex) {
+        AdsGate.provider = if (appliedOverride == AdsGate.AdProvider.GOOGLE_MEDIATION) {
+            AdsGate.AdProvider.GOOGLE_MEDIATION
+        } else if (useYandex) {
             AdsGate.AdProvider.YANDEX
         } else {
             AdsGate.AdProvider.GOOGLE_MEDIATION
@@ -34,7 +52,8 @@ object MarketAccessPolicy {
             "MarketAccessPolicy",
             "provider=${AdsGate.provider}, region=${locale.country.ifBlank { "unavailable" }}, " +
                 "timezone=$timezone, language=${locale.language.ifBlank { "unavailable" }}, " +
-                "regionMatch=$regionMatch, timezoneMatch=$timezoneMatch",
+                "regionMatch=$regionMatch, timezoneMatch=$timezoneMatch, " +
+                "debugOverride=${appliedOverride?.name ?: "none"}",
         )
     }
 

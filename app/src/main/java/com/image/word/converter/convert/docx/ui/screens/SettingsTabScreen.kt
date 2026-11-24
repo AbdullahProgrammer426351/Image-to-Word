@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.espressotech.monetization.store.StoreLinks
+import com.espressotech.monetization.ads.ConsentManager
 import com.image.word.converter.convert.docx.BuildConfig
 import com.image.word.converter.convert.docx.R
 import com.image.word.converter.convert.docx.ui.components.AssetImage
@@ -42,6 +43,7 @@ fun SettingsTabScreen(
     isSubscribed: Boolean,
 ) {
     val context = LocalContext.current
+    val activity = context as? android.app.Activity
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -86,6 +88,14 @@ fun SettingsTabScreen(
                 subtitle = stringResource(R.string.read_our_privacy_policy),
                 onClick = { AppLinks.openPrivacy(context) },
             )
+            if (activity != null && ConsentManager.shared.isPrivacyOptionsRequired) {
+                SettingsItem(
+                    icon = "ic_privacy_s.svg",
+                    title = stringResource(R.string.privacy_choices),
+                    subtitle = stringResource(R.string.manage_ad_privacy_choices),
+                    onClick = { ConsentManager.shared.presentPrivacyOptions(activity) },
+                )
+            }
             SettingsItem(
                 icon = "ic_disclaimer_s.svg",
                 title = stringResource(R.string.important_info),

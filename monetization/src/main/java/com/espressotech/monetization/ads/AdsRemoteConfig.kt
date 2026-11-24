@@ -11,13 +11,13 @@ object AdsRemoteConfig {
     private fun key(suffix: String): String =
         "${suffix}_${Monetization.config.remoteConfigPrefix}"
 
-    private val appOpenKey get() = key("appOpenAdStatus")
-    private val bannerKey get() = key("bannerAdStatus")
-    private val testAdsKey get() = key("enableTestAds")
-    private val frequencyAppOpenKey get() = key("frequency_appOpenAdStatus")
-    private val frequencyInterstitialKey get() = key("frequencyinterstitialAdStatus")
-    private val interstitialKey get() = key("interstitialAdStatus")
-    private val nativeKey get() = key("nativeAdStatus")
+    private val appOpenKey get() = key("appOpenAdStatus_ImgToWord_Android")
+    private val bannerKey get() = key("bannerAdStatus_ImgToWord_Android")
+    private val testAdsKey get() = key("enableTestAds_ImgToWord_Android")
+    private val frequencyAppOpenKey get() = key("frequency_appOpenAdStatus_ImgToWord_Android")
+    private val frequencyInterstitialKey get() = key("frequencyinterstitialAdStatus_ImgToWord_Android")
+    private val interstitialKey get() = key("interstitialAdStatus_ImgToWord_Android")
+    private val nativeKey get() = key("nativeAdStatus_ImgToWord_Android")
 
     fun initialize(activity: Activity, onComplete: () -> Unit = {}) {
         val isDebugBuild = Monetization.config.isDebug
@@ -56,6 +56,9 @@ object AdsRemoteConfig {
 
         // Never allow test ad IDs in non-debug builds, even if remote flag is true.
         val useTestAds = remoteConfig.getBoolean(testAdsKey) && Monetization.config.isDebug
-        AdsId.applyIds(useTestAds)
+        AdsId.applyIds(
+            useGoogleTestAds = useTestAds,
+            useYandexTestAds = useTestAds,
+        )
     }
 }

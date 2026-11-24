@@ -164,6 +164,8 @@
     <string name="auto_renewal_cancel_anytime">Auto-Renewal • Cancel Whenever You Wish</string>
     <string name="subscription_legal_text">Your subscription renews automatically unless canceled at least 24 hours before the end of the current period. You can manage or cancel anytime from account settings. Use Restore Purchase if you have already bought a plan.</string>
     <string name="privacy_policy">Privacy Policy</string>
+    <string name="privacy_choices" translatable="false">Privacy Choices</string>
+    <string name="manage_ad_privacy_choices" translatable="false">Manage your advertising privacy choices.</string>
     <string name="terms_of_use">Term of use</string>
 
     <string name="purchase_failed">Purchase failed.</string>

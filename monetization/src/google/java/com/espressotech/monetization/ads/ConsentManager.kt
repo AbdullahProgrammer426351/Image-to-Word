@@ -2,12 +2,18 @@ package com.espressotech.monetization.ads
 
 import android.app.Activity
 import android.content.pm.ApplicationInfo
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 
 class ConsentManager private constructor() {
+    var isPrivacyOptionsRequired by mutableStateOf(false)
+        private set
+
     fun requestConsent(activity: Activity, alwaysShow: Boolean = false, onComplete: () -> Unit = {}) {
         val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
         if (alwaysShow) {
@@ -29,12 +35,8 @@ class ConsentManager private constructor() {
             activity,
             params,
             {
-                if (consentInformation.canRequestAds()) {
-                    applyConsentState(activity, consentInformation, fallbackToAdsAllowed = false)
-                    onComplete()
-                    return@requestConsentInfoUpdate
-                }
-
+                // Always ask UMP to present a newly-required message. canRequestAds can
+                // remain true from a previous session while an updated form is pending.
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) {
                     applyConsentState(activity, consentInformation, fallbackToAdsAllowed = false)
                     onComplete()
@@ -53,6 +55,8 @@ class ConsentManager private constructor() {
         fallbackToAdsAllowed: Boolean,
     ) {
         val canRequestAds = consentInformation.canRequestAds() || fallbackToAdsAllowed
+        isPrivacyOptionsRequired = consentInformation.privacyOptionsRequirementStatus ==
+            ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
         AdsGate.canRequestAds = canRequestAds
         val allowsPersonalizedAds = AdPersonalizationResolver.allowsPersonalizedAds(
             context = activity,
@@ -60,6 +64,20 @@ class ConsentManager private constructor() {
             canRequestAds = canRequestAds,
         )
         AdsGate.isPersonalizedAdsAllowed = { allowsPersonalizedAds }
+        AdsGate.notifyConsentStateChanged()
+    }
+
+    fun presentPrivacyOptions(activity: Activity) {
+        if (!isPrivacyOptionsRequired) return
+        UserMessagingPlatform.showPrivacyOptionsForm(activity) {
+            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+            applyConsentState(activity, consentInformation, fallbackToAdsAllowed = false)
+            InterstitialAdManager.shared.invalidateCachedAd()
+            InterstitialAdManager.frequencyShared.invalidateCachedAd()
+            AppOpenAdManager.shared.invalidateCachedAd()
+            AppOpenAdManager.frequencyShared.invalidateCachedAd()
+            AdsInitializer.initialize(activity)
+        }
     }
 
     companion object {

@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -23,10 +24,12 @@ fun BannerAd(modifier: Modifier = Modifier) {
         !AdsGate.canRequestAds || !AdsGate.isSdkReady
     ) return
 
-    if (AdsGate.provider == AdsGate.AdProvider.YANDEX) {
-        YandexBanner(activity, modifier)
-    } else {
-        GoogleBanner(activity, modifier)
+    key(AdsGate.provider, AdsGate.consentRevision) {
+        if (AdsGate.provider == AdsGate.AdProvider.YANDEX) {
+            YandexBanner(activity, modifier)
+        } else {
+            GoogleBanner(activity, modifier)
+        }
     }
 }
 

@@ -31,7 +31,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Monetization.initialize(this, AppMonetizationConfig.create(this))
-        MarketAccessPolicy.initialize(this)
+        MarketAccessPolicy.initialize(
+            context = this,
+            debugProviderOverride = intent.getStringExtra(MarketAccessPolicy.DEBUG_PROVIDER_OVERRIDE_EXTRA),
+        )
         enableEdgeToEdge()
 
         setContent {

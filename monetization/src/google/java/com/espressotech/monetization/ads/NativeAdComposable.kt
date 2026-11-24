@@ -56,7 +56,7 @@ fun NativeAdCard(modifier: Modifier = Modifier) {
         onDispose { ad?.destroy() }
     }
 
-    LaunchedEffect(adUnitId) {
+    LaunchedEffect(adUnitId, AdsGate.consentRevision) {
         val loader = AdLoader.Builder(context, adUnitId)
             .forNativeAd { ad ->
                 nativeAd?.destroy()
@@ -97,7 +97,7 @@ private fun YandexNativeAdCard(modifier: Modifier, adUnitId: String) {
         }
     }
 
-    LaunchedEffect(adUnitId) {
+    LaunchedEffect(adUnitId, AdsGate.consentRevision) {
         loader.loadAd(
             YandexAdRequest.Builder(adUnitId).build(),
             object : NativeAdLoadListener {

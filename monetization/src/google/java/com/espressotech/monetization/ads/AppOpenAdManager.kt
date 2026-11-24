@@ -11,6 +11,7 @@ import com.yandex.mobile.ads.appopenad.AppOpenAdLoader
 import com.yandex.mobile.ads.common.AdRequest as YandexAdRequest
 import com.yandex.mobile.ads.common.AdRequestError
 import com.yandex.mobile.ads.common.ImpressionData
+import java.util.concurrent.TimeUnit
 
 /** Provider-neutral app-open facade. */
 class AppOpenAdManager private constructor(
@@ -23,8 +24,10 @@ class AppOpenAdManager private constructor(
     private var yandexLoader: AppOpenAdLoader? = null
     private var isLoading = false
     private var isShowingAd = false
+    private var loadedAtMillis = 0L
 
     fun loadIfNeeded(activity: Activity) {
+        if (!isFresh()) clearCachedAd()
         val adUnitId = if (AdsGate.provider == AdsGate.AdProvider.YANDEX) {
             yandexAdUnitProvider()
         } else {
@@ -46,6 +49,7 @@ class AppOpenAdManager private constructor(
                     override fun onAdLoaded(ad: YandexAppOpenAd) {
                         isLoading = false
                         yandexAd = ad
+                        loadedAtMillis = System.currentTimeMillis()
                     }
 
                     override fun onAdFailedToLoad(error: AdRequestError) {
@@ -63,6 +67,7 @@ class AppOpenAdManager private constructor(
                     override fun onAdLoaded(ad: AppOpenAd) {
                         isLoading = false
                         googleAd = ad
+                        loadedAtMillis = System.currentTimeMillis()
                     }
 
                     override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
@@ -75,6 +80,7 @@ class AppOpenAdManager private constructor(
     }
 
     fun showIfAvailable(activity: Activity, onClose: (() -> Unit)? = null) {
+        if (!isFresh()) clearCachedAd()
         var closed = false
         val closeOnce = {
             if (!closed) {
@@ -124,9 +130,8 @@ class AppOpenAdManager private constructor(
     }
 
     private fun finish(activity: Activity, closeOnce: () -> Unit) {
-        googleAd = null
-        yandexAd?.setAdEventListener(null)
-        yandexAd = null
+        if (!isShowingAd) return
+        clearCachedAd()
         setShowing(false)
         closeOnce()
         loadIfNeeded(activity)
@@ -135,6 +140,25 @@ class AppOpenAdManager private constructor(
     private fun setShowing(showing: Boolean) {
         isShowingAd = showing
         AdsGate.isFullScreenAdShowing = showing
+    }
+
+    private fun isFresh(): Boolean {
+        if (googleAd == null && yandexAd == null) return true
+        return System.currentTimeMillis() - loadedAtMillis < TimeUnit.HOURS.toMillis(1)
+    }
+
+    private fun clearCachedAd() {
+        googleAd = null
+        yandexAd?.setAdEventListener(null)
+        yandexAd = null
+        loadedAtMillis = 0L
+    }
+
+    fun invalidateCachedAd() {
+        if (isShowingAd) return
+        clearCachedAd()
+        yandexLoader = null
+        isLoading = false
     }
 
     companion object {

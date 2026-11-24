@@ -177,7 +177,10 @@ class GoogleSubscriptionBillingProvider(
     ) {
         var hasActive = false
         purchases.forEach { purchase ->
-            if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+            val belongsToThisAppConfig = purchase.products.any { productId ->
+                productId in Monetization.config.productIds
+            }
+            if (belongsToThisAppConfig && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
                 hasActive = true
                 if (!purchase.isAcknowledged) {
                     val params = AcknowledgePurchaseParams.newBuilder()

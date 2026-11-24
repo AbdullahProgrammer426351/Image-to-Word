@@ -30,9 +30,12 @@ object AdsId {
     var yandexFrequencyAppOpenId: String = ""
         private set
 
-    fun applyIds(useTestAds: Boolean) {
+    fun applyIds(
+        useGoogleTestAds: Boolean,
+        useYandexTestAds: Boolean,
+    ) {
         val production = Monetization.config.adUnitIds
-        if (useTestAds || Monetization.config.isDebug) {
+        if (useGoogleTestAds) {
             bannerId = AdIdDefaults.BANNER
             nativeId = AdIdDefaults.NATIVE
             interstitialId = AdIdDefaults.INTERSTITIAL
@@ -51,7 +54,7 @@ object AdsId {
         }
 
         val yandex = Monetization.config.yandexAdUnitIds
-        if (useTestAds || Monetization.config.isDebug) {
+        if (useYandexTestAds) {
             yandexBannerId = "demo-banner-yandex"
             yandexNativeId = "demo-native-app-yandex"
             yandexInterstitialId = "demo-interstitial-yandex"

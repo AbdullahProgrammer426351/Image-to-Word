@@ -29,6 +29,6 @@ data class MonetizationConfig(
     val weekLabel: String,
     val noSubscriptionFoundMessage: String,
     val productLabels: Map<String, String> = emptyMap(),
-    val bypassSubscriptionAndAds: Boolean = true,
+    val bypassSubscriptionAndAds: Boolean = false,
     val russianMarketUsesAdsInsteadOfSubscription: Boolean = false,
 )

@@ -27,7 +27,6 @@ object AppMonetizationConfig {
             PRODUCT_WEEKLY to context.getString(R.string.weekly),
             PRODUCT_MONTHLY to context.getString(R.string.monthly),
         ),
-        bypassSubscriptionAndAds = false,
     )
 
     private const val PRODUCT_WEEKLY = "pdfcompress_1w"

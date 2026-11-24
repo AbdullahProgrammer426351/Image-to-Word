@@ -112,7 +112,7 @@ fun AppRoot(activity: Activity) {
                         }
                         val prefs = activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
                         if (prefs.getBoolean("seen_walkthrough", false)) {
-                            InterstitialAdManager.shared.show(activity, onClose = proceed)
+                            AppOpenAdManager.shared.showIfAvailable(activity, onClose = proceed)
                         } else {
                             proceed()
                         }
@@ -129,7 +129,7 @@ fun AppRoot(activity: Activity) {
 
                         activity.getSharedPreferences("walkthrough_prefs", android.content.Context.MODE_PRIVATE)
                             .edit { putBoolean("seen_walkthrough", true) }
-                        InterstitialAdManager.shared.show(activity) {
+                        AppOpenAdManager.shared.showIfAvailable(activity) {
                             navController.safeNavigate(Routes.main(autoSub = true)) {
                                 popUpTo(Routes.Walkthrough) { inclusive = true }
                                 launchSingleTop = true

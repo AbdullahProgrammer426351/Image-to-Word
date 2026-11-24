@@ -19,6 +19,10 @@ only call the stable facades (`BannerAd`, `NativeAdCard`, `InterstitialAdManager
 6. Configure Meta Audience Network as a bidding source for the AdMob units in the
    AdMob console. Placement mapping is server-side; there is no Meta placement ID in code.
 
+Firebase Remote Config uses the single `enableTestAds_<remoteConfigPrefix>` flag for
+both Google mediation test IDs and the official Yandex demo placements. It is honored
+only by debug builds; release builds always use production IDs.
+
 Google/Yandex code exists only in `src/google`; Huawei code exists only in `src/huawei`.
 Do not move provider SDK dependencies to `implementation`, or they will leak into Huawei.
 
@@ -29,3 +33,6 @@ timezone selects Yandex. Language does not select a provider. In that market,
 `SubscriptionViewModel.uiState.isSubscribed` represents effective premium tool access,
 while `isAdEligible` continues to represent the real store entitlement so ads remain
 enabled for free users.
+
+For provider testing without changing device settings, pass the debug-only launch
+extra `ads_provider_override` with `google` or `yandex`. Release builds ignore it.
